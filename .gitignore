@@ -1,0 +1,34 @@
+# Compiled binaries
+bin/
+mir/
+gen/
+deploy/
+export/
+
+# Debug files
+debug.xml
+internal-mir/
+external-mir/
+
+# Node files
+node_modules/
+package-lock.json
+package.json
+test_build-settings.json
+
+# Build artifacts
+*.prg
+*.prg.*
+
+# IDE/Editor settings
+.settings/
+.project
+.cproject
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Developer Key (CRITICAL: Never commit this)
+developer_key*

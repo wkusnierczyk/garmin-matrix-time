@@ -1,0 +1,9 @@
+<resources>
+
+    <fonts>
+    </fonts>
+
+    <jsonData id="FontCharsets" filename="charsets.json"/>
+    <jsonData id="ScreenResolutions" filename="resolutions.json" />
+
+</resources>

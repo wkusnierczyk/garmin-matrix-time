@@ -1,0 +1,20 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+    <string id="AppName">{blank:ucname}Time</string>
+    <string id="Customize">{blank:ucname} Time</string>
+
+    <!-- <string id="StandardTimeMenuTitle">Show Standard Time</string>
+
+    <string id="MultiOptionMenuTitle">MultiOption</string>
+    <string id="Option1">Option 1</string>
+    <string id="Option2">Option 2</string>
+    <string id="Option3">Option 3</string>
+
+    <jsonData id="MultiOptionValues">[
+        "Option 1",
+        "Option 2",
+        "Option 3"
+    ]</jsonData> -->
+
+</resources>

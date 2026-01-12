@@ -1,0 +1,102 @@
+{
+    "reference": {
+        "resolution": [
+            280,
+            280
+        ],
+        "shape": "round"
+    },
+    "targets": [
+        {
+            "resolution": [
+                218,
+                218
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                240,
+                240
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                260,
+                260
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                280,
+                280
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                360,
+                360
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                390,
+                390
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                416,
+                416
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                454,
+                454
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
+                240,
+                240
+            ],
+            "shape": "rectangle"
+        },
+        {
+            "resolution": [
+                320,
+                360
+            ],
+            "shape": "rectangle"
+        },
+        {
+            "resolution": [
+                148,
+                205
+            ],
+            "shape": "rectangle"
+        },
+        {
+            "resolution": [
+                215,
+                180
+            ],
+            "shape": "semi-round"
+        },
+        {
+            "resolution": [
+                176,
+                176
+            ],
+            "shape": "semi-octagon"
+        }
+    ]
+}
