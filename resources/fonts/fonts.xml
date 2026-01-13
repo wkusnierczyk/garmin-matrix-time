@@ -1,6 +1,8 @@
 <resources>
 
     <fonts>
+        <font id="Matrix" filename="MatrixCodeNFI-30.fnt" antialias="true" />
+        <font id="Time" filename="SUSEMono-Regular-30.fnt" antialias="true" />
     </fonts>
 
     <jsonData id="FontCharsets" filename="charsets.json"/>

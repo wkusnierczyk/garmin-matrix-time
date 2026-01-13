@@ -1,6 +1,10 @@
 [
     {
-        "fontCharset": "0123456789",
-        "fontId": "Digits"
+        "fontCharset": "abcdefghijklmnopqrstuvwxyz0123456789",
+        "fontId": "Matrix"
+    },
+    {
+        "fontCharset": "0123456789 :",
+        "fontId": "Time"
     }
 ]

@@ -1,0 +1,16 @@
+info face="SUSEMono-Regular.ttf" size=24 bold=0 italic=0 charset="" unicode=0 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=2,1
+common lineHeight=31 base=24 scaleW=204 scaleH=31 pages=1 packed=0
+page id=0 file="SUSEMono-Regular-24.png"
+chars count=12
+char id=48 x=0 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=49 x=17 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=50 x=34 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=51 x=51 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=52 x=68 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=53 x=85 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=54 x=102 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=55 x=119 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=56 x=136 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=57 x=153 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=32 x=170 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
+char id=58 x=187 y=0 width=15 height=31 xoffset=0 yoffset=0 xadvance=15 page=0 chnl=15
