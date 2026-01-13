@@ -11,7 +11,7 @@ import Toybox.Lang;
 
 const 
     FONT = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType,
-    CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray(),
+    CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray() as Array<Char>,
     CHARSET_SIZE = CHARSET.size(),
     COLOR = 0x00FF2B;
 
@@ -73,27 +73,21 @@ class DigitalRain {
 
     private function _initialize() as DigitalRain {
 
-        // var textDimensions = _dc.getTextDimensions("0", _font);
-        _rowHeight = _dc.getFontHeight(_font); // textDimensions[0];
-        _columnWidth =  _dc.getTextWidthInPixels("0", _font); // textDimensions[1];
+        _rowHeight = _dc.getFontHeight(_font);
+        _columnWidth =  _dc.getTextWidthInPixels("0", _font);
         _rowCount = _height / _rowHeight + 1;
         _columnCount = _width / _columnWidth + 1;
 
-        _trails = new [_columnCount];
+        _trails = new [_columnCount] as Array<Array<Char>>;
         _heads = new [_columnCount];
+
         for (var i = 0; i < _columnCount; ++i) {
-            var trail = new [_rowCount];
-            var head = Math.rand() % _rowCount;
+            _trails[i] = new [_rowCount] as Array<Char>;
             for (var j = 0; j < _rowCount; ++j) {
-                if (j < head) {
-                    var index = Math.rand() % CHARSET_SIZE;
-                    trail[j] = CHARSET[index];
-                } else {
-                    trail[j]= ' ';
-                }
+                var index = Math.rand() % CHARSET_SIZE;
+                _trails[i][j] = CHARSET[index];
             }
-            _trails[i] = trail;
-            _heads[i] = head;
+            _heads[i] = Math.rand() % _rowCount;
         }
 
         _generateShades();
@@ -105,7 +99,7 @@ class DigitalRain {
     }
 
 
-    private function _drawTrails() {
+    private function _drawTrails() as DigitalRain {
 
         for (var i = 0; i < _columnCount; ++i) {
             var trail = _trails[i];
@@ -118,6 +112,26 @@ class DigitalRain {
             }
         }
 
+        return _updateTrails();
+
+    }
+
+    private function _updateTrails() as DigitalRain {
+
+        for (var i = 0; i < _columnCount; ++i) {
+            _heads[i] = (_heads[i] + 1) % _rowCount;
+            if (_heads[i] == 0) {
+                // TODO regenerate trail, but careful about the still falling tail, it should not suddenl;y change
+            }
+        }
+
+        return self;
+    }
+
+
+    private function _drawTime() as DigitalRain {
+        // TODO
+        return self;
     }
 
 
