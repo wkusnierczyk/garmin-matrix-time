@@ -84,12 +84,13 @@ class DigitalRain {
 
         _drawTrails();
         _drawTime();
+
         return self;
 
     }
 
 
-    private function _initialize() as DigitalRain {
+    private function _initialize() {
 
         _rowHeight = _dc.getFontHeight(_matrixFont);
         _columnWidth =  _dc.getTextWidthInPixels("0", _matrixFont);
@@ -111,12 +112,11 @@ class DigitalRain {
         _generateShades();
 
         _initialized = true;
-        return self;
 
     }
 
 
-    private function _drawTrails() as DigitalRain {
+    private function _drawTrails() {
 
         for (var i = 0; i < _columnCount; ++i) {
             var trail = _trails[i];
@@ -128,41 +128,42 @@ class DigitalRain {
                 _dc.drawText(i * _columnWidth, j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
             }
             _heads[i] = (_heads[i] + 1) % _rowCount;
-        }
 
-        return self;
+            // Change one random character in the trail to a new random character
+            trail[Math.rand() % _rowCount] = CHARSET[Math.rand() % CHARSET_SIZE];
+        }
 
     }
 
 
-    private function _drawTime() as DigitalRain {
+    private function _drawTime() {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var time = Lang.format("$1$:$2$", [info.hour.format("%2d"), info.min.format("%02d")]);
         // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
         _dc.setColor(_timeColor, Graphics.COLOR_BLACK);
         _dc.drawText(_centerX, _centerY, _timeFont, time, JUSTIFY);
-        
-        return self;
 
     }
 
 
     private function _generateShades() {
+
         var steps = _rowCount / 2;
-        var shades = new [_rowCount] as Array<Graphics.ColorType>;
         var red = (_matrixColor >> RED_SHIFT) & MASK,
             green = (_matrixColor >> GREEN_SHIFT) & MASK,
             blue = (_matrixColor >> BLUE_SHIFT) & MASK;
+        
+        _shades = new [_rowCount] as Array<Graphics.ColorType>;
         for (var i = 0; i < _rowCount; ++i) {
-            shades[i] = ((red * (steps - i) / steps) << RED_SHIFT) |
+            _shades[i] = ((red * (steps - i) / steps) << RED_SHIFT) |
                         ((green * (steps - i) / steps) << GREEN_SHIFT) | 
                         ((blue * (steps - i) / steps) << BLUE_SHIFT);
-            if (shades[i] < 0) {
-                shades[i] = 0;
+            if (_shades[i] < 0) {
+                _shades[i] = 0;
             }
         }        
-        _shades = shades;
+
     }
 
 }
