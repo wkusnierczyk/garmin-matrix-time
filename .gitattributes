@@ -2,3 +2,12 @@ resources/fonts/MatrixCodeNFI.ttf filter=lfs diff=lfs merge=lfs -text
 resources/drawables/launcher_icon.png filter=lfs diff=lfs merge=lfs -text
 resources/fonts/MatrixCodeNFI-20.png filter=lfs diff=lfs merge=lfs -text
 resources/fonts/MatrixCodeNFI-30.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTimeHero-small.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTime1.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTime4.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTimeCapture.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTimeHero.png filter=lfs diff=lfs merge=lfs -text
+resources/fonts/SUSEMono-Regular.ttf filter=lfs diff=lfs merge=lfs -text
+resources/fonts/SUSEMono-Regular-30.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTime2.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTime3.png filter=lfs diff=lfs merge=lfs -text

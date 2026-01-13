@@ -10,10 +10,12 @@ import Toybox.Lang;
 
 
 const 
-    FONT = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType,
+    MATRIX_FONT = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType,
+    TIME_FONT = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType,
     CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray() as Array<Char>,
     CHARSET_SIZE = CHARSET.size(),
-    COLOR = 0x00FF2B;
+    MATRIX_COLOR = 0x00FF2B,
+    TIME_COLOR = Graphics.COLOR_GREEN;
 
 const 
     SCREEN_WIDTH = System.getDeviceSettings().screenWidth,
@@ -32,13 +34,17 @@ const
 class DigitalRain {
 
     private var 
-        _font = FONT,
-        _color = COLOR,
+        _timeColor = TIME_COLOR,
+        _timeFont = TIME_FONT,
+        _matrixFont = MATRIX_FONT,
+        _matrixColor = MATRIX_COLOR,
         _shades as Array<Graphics.ColorType> or Null;
 
     private var
         _width as Number,
-        _height as Number;
+        _height as Number,
+        _centerX as Number,
+        _centerY as Number;
 
     private var
         _trails as Array<Array<Char>> or Null,
@@ -51,11 +57,21 @@ class DigitalRain {
 
     private var _dc as Graphics.Dc or Null;
 
+    private var _time as Time.Moment or Null;
+
 
     function initialize() {
         var settings = System.getDeviceSettings();
         _width = settings.screenWidth;
         _height = settings.screenHeight;
+        _centerX = _width / 2;
+        _centerY = _height / 2;
+    }
+
+
+    function forTime(time as Time.Moment or Null) as DigitalRain {
+        _time = (time == null) ? Time.now() : time;
+        return self;
     }
 
 
@@ -67,14 +83,16 @@ class DigitalRain {
         }
 
         _drawTrails();
-
+        _drawTime();
         return self;
+
     }
+
 
     private function _initialize() as DigitalRain {
 
-        _rowHeight = _dc.getFontHeight(_font);
-        _columnWidth =  _dc.getTextWidthInPixels("0", _font);
+        _rowHeight = _dc.getFontHeight(_matrixFont);
+        _columnWidth =  _dc.getTextWidthInPixels("0", _matrixFont);
         _rowCount = _height / _rowHeight + 1;
         _columnCount = _width / _columnWidth + 1;
 
@@ -93,7 +111,6 @@ class DigitalRain {
         _generateShades();
 
         _initialized = true;
-
         return self;
 
     }
@@ -108,39 +125,35 @@ class DigitalRain {
                 var character = trail[j];
                 var shade = _shades[(_rowCount + head - j) % _rowCount];
                 _dc.setColor(shade, Graphics.COLOR_TRANSPARENT);
-                _dc.drawText(i * _columnWidth, j * _rowHeight, _font, character.toString(), JUSTIFY);
+                _dc.drawText(i * _columnWidth, j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
             }
-        }
-
-        return _updateTrails();
-
-    }
-
-    private function _updateTrails() as DigitalRain {
-
-        for (var i = 0; i < _columnCount; ++i) {
             _heads[i] = (_heads[i] + 1) % _rowCount;
-            if (_heads[i] == 0) {
-                // TODO regenerate trail, but careful about the still falling tail, it should not suddenl;y change
-            }
         }
 
         return self;
+
     }
 
 
     private function _drawTime() as DigitalRain {
-        // TODO
+
+        var info = Gregorian.info(_time, Time.FORMAT_SHORT);
+        var time = Lang.format("$1$:$2$", [info.hour.format("%2d"), info.min.format("%02d")]);
+        // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
+        _dc.setColor(_timeColor, Graphics.COLOR_BLACK);
+        _dc.drawText(_centerX, _centerY, _timeFont, time, JUSTIFY);
+        
         return self;
+
     }
 
 
     private function _generateShades() {
         var steps = _rowCount / 2;
         var shades = new [_rowCount] as Array<Graphics.ColorType>;
-        var red = (_color >> RED_SHIFT) & MASK,
-            green = (_color >> GREEN_SHIFT) & MASK,
-            blue = (_color >> BLUE_SHIFT) & MASK;
+        var red = (_matrixColor >> RED_SHIFT) & MASK,
+            green = (_matrixColor >> GREEN_SHIFT) & MASK,
+            blue = (_matrixColor >> BLUE_SHIFT) & MASK;
         for (var i = 0; i < _rowCount; ++i) {
             shades[i] = ((red * (steps - i) / steps) << RED_SHIFT) |
                         ((green * (steps - i) / steps) << GREEN_SHIFT) | 

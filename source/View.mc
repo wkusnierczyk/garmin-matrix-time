@@ -19,9 +19,10 @@ class View extends WatchUi.WatchFace {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
         dc.fillRectangle(0, 0, dc.getWidth(), dc.getHeight());
 
-        // var time = Time.now();
+        var time = Time.now();
 
         _digitalRain
+            .forTime(time)
             .draw(dc);
 
 
