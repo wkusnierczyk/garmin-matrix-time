@@ -1,6 +1,7 @@
 <resources>
 
     <fonts>
+        <font id="Matrix" filename="MatrixCodeNFI-30.fnt" antialias="true" />
     </fonts>
 
     <jsonData id="FontCharsets" filename="charsets.json"/>

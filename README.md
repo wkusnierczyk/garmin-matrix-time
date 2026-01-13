@@ -38,7 +38,6 @@ The {blank:ucname} Time watch face supports the following features:
 
 The {blank:ucname} Time watch face uses custom fonts:
 
-{blank:fonts}
 
 > The development of Garmin watch faces motivated the implementation of two useful tools:
 > * A TTF to FNT+PNG converter ([`ttf2bmp`](https://github.com/wkusnierczyk/ttf2bmp)).  

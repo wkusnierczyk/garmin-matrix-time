@@ -1,0 +1,4 @@
+resources/fonts/MatrixCodeNFI.ttf filter=lfs diff=lfs merge=lfs -text
+resources/drawables/launcher_icon.png filter=lfs diff=lfs merge=lfs -text
+resources/fonts/MatrixCodeNFI-20.png filter=lfs diff=lfs merge=lfs -text
+resources/fonts/MatrixCodeNFI-30.png filter=lfs diff=lfs merge=lfs -text
