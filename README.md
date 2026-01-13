@@ -4,7 +4,7 @@ A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face th
 
 ![Matrix Time](resources/graphics/MatrixTimeHero-small.png)
 
-Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps/{blank:app-id}) or through the Connect IQ mobile app.
+Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps/71aed235-c2f2-4b33-b29f-836e83497853) or through the Connect IQ mobile app.
 
 > **Note**  
 > Matrix Time is part of a [collection of unconventional Garmin watch faces](https://github.com/wkusnierczyk/garmin-watch-faces). It has been developed for fun, as a proof of concept, and as a learning experience.
