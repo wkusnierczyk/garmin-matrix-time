@@ -8,10 +8,10 @@ SDK_BIN ?= /Users/waku/Library/Application_Support/Garmin/ConnectIQ/Sdks/connect
 DEV_KEY ?= ../garmin-keys/developer_key
 
 # The device to simulate (must match one in manifest.xml)
-DEVICE ?= fenix7xpronowifi
+DEVICE ?= epix2pro47mm
 
 # Output filename
-OUTPUT := {blank:ucname}Time.prg
+OUTPUT := MatrixTime.prg
 # =================================================
 
 # Commands
