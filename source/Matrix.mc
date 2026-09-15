@@ -122,8 +122,14 @@ class DigitalRain {
             var trail = _trails[i];
             var head = _heads[i];
             for (var j = 0; j < _rowCount; ++j) {
-                var character = trail[j];
                 var shade = _shades[(_rowCount + head - j) % _rowCount];
+                if (shade == 0) {
+                    // The ramp fades to black over half a screen, so the far half of
+                    // every trail is 0x000000. Drawing that on a black background
+                    // paints nothing -- skip it rather than pay for setColor+drawText.
+                    continue;
+                }
+                var character = trail[j];
                 _dc.setColor(shade, Graphics.COLOR_TRANSPARENT);
                 _dc.drawText(i * _columnWidth, j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
             }
