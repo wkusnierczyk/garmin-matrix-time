@@ -49,6 +49,8 @@ class DigitalRain {
     private var
         _trails as Array<Array<Char>> or Null,
         _heads as Array<Number> or Null,
+        _rowFirst as Array<Number> or Null,
+        _rowLast as Array<Number> or Null,
         _rowCount as Number or Null,
         _columnCount as Number or Null,
         _rowHeight as Number or Null,
@@ -110,8 +112,44 @@ class DigitalRain {
         }
 
         _generateShades();
+        _generateSpans();
 
         _initialized = true;
+
+    }
+
+
+    private function _generateSpans() {
+
+        // On a round display the grid's corners fall outside the glass. Precompute,
+        // per column, the first and last row whose cell centre is actually on the
+        // display, so _drawTrails can skip the rest instead of drawing off-screen.
+        _rowFirst = new [_columnCount];
+        _rowLast = new [_columnCount];
+
+        var round = System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND;
+        var radius = (_width < _height ? _width : _height) / 2.0;
+
+        for (var i = 0; i < _columnCount; ++i) {
+            if (!round) {
+                _rowFirst[i] = 0;
+                _rowLast[i] = _rowCount - 1;
+                continue;
+            }
+            var dx = i * _columnWidth - _centerX;
+            var span = radius * radius - dx * dx;
+            if (span < 0) {
+                // whole column is off the glass
+                _rowFirst[i] = 0;
+                _rowLast[i] = -1;
+                continue;
+            }
+            var dy = Math.sqrt(span);
+            var first = Math.ceil((_centerY - dy) / _rowHeight).toNumber();
+            var last = Math.floor((_centerY + dy) / _rowHeight).toNumber();
+            _rowFirst[i] = first < 0 ? 0 : first;
+            _rowLast[i] = last > _rowCount - 1 ? _rowCount - 1 : last;
+        }
 
     }
 
@@ -121,7 +159,7 @@ class DigitalRain {
         for (var i = 0; i < _columnCount; ++i) {
             var trail = _trails[i];
             var head = _heads[i];
-            for (var j = 0; j < _rowCount; ++j) {
+            for (var j = _rowFirst[i]; j <= _rowLast[i]; ++j) {
                 var shade = _shades[(_rowCount + head - j) % _rowCount];
                 if (shade == 0) {
                     // The ramp fades to black over half a screen, so the far half of
