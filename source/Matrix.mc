@@ -139,7 +139,12 @@ class DigitalRain {
     private function _drawTime() {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
-        var time = Lang.format("$1$:$2$", [info.hour.format("%2d"), info.min.format("%02d")]);
+        var hour = info.hour;
+        if (!System.getDeviceSettings().is24Hour) {
+            // FORMAT_SHORT always yields 0-23; map to a 12-hour clock where 0 and 12 read as 12
+            hour = ((hour + 11) % 12) + 1;
+        }
+        var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
         // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
         _dc.setColor(_timeColor, Graphics.COLOR_BLACK);
         _dc.drawText(_centerX, _centerY, _timeFont, time, JUSTIFY);
