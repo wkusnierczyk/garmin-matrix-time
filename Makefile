@@ -2,8 +2,8 @@
 # Path to the Connect IQ SDK 'bin' folder.
 # Resolved from the SDK manager's own pointer, so it follows whatever SDK is
 # currently selected and needs no edit when the SDK is updated.
-#   Mac: ~/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg
-#   Win: %APPDATA%/Garmin/ConnectIQ/current-sdk.cfg
+#   ~/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg
+# macOS only. On another platform, pass CIQ_HOME or SDK_BIN explicitly.
 # Override for CI or a pinned build:  make build SDK_BIN=/path/to/sdk/bin
 CIQ_HOME ?= $(HOME)/Library/Application Support/Garmin/ConnectIQ
 # Trailing slashes are stripped in the shell: the file's format is not guaranteed,
@@ -25,12 +25,17 @@ MONKEYC := "$(SDK_BIN)/monkeyc"
 MONKEYDO := "$(SDK_BIN)/monkeydo"
 
 # Fail with a readable message rather than "No such file or directory".
-# $(wildcard) splits on spaces, and the macOS path contains "Application Support",
-# so the existence test has to go through the shell with the path quoted.
-ifeq ($(shell test -x "$(SDK_BIN)/monkeyc" && echo found),)
-  $(error Connect IQ SDK not found at "$(SDK_BIN)". Open the SDK manager and \
-select an SDK, or override: make $(MAKECMDGOALS) SDK_BIN=/path/to/sdk/bin)
-endif
+# Checked inside the recipes rather than at parse time, so targets that need no
+# SDK -- clean, check-fonts -- still work on a machine without one.
+# The test goes through the shell with the path quoted: make's own text functions
+# split on whitespace, and the macOS path contains "Application Support".
+define require_sdk
+@test -x "$(SDK_BIN)/monkeyc" || { \
+  echo "Connect IQ SDK not found at \"$(SDK_BIN)\"."; \
+  echo "Open the SDK manager and select an SDK, or override:"; \
+  echo "  make $@ SDK_BIN=/path/to/sdk/bin"; \
+  exit 1; }
+endef
 
 # Flags
 # -w: warn, -y: private key, -d: device, -f: jungle file, -o: output
@@ -42,15 +47,18 @@ TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
 all: build
 
 build:
+	$(require_sdk)
 	@echo "Building for $(DEVICE)..."
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
 	@echo "Build complete: $(OUTPUT)"
 
 run: build
+	$(require_sdk)
 	@echo "Launching simulator for $(DEVICE)..."
 	@$(MONKEYDO) $(OUTPUT) $(DEVICE)
 
 test:
+	$(require_sdk)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
 	@echo "Loading tests into simulator..."
