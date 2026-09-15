@@ -23,7 +23,7 @@ MONKEYDO := "$(SDK_BIN)/monkeydo"
 BUILD_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle
 TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
 
-.PHONY: all build run test clean
+.PHONY: all build run test check-fonts clean
 
 all: build
 
@@ -41,6 +41,10 @@ test:
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
 	@echo "Loading tests into simulator..."
 	@$(MONKEYDO) test_build.prg $(DEVICE) -t | grep PASSED
+
+check-fonts:
+	@echo "Checking font configuration consistency..."
+	@python3 tools/check-font-config.py
 
 clean:
 	@rm -Rf $(OUTPUT) test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
