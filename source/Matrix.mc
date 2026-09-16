@@ -177,6 +177,14 @@ class DigitalRain {
 
     private function _drawTrails() {
 
+        // A font handle is a weak reference: every read of the field has to check the
+        // referent is still alive and fetch it from the resource cache. Reading it once
+        // per glyph meant paying for that 161 times a frame -- 18.4% of the frame by the
+        // profiler. Resolve it once here instead; the font never changes (#59). The same
+        // applies, far more cheaply, to the Dc.
+        var font = _matrixFont;
+        var dc = _dc;
+
         for (var i = 0; i < _columnCount; ++i) {
             var trail = _trails[i];
             var head = _heads[i];
@@ -189,8 +197,8 @@ class DigitalRain {
                     continue;
                 }
                 var character = trail[j];
-                _dc.setColor(shade, Graphics.COLOR_TRANSPARENT);
-                _dc.drawText(_originX + i * _columnWidth, _originY + j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
+                dc.setColor(shade, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(_originX + i * _columnWidth, _originY + j * _rowHeight, font, character.toString(), JUSTIFY);
             }
             _heads[i] = (_heads[i] + 1) % _rowCount;
 
