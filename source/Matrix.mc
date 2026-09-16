@@ -53,6 +53,10 @@ class DigitalRain {
         _rowLast as Array<Number> or Null,
         _rowCount as Number or Null,
         _columnCount as Number or Null,
+        _centerRow as Number or Null,
+        _centerColumn as Number or Null,
+        _originX as Number or Null,
+        _originY as Number or Null,
         _rowHeight as Number or Null,
         _columnWidth as Number or Null,
         _initialized as Boolean = false;
@@ -96,8 +100,22 @@ class DigitalRain {
 
         _rowHeight = _dc.getFontHeight(_matrixFont);
         _columnWidth =  _dc.getTextWidthInPixels("0", _matrixFont);
-        _rowCount = _height / _rowHeight + 1;
-        _columnCount = _width / _columnWidth + 1;
+
+        // The grid is built outward from the screen centre rather than from the top-left
+        // corner: one glyph sits exactly at the centre and the cells step out symmetrically
+        // in both directions. A corner-anchored grid centred its first row and column on
+        // y = 0 / x = 0 -- half of every one of those glyphs off the screen -- while leaving
+        // the far edge ragged by whatever the cell size did not divide (#10).
+        //
+        // The half-cell term picks the smallest number of steps whose outermost glyph still
+        // reaches the edge, so the grid covers the screen without any cell landing entirely
+        // outside it.
+        _centerColumn = Math.ceil((_centerX - _columnWidth / 2.0) / _columnWidth).toNumber();
+        _centerRow = Math.ceil((_centerY - _rowHeight / 2.0) / _rowHeight).toNumber();
+        _columnCount = 2 * _centerColumn + 1;
+        _rowCount = 2 * _centerRow + 1;
+        _originX = _centerX - _centerColumn * _columnWidth;
+        _originY = _centerY - _centerRow * _rowHeight;
 
         _trails = new [_columnCount] as Array<Array<Char>>;
         _heads = new [_columnCount];
@@ -136,7 +154,7 @@ class DigitalRain {
                 _rowLast[i] = _rowCount - 1;
                 continue;
             }
-            var dx = i * _columnWidth - _centerX;
+            var dx = (i - _centerColumn) * _columnWidth;
             var span = radius * radius - dx * dx;
             if (span < 0) {
                 // whole column is off the glass
@@ -144,11 +162,14 @@ class DigitalRain {
                 _rowLast[i] = -1;
                 continue;
             }
-            var dy = Math.sqrt(span);
-            var first = Math.ceil((_centerY - dy) / _rowHeight).toNumber();
-            var last = Math.floor((_centerY + dy) / _rowHeight).toNumber();
-            _rowFirst[i] = first < 0 ? 0 : first;
-            _rowLast[i] = last > _rowCount - 1 ? _rowCount - 1 : last;
+            // The grid is symmetric about the centre row, so the span is too: it reaches
+            // the same number of rows above and below it.
+            var reach = Math.floor(Math.sqrt(span) / _rowHeight).toNumber();
+            if (reach > _centerRow) {
+                reach = _centerRow;
+            }
+            _rowFirst[i] = _centerRow - reach;
+            _rowLast[i] = _centerRow + reach;
         }
 
     }
@@ -169,7 +190,7 @@ class DigitalRain {
                 }
                 var character = trail[j];
                 _dc.setColor(shade, Graphics.COLOR_TRANSPARENT);
-                _dc.drawText(i * _columnWidth, j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
+                _dc.drawText(_originX + i * _columnWidth, _originY + j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
             }
             _heads[i] = (_heads[i] + 1) % _rowCount;
 
