@@ -60,12 +60,20 @@ build:
 
 # monkeydo only pushes a .prg into a simulator that is already running, so both
 # run and test depend on this target. It starts the simulator when the port is
-# closed and waits, bounded, for it to accept connections.
+# closed and waits, bounded, for it to accept connections. The launcher is checked
+# separately from require_sdk, which only covers monkeyc: a partial SDK without
+# connectiq would otherwise fail silently in the background and be reported, sixty
+# seconds later, as a port that never opened.
 sim:
 	$(require_sdk)
 	@if nc -z 127.0.0.1 $(SIM_PORT) 2>/dev/null; then \
 	  echo "Simulator already running."; \
 	else \
+	  test -x $(CONNECTIQ) || { \
+	    echo "Simulator launcher not found at $(CONNECTIQ)."; \
+	    echo "Open the SDK manager and select an SDK, or override:"; \
+	    echo "  make $@ SDK_BIN=/path/to/sdk/bin"; \
+	    exit 1; }; \
 	  echo "Starting simulator..."; \
 	  $(CONNECTIQ) & \
 	  n=0; \
