@@ -67,11 +67,19 @@ HEAD_STAGGER = 2
 # Fixed, so regenerating without changing the rules reproduces the same artwork.
 SEED = 20260917
 
-# The largest required size, rendered once more as resources/drawables/launcher_icon.png.
-# That copy is what a product gets if it is added to manifest.xml without rerunning
-# this tool: the default resource path still resolves, and the scaling is 70->N
-# rather than the 100->N this replaced.
-FALLBACK_SIZE = 70
+
+# resources/drawables/launcher_icon.png is rendered once more at the largest required
+# size. That copy is what a product gets if it is added to manifest.xml without
+# rerunning this tool: the default resource path still resolves, and the scaling is
+# 70->N rather than the 100->N this replaced.
+#
+# Derived, never a constant. An SDK update that raises some device above the current
+# largest would otherwise leave the fallback behind, quietly contradicting what the
+# README says it is. `generate` derives it from the SDK, `check` from the committed
+# mapping -- which is the same number, and keeps the check SDK-free.
+def fallback_size(sizes):
+    """The largest size any supported product asks for."""
+    return max(sizes.values())
 
 
 def products():
@@ -217,6 +225,44 @@ def table(mapping):
     return '\n'.join(out) + '\n'
 
 
+def write_readme_table(sizes):
+    """
+    Replaces the table under README_HEADING with one derived from `sizes`.
+
+    Part of generation, not a separate step: the README calls the table generated
+    output and tells contributors not to hand-edit it, so leaving it to a second
+    command would mean every device list change lands with a stale table and a
+    failing `make check-icons`.
+    """
+    text = open(README).read()
+    if README_HEADING not in text:
+        sys.exit(f"{README} has no table to update: the sentence "
+                 f"{README_HEADING!r} is not in it.")
+    head, tail = text.split(README_HEADING, 1)
+
+    lines = tail.split('\n')
+    # The table is the first run of "|" lines after the heading sentence, and it
+    # belongs to this section: stop at the next markdown heading rather than walking
+    # into whatever table comes later in the document.
+    start = end = None
+    for i, line in enumerate(lines):
+        if line.startswith('#'):
+            break
+        if line.startswith('|'):
+            start = i
+            end = next((j for j in range(i, len(lines)) if not lines[j].startswith('|')),
+                       len(lines))
+            break
+    rows = table(sizes).rstrip('\n').split('\n')
+    if start is None:
+        # No table yet: put one after the blank line that follows the sentence.
+        start = end = next((i for i, line in enumerate(lines) if not line.strip()), 0) + 1
+        rows = rows + ['']
+
+    open(README, 'w').write(head + README_HEADING + '\n'.join(lines[:start] + rows + lines[end:]))
+    print(f"  {len(sizes)} products tabulated in {README}")
+
+
 def readme_table():
     """product -> size, as the README states it. None when the table is not there at all."""
     text = open(README).read()
@@ -245,14 +291,17 @@ def generate():
         print(f"  {size}x{size}  {directory}/launcher_icon.png"
               f"  ({count} device{'' if count == 1 else 's'})")
 
-    write_icon(BASE_ICON, FALLBACK_SIZE)
-    print(f"  {FALLBACK_SIZE}x{FALLBACK_SIZE}  {BASE_ICON}  (fallback)")
+    fallback = fallback_size(sizes)
+    write_icon(BASE_ICON, fallback)
+    print(f"  {fallback}x{fallback}  {BASE_ICON}  (fallback)")
 
     # Read before opening for write: `open(JUNGLE, 'w')` truncates, and as the
     # receiver of .write() it is evaluated before the argument that reads the file.
     text = open(JUNGLE).read()
     open(JUNGLE, 'w').write(splice(text, mapping_block(sizes)))
     print(f"  {len(sizes)} products mapped in {JUNGLE}")
+
+    write_readme_table(sizes)
 
     for directory in sorted(unmapped(set(sizes.values()))):
         print(f"  NOTE  {directory}/ is no longer required by any product -- remove it")
@@ -292,11 +341,16 @@ def check():
         got = png_size(png)
         ok(got == (size, size),
            f"{png} is {got and 'x'.join(map(str, got))}, directory promises {size}x{size}")
-        ok(os.path.exists(xml) and 'LauncherIcon' in open(xml).read(),
-           f"{xml} declares LauncherIcon")
+        # Compared whole, not searched for "LauncherIcon": the file is generated, and
+        # a declaration naming the wrong filename contains that substring too and
+        # would pass, only to fail at compile time.
+        ok(os.path.exists(xml) and open(xml).read() == DRAWABLES,
+           f"{xml} declares LauncherIcon -> launcher_icon.png")
 
-    ok(os.path.exists(BASE_ICON) and png_size(BASE_ICON) == (FALLBACK_SIZE, FALLBACK_SIZE),
-       f"{BASE_ICON} is the {FALLBACK_SIZE}x{FALLBACK_SIZE} fallback")
+    fallback = fallback_size(mapped) if mapped else None
+    ok(fallback is not None
+       and os.path.exists(BASE_ICON) and png_size(BASE_ICON) == (fallback, fallback),
+       f"{BASE_ICON} is the {fallback}x{fallback} fallback, the largest size mapped")
 
     orphans = sorted(unmapped(set(mapped.values())))
     ok(not orphans, "no icon directory left unmapped"
