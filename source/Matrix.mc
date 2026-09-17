@@ -82,6 +82,8 @@ class DigitalRain {
         _originY as Number or Null,
         _rowHeight as Number or Null,
         _columnWidth as Number or Null,
+        _columnX as Array<Number> or Null,
+        _rowY as Array<Number> or Null,
         _initialized as Boolean = false;
 
     private var _dc as Graphics.Dc or Null;
@@ -181,6 +183,7 @@ class DigitalRain {
 
         _generateShades();
         _generateSpans();
+        _generateCoordinates();
 
         _initialized = true;
 
@@ -225,13 +228,70 @@ class DigitalRain {
     }
 
 
+    private function _generateCoordinates() {
+
+        // A cell's pixel position never changes: its x depends only on the column and
+        // its y only on the row. Precomputing both replaces the two multiplications
+        // _drawTrails did per drawn cell -- some 320 a frame -- with two array reads
+        // (#60).
+        _columnX = new [_columnCount];
+        for (var i = 0; i < _columnCount; ++i) {
+            _columnX[i] = _originX + i * _columnWidth;
+        }
+
+        _rowY = new [_rowCount];
+        for (var j = 0; j < _rowCount; ++j) {
+            _rowY[j] = _originY + j * _rowHeight;
+        }
+
+    }
+
+
+    // The body of this loop runs some 340 times a frame, and its own arithmetic --
+    // everything outside the Dc calls it makes -- was 16.5% of the frame (#60). Three
+    // things follow from that count, and none of them change what is drawn:
+    //
+    //  - every field and constant the loop touches is read once into a local. A field
+    //    access in Monkey C is a symbol lookup, not a struct offset, so a field read in
+    //    the inner body is paid for per cell;
+    //  - the shade index is carried between iterations instead of recomputed with a
+    //    modulo per cell (see below);
+    //  - the cell coordinates come from the tables _generateCoordinates built.
     private function _drawTrails() {
 
-        for (var i = 0; i < _columnCount; ++i) {
-            var trail = _trails[i];
-            var head = _heads[i];
-            for (var j = _rowFirst[i]; j <= _rowLast[i]; ++j) {
-                var shade = _shades[(_rowCount + head - j) % _rowCount];
+        var dc = _dc,
+            font = _matrixFont,
+            transparent = Graphics.COLOR_TRANSPARENT,
+            justify = JUSTIFY,
+            shades = _shades,
+            trails = _trails,
+            heads = _heads,
+            rowFirst = _rowFirst,
+            rowLast = _rowLast,
+            columnX = _columnX,
+            rowY = _rowY,
+            rowCount = _rowCount,
+            columnCount = _columnCount;
+
+        for (var i = 0; i < columnCount; ++i) {
+            var trail = trails[i];
+            var head = heads[i];
+            var first = rowFirst[i];
+            var last = rowLast[i];
+            var x = columnX[i];
+
+            // The shade index is (rowCount + head - j) % rowCount: it falls by one as j
+            // rises and wraps at zero. So only the first row of the column needs the
+            // modulo -- the rest step down and wrap on a comparison, which removes one
+            // modulo per scanned cell.
+            var index = (rowCount + head - first) % rowCount;
+
+            for (var j = first; j <= last; ++j) {
+                var shade = shades[index];
+                index -= 1;
+                if (index < 0) {
+                    index = rowCount - 1;
+                }
                 if (shade == 0) {
                     // The ramp fades to black over half a screen, so the far half of
                     // every trail is 0x000000. Drawing that on a black background
@@ -239,13 +299,17 @@ class DigitalRain {
                     continue;
                 }
                 var character = trail[j];
-                _dc.setColor(shade, Graphics.COLOR_TRANSPARENT);
-                _dc.drawText(_originX + i * _columnWidth, _originY + j * _rowHeight, _matrixFont, character.toString(), JUSTIFY);
+                dc.setColor(shade, transparent);
+                dc.drawText(x, rowY[j], font, character.toString(), justify);
             }
-            _heads[i] = (_heads[i] + 1) % _rowCount;
+
+            // head + 1 mod rowCount, without the modulo: head is already in range, so
+            // the sum can only overshoot by one.
+            var next = head + 1;
+            heads[i] = (next == rowCount) ? 0 : next;
 
             // Change one random character in the trail to a new random character
-            trail[Math.rand() % _rowCount] = CHARSET[Math.rand() % CHARSET_SIZE];
+            trail[Math.rand() % rowCount] = CHARSET[Math.rand() % CHARSET_SIZE];
         }
 
     }
