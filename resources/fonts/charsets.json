@@ -6,5 +6,9 @@
     {
         "fontCharset": "0123456789 :",
         "fontId": "Time"
+    },
+    {
+        "fontCharset": "0123456789 :",
+        "fontId": "TimeLarge"
     }
 ]

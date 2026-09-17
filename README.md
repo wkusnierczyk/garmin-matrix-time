@@ -30,7 +30,7 @@ Matrix Time displays the current time as digits with [Digital Rain](https://en.w
 Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.
 
 **Always-on display**  
-Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, dimmed to a third of its normal brightness and shifted to a different corner of a small square every minute. Raising the wrist wakes the watch face and brings the rain back.
+Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, drawn at twice the size used on the woken screen, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Raising the wrist wakes the watch face and brings the rain back.
 
 ## Features
 
@@ -47,7 +47,7 @@ In the initial version, there are no customisation settings.
 The Matrix Time watch face uses custom fonts:
 
 * [Norfok Matrix Code NFI](https://www.norfok.com) for the digital raing glyphs.
-* [SUSEMono Regular](https://fonts.google.com/specimen/SUSE+Mono) for the current time.
+* [SUSEMono Regular](https://fonts.google.com/specimen/SUSE+Mono) for the current time, at two sizes: the smaller one on the woken screen, and one twice as large on the always-on screen, where the time is all that is drawn and legibility matters most.
 
 > The development of Garmin watch faces motivated the implementation of two useful tools:
 > * A TTF to FNT+PNG converter ([`ttf2bmp`](https://github.com/wkusnierczyk/ttf2bmp)).  
@@ -67,34 +67,47 @@ verified on; sizes for all other resolutions are derived from it proportionally 
 
 The table below lists all font sizes provided for the supported screen resolutions.
 
-| Resolution |    Shape     | Element |       Font       | Size |
-| ---------: | :----------- | :------ | :--------------- | ---: |
-|  148 x 205 | rectangle    | Matrix  | MatrixCodeNFI    |   10 |
-|  148 x 205 | rectangle    | Time    | SUSEMono regular |   10 |
-|  176 x 176 | semi-octagon | Matrix  | MatrixCodeNFI    |   11 |
-|  176 x 176 | semi-octagon | Time    | SUSEMono regular |   11 |
-|  215 x 180 | semi-round   | Matrix  | MatrixCodeNFI    |   12 |
-|  215 x 180 | semi-round   | Time    | SUSEMono regular |   12 |
-|  218 x 218 | round        | Matrix  | MatrixCodeNFI    |   14 |
-|  218 x 218 | round        | Time    | SUSEMono regular |   14 |
-|  240 x 240 | round        | Matrix  | MatrixCodeNFI    |   16 |
-|  240 x 240 | rectangle    | Matrix  | MatrixCodeNFI    |   16 |
-|  240 x 240 | round        | Time    | SUSEMono regular |   16 |
-|  240 x 240 | rectangle    | Time    | SUSEMono regular |   16 |
-|  260 x 260 | round        | Matrix  | MatrixCodeNFI    |   17 |
-|  260 x 260 | round        | Time    | SUSEMono regular |   17 |
-|  280 x 280 | round        | Matrix  | MatrixCodeNFI    |   18 |
-|  280 x 280 | round        | Time    | SUSEMono regular |   18 |
-|  320 x 360 | rectangle    | Matrix  | MatrixCodeNFI    |   21 |
-|  320 x 360 | rectangle    | Time    | SUSEMono regular |   21 |
-|  360 x 360 | round        | Matrix  | MatrixCodeNFI    |   23 |
-|  360 x 360 | round        | Time    | SUSEMono regular |   23 |
-|  390 x 390 | round        | Matrix  | MatrixCodeNFI    |   25 |
-|  390 x 390 | round        | Time    | SUSEMono regular |   25 |
-|  416 x 416 | round        | Matrix  | MatrixCodeNFI    |   27 |
-|  416 x 416 | round        | Time    | SUSEMono regular |   27 |
-|  454 x 454 | round        | Matrix  | MatrixCodeNFI    |   29 |
-|  454 x 454 | round        | Time    | SUSEMono regular |   29 |
+| Resolution |    Shape     |  Element   |       Font       | Size |
+| ---------: | :----------- | :--------- | :--------------- | ---: |
+|  148 x 205 | rectangle    | Matrix     | MatrixCodeNFI    |   10 |
+|  148 x 205 | rectangle    | Time       | SUSEMono regular |   10 |
+|  148 x 205 | rectangle    | Time large | SUSEMono regular |   19 |
+|  176 x 176 | semi-octagon | Matrix     | MatrixCodeNFI    |   11 |
+|  176 x 176 | semi-octagon | Time       | SUSEMono regular |   11 |
+|  176 x 176 | semi-octagon | Time large | SUSEMono regular |   23 |
+|  215 x 180 | semi-round   | Matrix     | MatrixCodeNFI    |   12 |
+|  215 x 180 | semi-round   | Time       | SUSEMono regular |   12 |
+|  215 x 180 | semi-round   | Time large | SUSEMono regular |   23 |
+|  218 x 218 | round        | Matrix     | MatrixCodeNFI    |   14 |
+|  218 x 218 | round        | Time       | SUSEMono regular |   14 |
+|  218 x 218 | round        | Time large | SUSEMono regular |   28 |
+|  240 x 240 | round        | Matrix     | MatrixCodeNFI    |   16 |
+|  240 x 240 | rectangle    | Matrix     | MatrixCodeNFI    |   16 |
+|  240 x 240 | round        | Time       | SUSEMono regular |   16 |
+|  240 x 240 | rectangle    | Time       | SUSEMono regular |   16 |
+|  240 x 240 | round        | Time large | SUSEMono regular |   31 |
+|  240 x 240 | rectangle    | Time large | SUSEMono regular |   31 |
+|  260 x 260 | round        | Matrix     | MatrixCodeNFI    |   17 |
+|  260 x 260 | round        | Time       | SUSEMono regular |   17 |
+|  260 x 260 | round        | Time large | SUSEMono regular |   34 |
+|  280 x 280 | round        | Matrix     | MatrixCodeNFI    |   18 |
+|  280 x 280 | round        | Time       | SUSEMono regular |   18 |
+|  280 x 280 | round        | Time large | SUSEMono regular |   36 |
+|  320 x 360 | rectangle    | Matrix     | MatrixCodeNFI    |   21 |
+|  320 x 360 | rectangle    | Time       | SUSEMono regular |   21 |
+|  320 x 360 | rectangle    | Time large | SUSEMono regular |   42 |
+|  360 x 360 | round        | Matrix     | MatrixCodeNFI    |   23 |
+|  360 x 360 | round        | Time       | SUSEMono regular |   23 |
+|  360 x 360 | round        | Time large | SUSEMono regular |   47 |
+|  390 x 390 | round        | Matrix     | MatrixCodeNFI    |   25 |
+|  390 x 390 | round        | Time       | SUSEMono regular |   25 |
+|  390 x 390 | round        | Time large | SUSEMono regular |   51 |
+|  416 x 416 | round        | Matrix     | MatrixCodeNFI    |   27 |
+|  416 x 416 | round        | Time       | SUSEMono regular |   27 |
+|  416 x 416 | round        | Time large | SUSEMono regular |   54 |
+|  454 x 454 | round        | Matrix     | MatrixCodeNFI    |   29 |
+|  454 x 454 | round        | Time       | SUSEMono regular |   29 |
+|  454 x 454 | round        | Time large | SUSEMono regular |   59 |
 
 ## Build, test, deploy
 
