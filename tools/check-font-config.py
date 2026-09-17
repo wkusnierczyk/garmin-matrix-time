@@ -16,7 +16,7 @@ import re
 import sys
 
 FONT_RE = re.compile(r'<font\s+id="(\w+)"\s+filename="([^"]+)"')
-REQUIRED_FONT_IDS = {'Matrix', 'Time'}
+REQUIRED_FONT_IDS = {'Matrix', 'Time', 'TimeLarge'}
 fail = []
 
 
@@ -63,7 +63,7 @@ print("\nCHAIN CHECKS")
 
 # both fonts must exist -- otherwise the shared-size invariant below is vacuous
 ok(REQUIRED_FONT_IDS <= set(refsize),
-   f"fonts.xml declares both required fonts {sorted(REQUIRED_FONT_IDS)} "
+   f"fonts.xml declares every required font {sorted(REQUIRED_FONT_IDS)} "
    f"(found {sorted(refsize) or 'none'})")
 
 # the reference must itself be a generated target, or the base identity check is moot
@@ -75,10 +75,17 @@ for fid, (stem, sz) in sorted(refsize.items()):
         ok(os.path.exists(f'resources/fonts/{stem}-{sz}.{ext}'),
            f"base bitmap present: {stem}-{sz}.{ext}")
 
-sizes = {sz for _, sz in refsize.values()}
-ok(len(sizes) == 1 and REQUIRED_FONT_IDS <= set(refsize),
-   f"Matrix and Time share one reference size {sorted(sizes)} "
-   "-- required so the time occludes the rain glyphs")
+# Time and TimeLarge are the same typeface at two sizes, and the always-on scene is
+# sized against the woken one: TimeLarge is Time doubled (#69). Matrix is independent
+# of both -- the time was once locked to the rain glyph size, and that was abandoned
+# in #50. The scaler derives every target from these two reference sizes, so getting
+# the ratio wrong here would propagate silently to all thirteen resolutions.
+if {'Time', 'TimeLarge'} <= set(refsize):
+    (tstem, tsize), (lstem, lsize) = refsize['Time'], refsize['TimeLarge']
+    ok(tstem == lstem,
+       f"Time and TimeLarge are the same typeface ({tstem} vs {lstem})")
+    ok(lsize == 2 * tsize,
+       f"TimeLarge reference size {lsize} is twice Time's {tsize}")
 
 # every target: declared filename, declared id set, and both files on disk
 bad = 0
@@ -135,7 +142,17 @@ for fid, (stem, sz) in sorted(refsize.items()):
 
 # ------------------------------------------------------------------- derived docs
 ROW_RE = re.compile(
-    r'^\|\s*(\d+)\s*x\s*(\d+)\s*\|\s*([\w-]+)\s*\|\s*(\w+)\s*\|\s*[\w -]+?\s*\|\s*(\d+)\s*\|$')
+    r'^\|\s*(\d+)\s*x\s*(\d+)\s*\|\s*([\w-]+)\s*\|\s*([\w ]+?)\s*\|\s*[\w -]+?\s*\|\s*(\d+)\s*\|$')
+
+
+def humanize(fid):
+    """The scaler's Element column: id minus a trailing "font", camelCase split, capitalized.
+
+    "TimeLarge" is written "Time large" in the generated tables, so the derived
+    expectation has to be spelled the same way before it can be compared.
+    """
+    text = re.sub(r'font$', '', fid, flags=re.IGNORECASE)
+    return re.sub(r'([a-z])([A-Z])', r'\1 \2', text).strip().capitalize()
 
 
 def table_rows(text, heading):
@@ -154,7 +171,7 @@ def check_table(rows, label):
     """A table is correct only if it matches values derived from the config."""
     if not rows:
         ok(False, f"{label}: no size rows parsed"); return
-    want = {(w, h, shape, fid): expected(fid, w, h)[1]
+    want = {(w, h, shape, humanize(fid)): expected(fid, w, h)[1]
             for (w, h, shape) in targets for fid in refsize}
     got = {(w, h, shape, fid): size for (w, h, shape, fid, size) in rows}
     missing = sorted(set(want) - set(got))

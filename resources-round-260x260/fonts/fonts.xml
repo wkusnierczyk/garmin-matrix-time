@@ -3,5 +3,6 @@
     <fonts>
         <font id="Matrix" filename="MatrixCodeNFI-17.fnt" antialias="true" />
         <font id="Time" filename="SUSEMono-Regular-17.fnt" antialias="true" />
+        <font id="TimeLarge" filename="SUSEMono-Regular-34.fnt" antialias="true" />
     </fonts>
 </resources>

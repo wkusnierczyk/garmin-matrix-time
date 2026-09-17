@@ -12,6 +12,11 @@ import Toybox.Lang;
 const 
     MATRIX_FONT = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType,
     TIME_FONT = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType,
+    // Twice the reference size of Time. The always-on scene is what the watch shows
+    // nearly all of the time, and at the rain glyph size the time was unreadable (#69).
+    // The two sizes are independent: time-rain alignment was abandoned in #50, so Time
+    // is no longer tied to the Matrix glyph size and this one is free to be larger.
+    TIME_LARGE_FONT = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType,
     CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray() as Array<Char>,
     CHARSET_SIZE = CHARSET.size(),
     MATRIX_COLOR = 0x00FF2B,
@@ -31,13 +36,21 @@ const
     MASK = 0xFF;
 
 const
-    // The always-on scene: TIME_COLOR at a third of its brightness, stepped round
+    // The always-on scene: TIME_COLOR at two thirds of its brightness, stepped round
     // the four corners of a small square so that no pixel stays lit for more than
     // one minute at a time. The offset is a fraction of the screen width so that it
     // scales with the glyphs, which are themselves scaled per resolution.
-    LOW_POWER_TIME_COLOR = 0x005500,
+    //
+    // The jitter has to clear the stroke width, not merely be non-zero: a pixel down
+    // the centre of a stroke that is still inside the stroke at all four positions
+    // never goes dark, and three minutes of that trips the protector. Measured over
+    // "12:34" at TIME_LARGE_FONT on all thirteen supported resolutions, a divisor of
+    // 20 or more leaves such pixels; 19 and below leaves none. 16 is the largest
+    // round value below that, and halves as the font doubled -- at the previous 32 the
+    // doubled glyphs would have had up to 31 permanently lit pixels (#69).
+    LOW_POWER_TIME_COLOR = 0x00AA00,
     LOW_POWER_POSITIONS = 4,
-    LOW_POWER_JITTER_DIVISOR = 32;
+    LOW_POWER_JITTER_DIVISOR = 16;
 
 
 class DigitalRain {
@@ -45,6 +58,7 @@ class DigitalRain {
     private var 
         _timeColor = TIME_COLOR,
         _timeFont = TIME_FONT,
+        _timeLargeFont = TIME_LARGE_FONT,
         _matrixFont = MATRIX_FONT,
         _matrixColor = MATRIX_COLOR,
         _shades as Array<Graphics.ColorType> or Null;
@@ -98,7 +112,7 @@ class DigitalRain {
         }
 
         _drawTrails();
-        _drawTime(_centerX, _centerY, _timeColor, Graphics.COLOR_BLACK);
+        _drawTime(_centerX, _centerY, _timeFont, _timeColor, Graphics.COLOR_BLACK);
 
         return self;
 
@@ -125,7 +139,7 @@ class DigitalRain {
         var dx = (step == 0 || step == 3) ? -jitter : jitter;
         var dy = (step < 2) ? -jitter : jitter;
 
-        _drawTime(_centerX + dx, _centerY + dy, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
+        _drawTime(_centerX + dx, _centerY + dy, _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
 
         return self;
 
@@ -237,7 +251,7 @@ class DigitalRain {
     }
 
 
-    private function _drawTime(x as Number, y as Number, color as Graphics.ColorType, background as Graphics.ColorType) {
+    private function _drawTime(x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var hour = info.hour;
@@ -248,7 +262,7 @@ class DigitalRain {
         var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
         // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
         _dc.setColor(color, background);
-        _dc.drawText(x, y, _timeFont, time, JUSTIFY);
+        _dc.drawText(x, y, font, time, JUSTIFY);
 
     }
 
