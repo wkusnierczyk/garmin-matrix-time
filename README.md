@@ -20,6 +20,7 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 * [Matrix time](#matrix-time)
 * [Features](#features)
 * [Fonts](#fonts)
+* [Launcher icon](#launcher-icon)
 * [Build, test, deploy](#build-test-deploy)
 
 ## Matrix time
@@ -109,6 +110,75 @@ The table below lists all font sizes provided for the supported screen resolutio
 |  454 x 454 | round        | Time       | SUSEMono regular |   29 |
 |  454 x 454 | round        | Time large | SUSEMono regular |   59 |
 
+## Launcher icon
+
+The launcher icon is the digital rain held still: glyphs from the same typeface, in the same green,
+that the watch face draws with.
+
+Garmin sets the launcher icon size per device. The 34 supported products ask for eight different
+sizes, from 38 x 38 on the Instinct Crossover AMOLED to 70 x 70 on the Venu 3. The size does not
+follow the screen, and so cannot be served by the `deviceFamily` qualifier the fonts use: the
+`round-390x390` family alone spans 38 x 38, 54 x 54, 56 x 56, 60 x 60 and 70 x 70. Every device is
+therefore mapped to its own icon individually, by a per-product `resourcePath` entry in
+`monkey.jungle`.
+
+Each size is drawn at its own resolution rather than scaled down from a single master. Digital rain
+is thin strokes at a high spatial frequency, which is what naive downscaling destroys first: a
+100 x 100 still resampled to 38 x 38 stops being characters and becomes noise. The glyph cell is a
+constant 10 pixels at every size, so a larger icon shows more rain rather than the same rain drawn
+larger -- the grid runs from 4 x 3 glyphs at 38 x 38 to 7 x 6 at 70 x 70.
+
+Each supported product is mapped to the icon its device asks for:
+
+| Product                 |    Icon |
+| :---------------------- | ------: |
+| venu2                   | 70 x 70 |
+| venu2plus               | 70 x 70 |
+| venu3                   | 70 x 70 |
+| venu3s                  | 70 x 70 |
+| fenix847mm              | 65 x 65 |
+| fenix8pro47mm           | 65 x 65 |
+| fr57047mm               | 65 x 65 |
+| fr965                   | 65 x 65 |
+| fr970                   | 65 x 65 |
+| venu445mm               | 65 x 65 |
+| venu2s                  | 61 x 61 |
+| descentmk343mm          | 60 x 60 |
+| descentmk351mm          | 60 x 60 |
+| epix2                   | 60 x 60 |
+| epix2pro42mm            | 60 x 60 |
+| epix2pro47mm            | 60 x 60 |
+| epix2pro51mm            | 60 x 60 |
+| fenix843mm              | 60 x 60 |
+| fenixe                  | 60 x 60 |
+| fr265                   | 60 x 60 |
+| fr265s                  | 60 x 60 |
+| instinct3amoled45mm     | 60 x 60 |
+| instinct3amoled50mm     | 60 x 60 |
+| marq2                   | 60 x 60 |
+| marq2aviator            | 60 x 60 |
+| vivoactive5             | 56 x 56 |
+| fr165                   | 54 x 54 |
+| fr165m                  | 54 x 54 |
+| fr57042mm               | 54 x 54 |
+| venu441mm               | 54 x 54 |
+| vivoactive6             | 54 x 54 |
+| venusq2                 | 40 x 40 |
+| venusq2m                | 40 x 40 |
+| instinctcrossoveramoled | 38 x 38 |
+
+The icons, the mapping block in `monkey.jungle` and the table above are **generated output** of
+`tools/make-launcher-icons.py`, which reads the sizes from the SDK's own device definitions.
+Regenerate them with `make icons`, which needs Python 3 with [Pillow](https://python-pillow.org)
+installed; do not hand-edit them. `make check-icons` needs nothing but Python 3, and verifies that
+every supported product has a mapping, that every icon is the size its directory promises, that
+the table above agrees with the mapping, and -- when the SDK is installed -- that every mapping
+matches the size the SDK declares for that device.
+
+`resources/drawables/launcher_icon.png` is a 70 x 70 copy of the icon, the largest size any supported
+device asks for. It is a fallback only: it applies to a product added to `manifest.xml` before
+`make icons` has been rerun.
+
 ## Build, test, deploy
 
 To modify and build the sources, you need to have installed:
@@ -132,6 +202,13 @@ make test
 
 # run the simulation
 make run
+
+# regenerate the launcher icons and their jungle mapping
+make icons
+
+# check that the font and launcher icon configurations are consistent
+make check-fonts
+make check-icons
 
 # clean up the project directory
 make clean

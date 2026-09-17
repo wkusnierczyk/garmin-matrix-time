@@ -32,7 +32,7 @@ CONNECTIQ := "$(SDK_BIN)/connectiq"
 
 # Fail with a readable message rather than "No such file or directory".
 # Checked inside the recipes rather than at parse time, so targets that need no
-# SDK -- clean, check-fonts -- still work on a machine without one.
+# SDK -- clean, check-fonts, check-icons -- still work on a machine without one.
 # The test goes through the shell with the path quoted: make's own text functions
 # split on whitespace, and the macOS path contains "Application Support".
 define require_sdk
@@ -48,7 +48,7 @@ endef
 BUILD_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle
 TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
 
-.PHONY: all build sim run test check-fonts clean
+.PHONY: all build sim run test check-fonts icons check-icons clean
 
 all: build
 
@@ -118,6 +118,18 @@ test: sim
 check-fonts:
 	@echo "Checking font configuration consistency..."
 	@python3 tools/check-font-config.py
+
+# The launcher icon size is a per-device property, not a per-resolution one, so the
+# icons and the per-product jungle mapping that serves them are generated from the
+# SDK's device definitions rather than maintained by hand (#42). The generator
+# rewrites the block between the markers in monkey.jungle in place.
+icons:
+	@echo "Generating launcher icons..."
+	@python3 tools/make-launcher-icons.py
+
+check-icons:
+	@echo "Checking launcher icon configuration consistency..."
+	@python3 tools/make-launcher-icons.py --check
 
 clean:
 	@rm -Rf $(OUTPUT) test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
