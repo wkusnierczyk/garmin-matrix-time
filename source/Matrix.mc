@@ -30,6 +30,15 @@ const
     BLUE_SHIFT = 0,
     MASK = 0xFF;
 
+const
+    // The always-on scene: TIME_COLOR at a third of its brightness, stepped round
+    // the four corners of a small square so that no pixel stays lit for more than
+    // one minute at a time. The offset is a fraction of the screen width so that it
+    // scales with the glyphs, which are themselves scaled per resolution.
+    LOW_POWER_TIME_COLOR = 0x005500,
+    LOW_POWER_POSITIONS = 4,
+    LOW_POWER_JITTER_DIVISOR = 32;
+
 
 class DigitalRain {
 
@@ -89,7 +98,34 @@ class DigitalRain {
         }
 
         _drawTrails();
-        _drawTime();
+        _drawTime(_centerX, _centerY, _timeColor, Graphics.COLOR_BLACK);
+
+        return self;
+
+    }
+
+
+    // The always-on scene for an AMOLED product. The system blanks the screen in
+    // low-power mode if more than 10% of the pixels are lit, or if any pixel stays
+    // lit for three minutes, and a full-screen rain fails both tests. So the rain is
+    // dropped entirely: only the time is drawn, dimmed, and shifted to a different
+    // corner of a small square every minute.
+    //
+    // No black box is painted behind the time here, unlike the high-power scene: a
+    // lit rectangle is exactly what the burn-in protector counts, and with no rain
+    // behind it there is nothing for it to mask anyway.
+    function drawLowPower(dc as Graphics.Dc) as DigitalRain {
+
+        _dc = dc;
+
+        // The minute number, taken straight off the Moment: the jitter needs nothing
+        // else from the calendar, and Gregorian.info is comparatively expensive.
+        var step = (_time.value() / 60) % LOW_POWER_POSITIONS;
+        var jitter = _width / LOW_POWER_JITTER_DIVISOR;
+        var dx = (step == 0 || step == 3) ? -jitter : jitter;
+        var dy = (step < 2) ? -jitter : jitter;
+
+        _drawTime(_centerX + dx, _centerY + dy, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
 
         return self;
 
@@ -201,7 +237,7 @@ class DigitalRain {
     }
 
 
-    private function _drawTime() {
+    private function _drawTime(x as Number, y as Number, color as Graphics.ColorType, background as Graphics.ColorType) {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var hour = info.hour;
@@ -211,8 +247,8 @@ class DigitalRain {
         }
         var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
         // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
-        _dc.setColor(_timeColor, Graphics.COLOR_BLACK);
-        _dc.drawText(_centerX, _centerY, _timeFont, time, JUSTIFY);
+        _dc.setColor(color, background);
+        _dc.drawText(x, y, _timeFont, time, JUSTIFY);
 
     }
 
