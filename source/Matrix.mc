@@ -17,7 +17,11 @@ const
     // The two sizes are independent: time-rain alignment was abandoned in #50, so Time
     // is no longer tied to the Matrix glyph size and this one is free to be larger.
     TIME_LARGE_FONT = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType,
-    CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray() as Array<Char>,
+    // Letters only. MatrixCodeNFI maps letters to katakana-style glyphs but renders
+    // digits as recognisable digits, so a charset with 0-9 in it scatters numerals
+    // through the rain that compete with the clock for attention (#54). The time is
+    // the only number on screen.
+    CHARSET = "abcdefghijklmnopqrstuvwxyz".toCharArray() as Array<Char>,
     CHARSET_SIZE = CHARSET.size(),
     MATRIX_COLOR = 0x00FF2B,
     TIME_COLOR = Graphics.COLOR_GREEN;
