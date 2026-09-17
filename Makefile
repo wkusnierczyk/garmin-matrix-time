@@ -89,8 +89,18 @@ sim:
 	  echo "Simulator ready."; \
 	fi
 
+# monkeydo does not return once the .prg is pushed. MonkeyDoDeux spawns the SDK's
+# own "shell", which stays attached for the life of the app session and relays the
+# app's console output to this terminal, so the command sits in the foreground
+# while the watch face runs. Every other target here ends on a terminal state --
+# "Build complete", "Simulator ready." -- so a run that stops on "Loading" reads as
+# a hang even though the app started (#73). Announce the whole sequence up front
+# rather than after the fact: there is no point at which the push can be observed
+# to have finished. #66 was the same mistake one step earlier in this target.
 run: build sim
 	@echo "Loading $(OUTPUT) into simulator..."
+	@echo "monkeydo then stays attached to relay the app's console output, so this"
+	@echo "command does not return -- press Ctrl-C when you are done with the run."
 	@$(MONKEYDO) $(OUTPUT) $(DEVICE)
 
 # monkeydo's output is printed rather than piped straight into grep: piping hid
