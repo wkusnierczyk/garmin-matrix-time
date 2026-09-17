@@ -337,16 +337,28 @@ class DigitalRain {
         var red = (_matrixColor >> RED_SHIFT) & MASK,
             green = (_matrixColor >> GREEN_SHIFT) & MASK,
             blue = (_matrixColor >> BLUE_SHIFT) & MASK;
-        
+
+        // The ramp fades linearly to black over `steps` rows and is black for the rest of
+        // the ring, which `_drawTrails` skips (#8). The clamp is on `scale`, before it
+        // reaches a channel, so with `scale` in [0, steps] and each channel in [0, 255]
+        // every term is in range by construction.
+        //
+        // What it replaces -- `if (_shades[i] < 0) { _shades[i] = 0; }` on the packed
+        // colour -- gave the same ramp for every `MATRIX_COLOR`, but only via a 32-bit
+        // sign-propagation argument: past `steps` all three channels scale by the same
+        // negative factor, and a channel in [-255, 0] still sets the sign bit after a
+        // shift of 16 or less, so the OR is negative whenever any channel is. Correct,
+        // and far too subtle to leave a colour change resting on (#9).
         _shades = new [_rowCount] as Array<Graphics.ColorType>;
         for (var i = 0; i < _rowCount; ++i) {
-            _shades[i] = ((red * (steps - i) / steps) << RED_SHIFT) |
-                        ((green * (steps - i) / steps) << GREEN_SHIFT) | 
-                        ((blue * (steps - i) / steps) << BLUE_SHIFT);
-            if (_shades[i] < 0) {
-                _shades[i] = 0;
+            var scale = steps - i;
+            if (scale < 0) {
+                scale = 0;
             }
-        }        
+            _shades[i] = ((red * scale / steps) << RED_SHIFT) |
+                        ((green * scale / steps) << GREEN_SHIFT) |
+                        ((blue * scale / steps) << BLUE_SHIFT);
+        }
 
     }
 
