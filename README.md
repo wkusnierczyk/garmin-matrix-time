@@ -138,9 +138,14 @@ make clean
 ```
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
-accept connections, and then load the binary into it. Both give up with a message after 60 seconds
-rather than hanging. The simulator port is assumed to be 1234; override it with
+accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both
+give up with a message after 60 seconds. The simulator port is assumed to be 1234; override it with
 `make run SIM_PORT=<port>` if yours differs.
+
+`make run` does not return once the binary is loaded. `monkeydo` stays attached for the life of the
+app session to relay the app's console output to your terminal, so the command sits in the
+foreground while the watch face runs; press Ctrl-C when you are done. `make test` also uses
+`monkeydo`, but captures its output and does return.
 
 `make test` compiles and loads a unit-test binary, but the sources define no `(:test)` functions yet,
 so the run reports a failure rather than `PASSED`. The target is kept ready for the test suite; until
