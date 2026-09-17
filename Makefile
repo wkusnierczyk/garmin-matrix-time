@@ -18,11 +18,17 @@ DEVICE ?= epix2pro47mm
 
 # Output filename
 OUTPUT := MatrixTime.prg
+
+# TCP port the Connect IQ simulator listens on. Probing the port reports that the
+# simulator is accepting connections, which is what monkeydo needs -- the app being
+# launched is not enough, since "open -a" returns long before the port is up.
+SIM_PORT ?= 1234
 # =================================================
 
 # Commands
 MONKEYC := "$(SDK_BIN)/monkeyc"
 MONKEYDO := "$(SDK_BIN)/monkeydo"
+CONNECTIQ := "$(SDK_BIN)/connectiq"
 
 # Fail with a readable message rather than "No such file or directory".
 # Checked inside the recipes rather than at parse time, so targets that need no
@@ -42,7 +48,7 @@ endef
 BUILD_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle
 TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
 
-.PHONY: all build run test check-fonts clean
+.PHONY: all build sim run test check-fonts clean
 
 all: build
 
@@ -52,17 +58,52 @@ build:
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
 	@echo "Build complete: $(OUTPUT)"
 
-run: build
+# monkeydo only pushes a .prg into a simulator that is already running, so both
+# run and test depend on this target. It starts the simulator when the port is
+# closed and waits, bounded, for it to accept connections. The launcher is checked
+# separately from require_sdk, which only covers monkeyc: a partial SDK without
+# connectiq would otherwise fail silently in the background and be reported, sixty
+# seconds later, as a port that never opened.
+sim:
 	$(require_sdk)
-	@echo "Launching simulator for $(DEVICE)..."
+	@if nc -z 127.0.0.1 $(SIM_PORT) 2>/dev/null; then \
+	  echo "Simulator already running."; \
+	else \
+	  test -x $(CONNECTIQ) || { \
+	    echo "Simulator launcher not found at $(CONNECTIQ)."; \
+	    echo "Open the SDK manager and select an SDK, or override:"; \
+	    echo "  make $@ SDK_BIN=/path/to/sdk/bin"; \
+	    exit 1; }; \
+	  echo "Starting simulator..."; \
+	  $(CONNECTIQ) & \
+	  n=0; \
+	  until nc -z 127.0.0.1 $(SIM_PORT) 2>/dev/null; do \
+	    n=$$((n+1)); \
+	    test $$n -lt 60 || { \
+	      echo "Simulator did not open port $(SIM_PORT) within $$n seconds."; \
+	      echo "Start it by hand and retry:  $(CONNECTIQ)"; \
+	      echo "If it came up on another port, re-run with SIM_PORT=<port>."; \
+	      exit 1; }; \
+	    sleep 1; \
+	  done; \
+	  echo "Simulator ready."; \
+	fi
+
+run: build sim
+	@echo "Loading $(OUTPUT) into simulator..."
 	@$(MONKEYDO) $(OUTPUT) $(DEVICE)
 
-test:
+# monkeydo's output is printed rather than piped straight into grep: piping hid
+# every real failure behind a bare "Error 1" from grep matching nothing.
+test: sim
 	$(require_sdk)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
 	@echo "Loading tests into simulator..."
-	@$(MONKEYDO) test_build.prg $(DEVICE) -t | grep PASSED
+	@output=$$($(MONKEYDO) test_build.prg $(DEVICE) -t); status=$$?; \
+	  echo "$$output"; \
+	  test $$status -eq 0 || exit $$status; \
+	  echo "$$output" | grep -q PASSED || { echo "Unit tests did not report PASSED."; exit 1; }
 
 check-fonts:
 	@echo "Checking font configuration consistency..."

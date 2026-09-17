@@ -108,7 +108,10 @@ You can use the included `Makefile` to conveniently trigger some of the actions 
 # build binaries from sources
 make build
 
-# run unit tests -- note: requires the simulator to be running
+# start the simulator if it is not already running
+make sim
+
+# run unit tests -- no tests are defined yet, so this currently fails
 make test
 
 # run the simulation
@@ -117,5 +120,14 @@ make run
 # clean up the project directory
 make clean
 ```
+
+`make run` and `make test` start the simulator themselves when it is not already up, wait for it to
+accept connections, and then load the binary into it. Both give up with a message after 60 seconds
+rather than hanging. The simulator port is assumed to be 1234; override it with
+`make run SIM_PORT=<port>` if yours differs.
+
+`make test` compiles and loads a unit-test binary, but the sources define no `(:test)` functions yet,
+so the run reports a failure rather than `PASSED`. The target is kept ready for the test suite; until
+that exists, treat a failing `make test` as expected.
 
 To sideload your application to your Garmin watch, see [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
