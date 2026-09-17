@@ -29,6 +29,9 @@ Matrix Time displays the current time as digits with [Digital Rain](https://en.w
 **Note**  
 Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.
 
+**Always-on display**  
+Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, dimmed to a third of its normal brightness and shifted to a different corner of a small square every minute. Raising the wrist wakes the watch face and brings the rain back.
+
 ## Features
 
 The Matrix Time watch face supports the following features:
