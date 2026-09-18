@@ -36,8 +36,9 @@ const
     // The jitter has to clear the stroke width, not merely be non-zero: a pixel down
     // the centre of a stroke that is still inside the stroke at all four positions
     // never goes dark, and three minutes of that trips the protector. Measured over
-    // "12:34" at the TimeLarge font on all thirteen supported resolutions, a divisor of
-    // 20 or more leaves such pixels; 19 and below leaves none. 16 is the largest
+    // "12:34" at the TimeLarge font on the thirteen resolutions configured at the time,
+    // a divisor of 20 or more leaves such pixels; 19 and below leaves none. The five
+    // that remain after #19 are a subset of those thirteen, so the result still holds. 16 is the largest
     // round value below that, and halves as the font doubled -- at the previous 32 the
     // doubled glyphs would have had up to 31 permanently lit pixels (#69).
     LOW_POWER_TIME_COLOR = 0x00AA00,
