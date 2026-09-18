@@ -423,7 +423,6 @@ class DigitalRain {
             hour = ((hour + 11) % 12) + 1;
         }
         var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
-        // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
         _dc.setColor(color, background);
         _dc.drawText(x, y, font, time, JUSTIFY);
 
