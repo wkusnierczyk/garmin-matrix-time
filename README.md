@@ -33,6 +33,9 @@ Due to power constraints on watch faces, the digital rain does not appear to fal
 **Letters only**  
 The rain is drawn from the letters `a`-`z` alone. Matrix Code NFI maps letters to katakana-style glyphs but draws digits as recognisable digits, so a charset including `0`-`9` scattered numerals through the rain that competed with the clock for attention. The time is the only number on the screen.
 
+**Rain grid**  
+The rain glyphs sit on a fixed grid rather than being set as text. Matrix Code NFI is a proportional typeface — its letters vary by around half again in width — so the grid cell is as wide as the widest glyph in the charset, which keeps neighbouring glyphs from touching whatever falls where. That makes the rain slightly sparser than a grid sized to an average letter, and it is the reason the column count is what it is at each resolution.
+
 **Round screens**  
 The rain is laid out on a rectangular grid, so on a round watch the corners of that grid fall off the glass and are never drawn. A cell is kept when the cell itself overlaps the visible disc, not merely when its centre does, so the rain reaches the rim at every round resolution instead of stopping a cell short of it.
 

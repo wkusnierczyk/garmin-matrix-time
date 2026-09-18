@@ -155,8 +155,12 @@ class DigitalRain {
 
     private function _initialize() {
 
+        // _generateGlyphs runs first: the pitch is measured from the interned charset,
+        // so the glyphs have to exist before the grid can be sized.
+        _generateGlyphs();
+
         _rowHeight = _dc.getFontHeight(_matrixFont);
-        _columnWidth =  _dc.getTextWidthInPixels("0", _matrixFont);
+        _columnWidth = _widestGlyph();
 
         // The grid is built outward from the screen centre rather than from the top-left
         // corner: one glyph sits exactly at the centre and the cells step out symmetrically
@@ -173,8 +177,6 @@ class DigitalRain {
         _rowCount = 2 * _centerRow + 1;
         _originX = _centerX - _centerColumn * _columnWidth;
         _originY = _centerY - _centerRow * _rowHeight;
-
-        _generateGlyphs();
 
         _trails = new [_columnCount] as Array<Array<String>>;
         _heads = new [_columnCount];
@@ -209,6 +211,32 @@ class DigitalRain {
         for (var i = 0; i < CHARSET_SIZE; ++i) {
             _glyphs[i] = characters[i].toString();
         }
+
+    }
+
+
+    // The grid pitch. MatrixCodeNFI is proportional -- its 26 advances span 11 to 16
+    // pixels at the 416x416 reference resolution -- so no single character's width is the
+    // right pitch for a fixed grid. The cell has to be as wide as the widest glyph, or
+    // the wide ones overrun it; and since every glyph in the font inks its full advance,
+    // that overrun would be visible, not notional.
+    //
+    // What this replaces measured "0", a character the font has not contained since the
+    // charset lost its digits (#79). Connect IQ answers a missing glyph with a fixed
+    // fallback width -- 13 pixels at 416x416, the same value it returns for any other
+    // absent character -- so the pitch was a constant unrelated to the typeface, and
+    // 3 pixels narrower than the widest glyph, which therefore overhung its cell by
+    // 1.5 pixels on each side (#84).
+    private function _widestGlyph() as Number {
+
+        var width = 0;
+        for (var i = 0; i < CHARSET_SIZE; ++i) {
+            var advance = _dc.getTextWidthInPixels(_glyphs[i], _matrixFont);
+            if (advance > width) {
+                width = advance;
+            }
+        }
+        return width;
 
     }
 
@@ -314,7 +342,9 @@ class DigitalRain {
     // `setColor` runs `_rowCount / 2` times a frame -- 8 on `epix2pro47mm` -- where
     // column-major order called it once per drawn glyph, 160 times, 152 of them setting
     // a colour that was already current (#58). The `drawText` calls are the same calls
-    // in a different order, and since glyphs do not overlap the frame is identical.
+    // in a different order, and since glyphs do not overlap the frame is identical --
+    // which holds because the pitch is the widest advance in the charset, not in spite
+    // of the font being proportional (#84).
     private function _drawTrails() {
 
         var dc = _dc,
