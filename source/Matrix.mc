@@ -435,7 +435,17 @@ class DigitalRain {
 
     private function _generateShades() {
 
+        // The ramp needs at least one step to divide by. `_rowCount` is `2 * _centerRow + 1`
+        // and `_centerRow` is at least 1 on every supported screen -- the smallest is
+        // 360x360 with a 22 px row, giving `_rowCount` 17 -- so this cannot bite today. It
+        // guards the arithmetic rather than a known input: a future device with a row
+        // height past half the screen would make `steps` 0 and divide by it three times a
+        // row (#28).
         var steps = _rowCount / 2;
+        if (steps < 1) {
+            steps = 1;
+        }
+
         var red = (_matrixColor >> RED_SHIFT) & MASK,
             green = (_matrixColor >> GREEN_SHIFT) & MASK,
             blue = (_matrixColor >> BLUE_SHIFT) & MASK;
