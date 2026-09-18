@@ -9,13 +9,6 @@ import Toybox.Lang;
 
 
 const 
-    MATRIX_FONT = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType,
-    TIME_FONT = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType,
-    // Twice the reference size of Time. The always-on scene is what the watch shows
-    // nearly all of the time, and at the rain glyph size the time was unreadable (#69).
-    // The two sizes are independent: time-rain alignment was abandoned in #50, so Time
-    // is no longer tied to the Matrix glyph size and this one is free to be larger.
-    TIME_LARGE_FONT = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType,
     // Letters only. MatrixCodeNFI maps letters to katakana-style glyphs but renders
     // digits as recognisable digits, so a charset with 0-9 in it scatters numerals
     // through the rain that compete with the clock for attention (#54). The time is
@@ -43,7 +36,7 @@ const
     // The jitter has to clear the stroke width, not merely be non-zero: a pixel down
     // the centre of a stroke that is still inside the stroke at all four positions
     // never goes dark, and three minutes of that trips the protector. Measured over
-    // "12:34" at TIME_LARGE_FONT on all thirteen supported resolutions, a divisor of
+    // "12:34" at the TimeLarge font on all thirteen supported resolutions, a divisor of
     // 20 or more leaves such pixels; 19 and below leaves none. 16 is the largest
     // round value below that, and halves as the font doubled -- at the previous 32 the
     // doubled glyphs would have had up to 31 permanently lit pixels (#69).
@@ -56,11 +49,22 @@ class DigitalRain {
 
     private var 
         _timeColor = TIME_COLOR,
-        _timeFont = TIME_FONT,
-        _timeLargeFont = TIME_LARGE_FONT,
-        _matrixFont = MATRIX_FONT,
         _matrixColor = MATRIX_COLOR,
         _shades as Array<Graphics.ColorType> or Null;
+
+    // Loaded in initialize rather than declared const. A const initialised from
+    // loadResource is not a compile-time constant at all -- the compiler lowers it to a
+    // lazily-initialised global -- so both bitmaps were pinned in memory from module
+    // initialisation, before App.onStart had run, for the whole life of the app (#24).
+    //
+    // TimeLarge is twice the reference size of Time. The always-on scene is what the
+    // watch shows nearly all of the time, and at the rain glyph size the time was
+    // unreadable (#69). The two sizes are independent: time-rain alignment was abandoned
+    // in #50, so Time is no longer tied to the Matrix glyph size and is free to be larger.
+    private var
+        _timeFont as Graphics.FontType,
+        _timeLargeFont as Graphics.FontType,
+        _matrixFont as Graphics.FontType;
 
     private var
         _width as Number,
@@ -96,6 +100,10 @@ class DigitalRain {
         // watches side by side fell in step, and so did the same watch across restarts.
         // The clock is the one source of variation available this early (#27).
         Math.srand(Time.now().value());
+
+        _matrixFont = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType;
+        _timeFont = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType;
+        _timeLargeFont = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
 
         var settings = System.getDeviceSettings();
         _width = settings.screenWidth;
