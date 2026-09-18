@@ -38,3 +38,18 @@ venusq2m.resourcePath = $(venusq2m.resourcePath);resources-icon-40
 vivoactive5.resourcePath = $(vivoactive5.resourcePath);resources-icon-56
 vivoactive6.resourcePath = $(vivoactive6.resourcePath);resources-icon-54
 # END generated launcher icon mapping
+
+# Type checking level, set explicitly rather than left to the default (#25).
+#
+#   0 Silent  1 Informative  2 Gradual  3 Strict
+#
+# Strict, and the source is annotated to meet it: 0 errors, 0 warnings (#88).
+# Anything less goes quiet about exactly the kind of mistake it exists to catch
+# -- the nullable field declarations #25 removed were wrong for a long time
+# because nothing was checking them. Keep this at 3; fix what it reports.
+project.typecheck = 3
+
+# Default sourcePath globs recursively from the project root, which sweeps in
+# .dev/profiler-repro/source/*.mc -- scratch code, gitignored, compiled into every
+# shipped PRG. Name the directory explicitly.
+base.sourcePath = source

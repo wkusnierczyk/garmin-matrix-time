@@ -8,7 +8,7 @@ import Toybox.Lang;
 
 class View extends WatchUi.WatchFace {
 
-    private var _digitalRain = new DigitalRain();
+    private var _digitalRain as DigitalRain = new DigitalRain();
 
     // Every supported product is AMOLED, and on AMOLED the system shuts the screen
     // off in always-on mode if more than 10% of the pixels are lit or any pixel

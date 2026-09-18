@@ -4,19 +4,11 @@ using Toybox.Math;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
-using Toybox.WatchUi;
 
 import Toybox.Lang; 
 
 
 const 
-    MATRIX_FONT = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType,
-    TIME_FONT = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType,
-    // Twice the reference size of Time. The always-on scene is what the watch shows
-    // nearly all of the time, and at the rain glyph size the time was unreadable (#69).
-    // The two sizes are independent: time-rain alignment was abandoned in #50, so Time
-    // is no longer tied to the Matrix glyph size and this one is free to be larger.
-    TIME_LARGE_FONT = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType,
     // Letters only. MatrixCodeNFI maps letters to katakana-style glyphs but renders
     // digits as recognisable digits, so a charset with 0-9 in it scatters numerals
     // through the rain that compete with the clock for attention (#54). The time is
@@ -25,10 +17,6 @@ const
     CHARSET_SIZE = CHARSET.length(),
     MATRIX_COLOR = 0x00FF2B,
     TIME_COLOR = Graphics.COLOR_GREEN;
-
-const 
-    SCREEN_WIDTH = System.getDeviceSettings().screenWidth,
-    SCREEN_HEIGHT = System.getDeviceSettings().screenHeight;
 
 const
     JUSTIFY = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
@@ -48,7 +36,7 @@ const
     // The jitter has to clear the stroke width, not merely be non-zero: a pixel down
     // the centre of a stroke that is still inside the stroke at all four positions
     // never goes dark, and three minutes of that trips the protector. Measured over
-    // "12:34" at TIME_LARGE_FONT on all thirteen supported resolutions, a divisor of
+    // "12:34" at the TimeLarge font on all thirteen supported resolutions, a divisor of
     // 20 or more leaves such pixels; 19 and below leaves none. 16 is the largest
     // round value below that, and halves as the font doubled -- at the previous 32 the
     // doubled glyphs would have had up to 31 permanently lit pixels (#69).
@@ -60,12 +48,23 @@ const
 class DigitalRain {
 
     private var 
-        _timeColor = TIME_COLOR,
-        _timeFont = TIME_FONT,
-        _timeLargeFont = TIME_LARGE_FONT,
-        _matrixFont = MATRIX_FONT,
-        _matrixColor = MATRIX_COLOR,
-        _shades as Array<Graphics.ColorType> or Null;
+        _timeColor as Graphics.ColorType = TIME_COLOR,
+        _matrixColor as Number = MATRIX_COLOR,
+        _shades as Array<Graphics.ColorType> = [];
+
+    // Loaded in initialize rather than declared const. A const initialised from
+    // loadResource is not a compile-time constant at all -- the compiler lowers it to a
+    // lazily-initialised global -- so both bitmaps were pinned in memory from module
+    // initialisation, before App.onStart had run, for the whole life of the app (#24).
+    //
+    // TimeLarge is twice the reference size of Time. The always-on scene is what the
+    // watch shows nearly all of the time, and at the rain glyph size the time was
+    // unreadable (#69). The two sizes are independent: time-rain alignment was abandoned
+    // in #50, so Time is no longer tied to the Matrix glyph size and is free to be larger.
+    private var
+        _timeFont as Graphics.FontType,
+        _timeLargeFont as Graphics.FontType,
+        _matrixFont as Graphics.FontType;
 
     private var
         _width as Number,
@@ -73,53 +72,91 @@ class DigitalRain {
         _centerX as Number,
         _centerY as Number;
 
+    // The grid. None of these can be built in the constructor -- every one of them
+    // depends on the font metrics, and those need a Dc, which only arrives with the
+    // first onUpdate. `_initialize` fills them all in one pass and `_initialized`
+    // records that it has run; `draw` consults that flag before reading any of them,
+    // so by the time anything here is dereferenced it has a value.
+    //
+    // They are therefore declared as what they hold rather than as `... or Null`, and
+    // start as an empty grid: zero rows, zero columns, no glyphs. The compiler requires
+    // a definite value, and an empty grid is the honest one -- it says there is nothing
+    // to draw yet, which is exactly the state before the first Dc arrives.
+    //
+    // The nullable declarations they replace promised a contract the code never
+    // honoured: not one of the reads was guarded, and a guard would have been
+    // unreachable (#25).
     private var
-        _glyphs as Array<String> or Null,
-        _trails as Array<Array<String>> or Null,
-        _heads as Array<Number> or Null,
-        _rowFirst as Array<Number> or Null,
-        _rowLast as Array<Number> or Null,
-        _rowCount as Number or Null,
-        _columnCount as Number or Null,
-        _centerRow as Number or Null,
-        _centerColumn as Number or Null,
-        _originX as Number or Null,
-        _originY as Number or Null,
-        _rowHeight as Number or Null,
-        _columnWidth as Number or Null,
-        _columnX as Array<Number> or Null,
-        _rowY as Array<Number> or Null,
+        _glyphs as Array<String> = [],
+        _trails as Array<Array<String>> = [],
+        _heads as Array<Number> = [],
+        _rowFirst as Array<Number> = [],
+        _rowLast as Array<Number> = [],
+        _rowCount as Number = 0,
+        _columnCount as Number = 0,
+        _centerRow as Number = 0,
+        _centerColumn as Number = 0,
+        _originX as Number = 0,
+        _originY as Number = 0,
+        _rowHeight as Number = 0,
+        _columnWidth as Number = 0,
+        _columnX as Array<Number> = [],
+        _rowY as Array<Number> = [],
         _initialized as Boolean = false;
 
-    private var _dc as Graphics.Dc or Null;
-
-    private var _time as Time.Moment or Null;
+    // Set by forTime, which View calls before every draw and drawLowPower. Same
+    // contract as the grid above: assigned before it is read, so not nullable.
+    private var _time as Time.Moment = new Time.Moment(0);
 
 
     function initialize() {
+
+        // Math.rand() runs from a fixed default seed, so without this every launch
+        // produced the same starting grid and the same per-column head offsets -- two
+        // watches side by side fell in step, and so did the same watch across restarts.
+        //
+        // The clock alone is not enough to fix that. Moment.value() is a count of
+        // seconds, so two watches started in the same second would seed identically and
+        // fall in step anyway -- rarer than before, but the same failure. getTimer() is
+        // milliseconds since the device powered on, which is both finer grained and
+        // genuinely per device: two watches agree on the wall clock but not on how long
+        // they have been awake. XOR rather than addition so the mix cannot overflow the
+        // 32-bit Number and land on a negative seed (#27).
+        Math.srand(Time.now().value() ^ System.getTimer());
+
+        _matrixFont = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType;
+        _timeFont = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType;
+        _timeLargeFont = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
+
         var settings = System.getDeviceSettings();
         _width = settings.screenWidth;
         _height = settings.screenHeight;
         _centerX = _width / 2;
         _centerY = _height / 2;
+
     }
 
 
-    function forTime(time as Time.Moment or Null) as DigitalRain {
-        _time = (time == null) ? Time.now() : time;
+    // The one caller, View.onUpdate, always has a Moment in hand, so the parameter is
+    // not nullable and there is no "now" default to fall back to. Deciding what time it
+    // is belongs to the caller that is already asking the clock, not to a defaulting
+    // branch here that nothing ever took (#30).
+    //
+    // The fluent return stays: View reads better for it, and it costs nothing.
+    function forTime(time as Time.Moment) as DigitalRain {
+        _time = time;
         return self;
     }
 
 
     function draw(dc as Graphics.Dc) as DigitalRain {
 
-        _dc = dc;
         if (!_initialized) {
-            _initialize();
+            _initialize(dc);
         }
 
-        _drawTrails();
-        _drawTime(_centerX, _centerY, _timeFont, _timeColor, Graphics.COLOR_BLACK);
+        _drawTrails(dc);
+        _drawTime(dc, _centerX, _centerY, _timeFont, _timeColor, Graphics.COLOR_BLACK);
 
         return self;
 
@@ -137,8 +174,6 @@ class DigitalRain {
     // behind it there is nothing for it to mask anyway.
     function drawLowPower(dc as Graphics.Dc) as DigitalRain {
 
-        _dc = dc;
-
         // The minute number, taken straight off the Moment: the jitter needs nothing
         // else from the calendar, and Gregorian.info is comparatively expensive.
         var step = (_time.value() / 60) % LOW_POWER_POSITIONS;
@@ -146,21 +181,21 @@ class DigitalRain {
         var dx = (step == 0 || step == 3) ? -jitter : jitter;
         var dy = (step < 2) ? -jitter : jitter;
 
-        _drawTime(_centerX + dx, _centerY + dy, _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
+        _drawTime(dc, _centerX + dx, _centerY + dy, _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
 
         return self;
 
     }
 
 
-    private function _initialize() {
+    private function _initialize(dc as Graphics.Dc) as Void {
 
         // _generateGlyphs runs first: the pitch is measured from the interned charset,
         // so the glyphs have to exist before the grid can be sized.
         _generateGlyphs();
 
-        _rowHeight = _dc.getFontHeight(_matrixFont);
-        _columnWidth = _widestGlyph();
+        _rowHeight = dc.getFontHeight(_matrixFont);
+        _columnWidth = _widestGlyph(dc);
 
         // The grid is built outward from the screen centre rather than from the top-left
         // corner: one glyph sits exactly at the centre and the cells step out symmetrically
@@ -179,7 +214,7 @@ class DigitalRain {
         _originY = _centerY - _centerRow * _rowHeight;
 
         _trails = new [_columnCount] as Array<Array<String>>;
-        _heads = new [_columnCount];
+        _heads = new [_columnCount] as Array<Number>;
 
         for (var i = 0; i < _columnCount; ++i) {
             _trails[i] = new [_rowCount] as Array<String>;
@@ -199,7 +234,7 @@ class DigitalRain {
     }
 
 
-    private function _generateGlyphs() {
+    private function _generateGlyphs() as Void {
 
         // Dc.drawText takes a String and the trails used to hold Char, so every drawn
         // cell paid for a Char.toString() -- 160 short-lived Strings a frame, one per
@@ -227,11 +262,11 @@ class DigitalRain {
     // absent character -- so the pitch was a constant unrelated to the typeface, and
     // 3 pixels narrower than the widest glyph, which therefore overhung its cell by
     // 1.5 pixels on each side (#84).
-    private function _widestGlyph() as Number {
+    private function _widestGlyph(dc as Graphics.Dc) as Number {
 
         var width = 0;
         for (var i = 0; i < CHARSET_SIZE; ++i) {
-            var advance = _dc.getTextWidthInPixels(_glyphs[i], _matrixFont);
+            var advance = dc.getTextWidthInPixels(_glyphs[i], _matrixFont);
             if (advance > width) {
                 width = advance;
             }
@@ -241,7 +276,7 @@ class DigitalRain {
     }
 
 
-    private function _generateSpans() {
+    private function _generateSpans() as Void {
 
         // On a round display the grid's corners fall outside the glass. Precompute,
         // per column, the first and last row whose cell overlaps the display, so
@@ -265,8 +300,8 @@ class DigitalRain {
         // actually ships -- 360x360, 390x390, 416x416, 454x454 -- for 10-15% more cells.
         // The four further round entries in resolutions.json are stale scaler config for
         // devices the manifest does not list (#19), and model to 0.00% as well.
-        _rowFirst = new [_columnCount];
-        _rowLast = new [_columnCount];
+        _rowFirst = new [_columnCount] as Array<Number>;
+        _rowLast = new [_columnCount] as Array<Number>;
 
         var round = System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND;
         var radius = (_width < _height ? _width : _height) / 2.0;
@@ -307,18 +342,18 @@ class DigitalRain {
     }
 
 
-    private function _generateCoordinates() {
+    private function _generateCoordinates() as Void {
 
         // A cell's pixel position never changes: its x depends only on the column and
         // its y only on the row. Precomputing both replaces the two multiplications
         // _drawTrails did per drawn cell -- some 320 a frame -- with two array reads
         // (#60).
-        _columnX = new [_columnCount];
+        _columnX = new [_columnCount] as Array<Number>;
         for (var i = 0; i < _columnCount; ++i) {
             _columnX[i] = _originX + i * _columnWidth;
         }
 
-        _rowY = new [_rowCount];
+        _rowY = new [_rowCount] as Array<Number>;
         for (var j = 0; j < _rowCount; ++j) {
             _rowY[j] = _originY + j * _rowHeight;
         }
@@ -345,10 +380,9 @@ class DigitalRain {
     // in a different order, and since glyphs do not overlap the frame is identical --
     // which holds because the pitch is the widest advance in the charset, not in spite
     // of the font being proportional (#84).
-    private function _drawTrails() {
+    private function _drawTrails(dc as Graphics.Dc) as Void {
 
-        var dc = _dc,
-            font = _matrixFont,
+        var font = _matrixFont,
             transparent = Graphics.COLOR_TRANSPARENT,
             justify = JUSTIFY,
             shades = _shades,
@@ -415,7 +449,7 @@ class DigitalRain {
     }
 
 
-    private function _drawTime(x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) {
+    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) as Void {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var hour = info.hour;
@@ -424,16 +458,25 @@ class DigitalRain {
             hour = ((hour + 11) % 12) + 1;
         }
         var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
-        // _dc.setColor(_timeColor, Graphics.COLOR_TRANSPARENT);
-        _dc.setColor(color, background);
-        _dc.drawText(x, y, font, time, JUSTIFY);
+        dc.setColor(color, background);
+        dc.drawText(x, y, font, time, JUSTIFY);
 
     }
 
 
-    private function _generateShades() {
+    private function _generateShades() as Void {
 
+        // The ramp needs at least one step to divide by. `_rowCount` is `2 * _centerRow + 1`
+        // and `_centerRow` is at least 1 on every supported screen -- the smallest is
+        // 360x360 with a 22 px row, giving `_rowCount` 17 -- so this cannot bite today. It
+        // guards the arithmetic rather than a known input: a future device with a row
+        // height past half the screen would make `steps` 0 and divide by it three times a
+        // row (#28).
         var steps = _rowCount / 2;
+        if (steps < 1) {
+            steps = 1;
+        }
+
         var red = (_matrixColor >> RED_SHIFT) & MASK,
             green = (_matrixColor >> GREEN_SHIFT) & MASK,
             blue = (_matrixColor >> BLUE_SHIFT) & MASK;
