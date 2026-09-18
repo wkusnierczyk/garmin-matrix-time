@@ -30,6 +30,9 @@ Matrix Time displays the current time as digits with [Digital Rain](https://en.w
 **Note**  
 Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.
 
+**Letters only**  
+The rain is drawn from the letters `a`-`z` alone. Matrix Code NFI maps letters to katakana-style glyphs but draws digits as recognisable digits, so a charset including `0`-`9` scattered numerals through the rain that competed with the clock for attention. The time is the only number on the screen.
+
 **Always-on display**  
 Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, drawn at twice the size used on the woken screen, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Raising the wrist wakes the watch face and brings the rain back.
 
@@ -112,8 +115,8 @@ The table below lists all font sizes provided for the supported screen resolutio
 
 ## Launcher icon
 
-The launcher icon is the digital rain held still: glyphs from the same typeface, in the same green,
-that the watch face draws with.
+The launcher icon is the digital rain held still: glyphs from the same typeface, in the same green
+and from the same letters-only charset, that the watch face draws with.
 
 Garmin sets the launcher icon size per device. The 34 supported products ask for eight different
 sizes, from 38 x 38 on the Instinct Crossover AMOLED to 70 x 70 on the Venu 3. The size does not

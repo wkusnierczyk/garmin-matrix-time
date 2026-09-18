@@ -48,7 +48,7 @@ END = '# END generated launcher icon mapping'
 # a picture of something like it. Keep in step with MATRIX_COLOR and CHARSET in
 # source/Matrix.mc.
 MATRIX_COLOR = (0x00, 0xFF, 0x2B)
-CHARSET = 'abcdefghijklmnopqrstuvwxyz0123456789'
+CHARSET = 'abcdefghijklmnopqrstuvwxyz'
 FONT = 'resources/fonts/MatrixCodeNFI.ttf'
 
 # One glyph cell per ~10 icon pixels. This is the whole design rule: it fixes the

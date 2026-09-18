@@ -6,6 +6,10 @@ target list) plus resources/fonts/fonts.xml (reference size, encoded in each
 .fnt filename). Everything else -- the generated resource directories, fonts.md,
 and the README size table and prose -- is derived, and must agree.
 
+resources/fonts/charsets.json is a source of truth of its own: it decides which
+glyphs each generated font contains. The code that draws with those fonts carries
+its own copy of the charset, so the copies are compared here too.
+
 The README is descriptive, not prescriptive: this script derives expected values
 from the config and asserts the derived artifacts conform, never the reverse.
 """
@@ -139,6 +143,41 @@ for fid, (stem, sz) in sorted(refsize.items()):
             ok(sha(b) == sha(r),
                f"base {stem}-{sz}.{ext} is byte-identical to {refdir}/ "
                "(same bitmap, not just the same point size)")
+
+# ---------------------------------------------------------------------- charsets
+# A generated font contains exactly the glyphs its charsets.json entry names, so a
+# character the code draws but the charset omits comes out as a blank or garbage cell
+# -- silent at build time and visible only on-device. The Matrix charset is mirrored
+# in three hand-maintained places and nothing compared them until #54, which is
+# precisely a charset change.
+MC_CHARSET_RE = re.compile(r'CHARSET\s*=\s*"([^"]*)"\.toCharArray\(\)')
+PY_CHARSET_RE = re.compile(r"^CHARSET\s*=\s*'([^']*)'", re.M)
+MIRRORS = {'source/Matrix.mc': MC_CHARSET_RE,
+           'tools/make-launcher-icons.py': PY_CHARSET_RE}
+
+print("\nCHARSETS")
+charsets = {c['fontId']: c['fontCharset']
+            for c in json.load(open('resources/fonts/charsets.json'))}
+ok(set(charsets) == set(refsize),
+   f"charsets.json covers exactly the fonts fonts.xml declares "
+   f"(charsets {sorted(charsets)}, fonts {sorted(refsize)})")
+
+for path, pattern in MIRRORS.items():
+    m = pattern.search(open(path).read())
+    if not m:
+        ok(False, f"{path}: no CHARSET literal found to compare")
+    else:
+        ok(m.group(1) == charsets.get('Matrix'),
+           f"{path} CHARSET matches the charsets.json Matrix entry"
+           + (f" ({m.group(1)!r} vs {charsets.get('Matrix')!r})"
+              if m.group(1) != charsets.get('Matrix') else ""))
+
+# Time and TimeLarge are the same string drawn at two sizes: a glyph missing from one
+# would blank a cell on exactly one of the woken and always-on scenes.
+ok(charsets.get('Time') == charsets.get('TimeLarge'),
+   "Time and TimeLarge charsets agree"
+   + (f" ({charsets.get('Time')!r} vs {charsets.get('TimeLarge')!r})"
+      if charsets.get('Time') != charsets.get('TimeLarge') else ""))
 
 # ------------------------------------------------------------------- derived docs
 ROW_RE = re.compile(
