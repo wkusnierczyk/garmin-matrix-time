@@ -114,8 +114,15 @@ class DigitalRain {
         // Math.rand() runs from a fixed default seed, so without this every launch
         // produced the same starting grid and the same per-column head offsets -- two
         // watches side by side fell in step, and so did the same watch across restarts.
-        // The clock is the one source of variation available this early (#27).
-        Math.srand(Time.now().value());
+        //
+        // The clock alone is not enough to fix that. Moment.value() is a count of
+        // seconds, so two watches started in the same second would seed identically and
+        // fall in step anyway -- rarer than before, but the same failure. getTimer() is
+        // milliseconds since the device powered on, which is both finer grained and
+        // genuinely per device: two watches agree on the wall clock but not on how long
+        // they have been awake. XOR rather than addition so the mix cannot overflow the
+        // 32-bit Number and land on a negative seed (#27).
+        Math.srand(Time.now().value() ^ System.getTimer());
 
         _matrixFont = Application.loadResource(Rez.Fonts.Matrix) as Graphics.FontType;
         _timeFont = Application.loadResource(Rez.Fonts.Time) as Graphics.FontType;
