@@ -50,7 +50,7 @@ class DigitalRain {
     private var 
         _timeColor = TIME_COLOR,
         _matrixColor = MATRIX_COLOR,
-        _shades as Array<Graphics.ColorType> or Null;
+        _shades as Array<Graphics.ColorType> = [];
 
     // Loaded in initialize rather than declared const. A const initialised from
     // loadResource is not a compile-time constant at all -- the compiler lowers it to a
@@ -72,25 +72,41 @@ class DigitalRain {
         _centerX as Number,
         _centerY as Number;
 
+    // The grid. None of these can be built in the constructor -- every one of them
+    // depends on the font metrics, and those need a Dc, which only arrives with the
+    // first onUpdate. `_initialize` fills them all in one pass and `_initialized`
+    // records that it has run; `draw` consults that flag before reading any of them,
+    // so by the time anything here is dereferenced it has a value.
+    //
+    // They are therefore declared as what they hold rather than as `... or Null`, and
+    // start as an empty grid: zero rows, zero columns, no glyphs. The compiler requires
+    // a definite value, and an empty grid is the honest one -- it says there is nothing
+    // to draw yet, which is exactly the state before the first Dc arrives.
+    //
+    // The nullable declarations they replace promised a contract the code never
+    // honoured: not one of the reads was guarded, and a guard would have been
+    // unreachable (#25).
     private var
-        _glyphs as Array<String> or Null,
-        _trails as Array<Array<String>> or Null,
-        _heads as Array<Number> or Null,
-        _rowFirst as Array<Number> or Null,
-        _rowLast as Array<Number> or Null,
-        _rowCount as Number or Null,
-        _columnCount as Number or Null,
-        _centerRow as Number or Null,
-        _centerColumn as Number or Null,
-        _originX as Number or Null,
-        _originY as Number or Null,
-        _rowHeight as Number or Null,
-        _columnWidth as Number or Null,
-        _columnX as Array<Number> or Null,
-        _rowY as Array<Number> or Null,
+        _glyphs as Array<String> = [],
+        _trails as Array<Array<String>> = [],
+        _heads as Array<Number> = [],
+        _rowFirst as Array<Number> = [],
+        _rowLast as Array<Number> = [],
+        _rowCount as Number = 0,
+        _columnCount as Number = 0,
+        _centerRow as Number = 0,
+        _centerColumn as Number = 0,
+        _originX as Number = 0,
+        _originY as Number = 0,
+        _rowHeight as Number = 0,
+        _columnWidth as Number = 0,
+        _columnX as Array<Number> = [],
+        _rowY as Array<Number> = [],
         _initialized as Boolean = false;
 
-    private var _time as Time.Moment or Null;
+    // Set by forTime, which View calls before every draw and drawLowPower. Same
+    // contract as the grid above: assigned before it is read, so not nullable.
+    private var _time as Time.Moment = new Time.Moment(0);
 
 
     function initialize() {

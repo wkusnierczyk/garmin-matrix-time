@@ -38,3 +38,17 @@ venusq2m.resourcePath = $(venusq2m.resourcePath);resources-icon-40
 vivoactive5.resourcePath = $(vivoactive5.resourcePath);resources-icon-56
 vivoactive6.resourcePath = $(vivoactive6.resourcePath);resources-icon-54
 # END generated launcher icon mapping
+
+# Type checking level, set explicitly rather than left to the default (#25).
+#
+#   0 Silent  1 Informative  2 Gradual  3 Strict
+#
+# 2 builds clean -- no errors -- and reports the remaining annotation gaps as
+# warnings instead of hiding them, which is the point: the nullable field
+# declarations this issue removed were wrong for a long time precisely because
+# nothing was checking them. 1 would have gone on saying nothing.
+#
+# 3 does not build yet. It requires a full annotation pass -- every function
+# return and member typed, and `new [n]` replaced with typed array construction,
+# some two dozen sites. Worth doing, but as its own change, not folded in here.
+project.typecheck = 2
