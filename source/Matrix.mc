@@ -108,8 +108,14 @@ class DigitalRain {
     }
 
 
-    function forTime(time as Time.Moment or Null) as DigitalRain {
-        _time = (time == null) ? Time.now() : time;
+    // The one caller, View.onUpdate, always has a Moment in hand, so the parameter is
+    // not nullable and there is no "now" default to fall back to. Deciding what time it
+    // is belongs to the caller that is already asking the clock, not to a defaulting
+    // branch here that nothing ever took (#30).
+    //
+    // The fluent return stays: View reads better for it, and it costs nothing.
+    function forTime(time as Time.Moment) as DigitalRain {
+        _time = time;
         return self;
     }
 
