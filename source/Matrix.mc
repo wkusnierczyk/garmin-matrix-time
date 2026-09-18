@@ -296,11 +296,11 @@ class DigitalRain {
         // Coverage does not depend on the resolution. _initialize lays the cells out as a
         // gapless tiling that overhangs the screen on all four sides, so every point of
         // the glass falls inside some cell, and keeping every cell that meets the disc
-        // therefore covers the disc entirely by construction. Sampling agrees: the
-        // uncovered band goes to 0.00% at each of the four round resolutions the manifest
-        // actually ships -- 360x360, 390x390, 416x416, 454x454 -- for 10-15% more cells.
-        // The four further round entries in resolutions.json are stale scaler config for
-        // devices the manifest does not list (#19), and model to 0.00% as well.
+        // therefore covers the disc entirely by construction. Sampling agrees: measured
+        // across every round resolution configured at the time -- the four the manifest
+        // ships, 360x360, 390x390, 416x416 and 454x454, plus the four stale entries #19
+        // has since removed -- the uncovered band came out at 0.00% everywhere, for
+        // 10-15% more cells.
         _rowFirst = new [_columnCount] as Array<Number>;
         _rowLast = new [_columnCount] as Array<Number>;
 

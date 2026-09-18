@@ -92,7 +92,7 @@ ok((rw, rh, ref['shape']) in targets,
 # scaler generates for it is invisible to the compiler (#39)
 for shape in sorted({ref['shape']} | {s for _, _, s in targets}):
     ok(shape in CIQ_SHAPES,
-       f"shape {shape!r} is a Connect IQ deviceFamily qualifier "
+       f"shape {shape!r} must be a Connect IQ deviceFamily qualifier "
        f"(one of {sorted(CIQ_SHAPES)})")
 
 for fid, (stem, sz) in sorted(refsize.items()):
@@ -104,7 +104,7 @@ for fid, (stem, sz) in sorted(refsize.items()):
 # sized against the woken one: TimeLarge is Time doubled (#69). Matrix is independent
 # of both -- the time was once locked to the rain glyph size, and that was abandoned
 # in #50. The scaler derives every target from these two reference sizes, so getting
-# the ratio wrong here would propagate silently to all thirteen resolutions.
+# the ratio wrong here would propagate silently to every configured resolution.
 if {'Time', 'TimeLarge'} <= set(refsize):
     (tstem, tsize), (lstem, lsize) = refsize['Time'], refsize['TimeLarge']
     ok(tstem == lstem,
