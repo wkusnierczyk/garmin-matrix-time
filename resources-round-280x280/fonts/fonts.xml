@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<resources>
-    <fonts>
-        <font id="Matrix" filename="MatrixCodeNFI-18.fnt" antialias="true" />
-        <font id="Time" filename="SUSEMono-Regular-18.fnt" antialias="true" />
-        <font id="TimeLarge" filename="SUSEMono-Regular-36.fnt" antialias="true" />
-    </fonts>
-</resources>
