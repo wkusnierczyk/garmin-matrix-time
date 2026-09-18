@@ -150,7 +150,7 @@ for fid, (stem, sz) in sorted(refsize.items()):
 # -- silent at build time and visible only on-device. The Matrix charset is mirrored
 # in three hand-maintained places and nothing compared them until #54, which is
 # precisely a charset change.
-MC_CHARSET_RE = re.compile(r'CHARSET\s*=\s*"([^"]*)"\.toCharArray\(\)')
+MC_CHARSET_RE = re.compile(r'\bCHARSET\s*=\s*"([^"]*)"')
 PY_CHARSET_RE = re.compile(r"^CHARSET\s*=\s*'([^']*)'", re.M)
 MIRRORS = {'source/Matrix.mc': MC_CHARSET_RE,
            'tools/make-launcher-icons.py': PY_CHARSET_RE}

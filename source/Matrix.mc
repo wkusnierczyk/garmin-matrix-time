@@ -21,8 +21,8 @@ const
     // digits as recognisable digits, so a charset with 0-9 in it scatters numerals
     // through the rain that compete with the clock for attention (#54). The time is
     // the only number on screen.
-    CHARSET = "abcdefghijklmnopqrstuvwxyz".toCharArray() as Array<Char>,
-    CHARSET_SIZE = CHARSET.size(),
+    CHARSET = "abcdefghijklmnopqrstuvwxyz",
+    CHARSET_SIZE = CHARSET.length(),
     MATRIX_COLOR = 0x00FF2B,
     TIME_COLOR = Graphics.COLOR_GREEN;
 
@@ -74,7 +74,8 @@ class DigitalRain {
         _centerY as Number;
 
     private var
-        _trails as Array<Array<Char>> or Null,
+        _glyphs as Array<String> or Null,
+        _trails as Array<Array<String>> or Null,
         _heads as Array<Number> or Null,
         _rowFirst as Array<Number> or Null,
         _rowLast as Array<Number> or Null,
@@ -173,14 +174,16 @@ class DigitalRain {
         _originX = _centerX - _centerColumn * _columnWidth;
         _originY = _centerY - _centerRow * _rowHeight;
 
-        _trails = new [_columnCount] as Array<Array<Char>>;
+        _generateGlyphs();
+
+        _trails = new [_columnCount] as Array<Array<String>>;
         _heads = new [_columnCount];
 
         for (var i = 0; i < _columnCount; ++i) {
-            _trails[i] = new [_rowCount] as Array<Char>;
+            _trails[i] = new [_rowCount] as Array<String>;
             for (var j = 0; j < _rowCount; ++j) {
                 var index = Math.rand() % CHARSET_SIZE;
-                _trails[i][j] = CHARSET[index];
+                _trails[i][j] = _glyphs[index];
             }
             _heads[i] = Math.rand() % _rowCount;
         }
@@ -190,6 +193,22 @@ class DigitalRain {
         _generateCoordinates();
 
         _initialized = true;
+
+    }
+
+
+    private function _generateGlyphs() {
+
+        // Dc.drawText takes a String and the trails used to hold Char, so every drawn
+        // cell paid for a Char.toString() -- 160 short-lived Strings a frame, one per
+        // glyph, at one frame a second (#57). Interning the charset once removes that
+        // conversion from the loop: _trails holds references into this fixed pool of
+        // CHARSET_SIZE strings, so drawing a frame allocates nothing.
+        var characters = CHARSET.toCharArray();
+        _glyphs = new [CHARSET_SIZE] as Array<String>;
+        for (var i = 0; i < CHARSET_SIZE; ++i) {
+            _glyphs[i] = characters[i].toString();
+        }
 
     }
 
@@ -268,6 +287,7 @@ class DigitalRain {
             transparent = Graphics.COLOR_TRANSPARENT,
             justify = JUSTIFY,
             shades = _shades,
+            glyphs = _glyphs,
             trails = _trails,
             heads = _heads,
             rowFirst = _rowFirst,
@@ -302,9 +322,8 @@ class DigitalRain {
                     // paints nothing -- skip it rather than pay for setColor+drawText.
                     continue;
                 }
-                var character = trail[j];
                 dc.setColor(shade, transparent);
-                dc.drawText(x, rowY[j], font, character.toString(), justify);
+                dc.drawText(x, rowY[j], font, trail[j], justify);
             }
 
             // head + 1 mod rowCount, without the modulo: head is already in range, so
@@ -313,7 +332,7 @@ class DigitalRain {
             heads[i] = (next == rowCount) ? 0 : next;
 
             // Change one random character in the trail to a new random character
-            trail[Math.rand() % rowCount] = CHARSET[Math.rand() % CHARSET_SIZE];
+            trail[Math.rand() % rowCount] = glyphs[Math.rand() % CHARSET_SIZE];
         }
 
     }
