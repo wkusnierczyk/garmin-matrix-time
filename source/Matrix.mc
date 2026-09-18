@@ -86,8 +86,6 @@ class DigitalRain {
         _rowY as Array<Number> or Null,
         _initialized as Boolean = false;
 
-    private var _dc as Graphics.Dc or Null;
-
     private var _time as Time.Moment or Null;
 
 
@@ -122,13 +120,12 @@ class DigitalRain {
 
     function draw(dc as Graphics.Dc) as DigitalRain {
 
-        _dc = dc;
         if (!_initialized) {
-            _initialize();
+            _initialize(dc);
         }
 
-        _drawTrails();
-        _drawTime(_centerX, _centerY, _timeFont, _timeColor, Graphics.COLOR_BLACK);
+        _drawTrails(dc);
+        _drawTime(dc, _centerX, _centerY, _timeFont, _timeColor, Graphics.COLOR_BLACK);
 
         return self;
 
@@ -146,8 +143,6 @@ class DigitalRain {
     // behind it there is nothing for it to mask anyway.
     function drawLowPower(dc as Graphics.Dc) as DigitalRain {
 
-        _dc = dc;
-
         // The minute number, taken straight off the Moment: the jitter needs nothing
         // else from the calendar, and Gregorian.info is comparatively expensive.
         var step = (_time.value() / 60) % LOW_POWER_POSITIONS;
@@ -155,21 +150,21 @@ class DigitalRain {
         var dx = (step == 0 || step == 3) ? -jitter : jitter;
         var dy = (step < 2) ? -jitter : jitter;
 
-        _drawTime(_centerX + dx, _centerY + dy, _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
+        _drawTime(dc, _centerX + dx, _centerY + dy, _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
 
         return self;
 
     }
 
 
-    private function _initialize() {
+    private function _initialize(dc as Graphics.Dc) {
 
         // _generateGlyphs runs first: the pitch is measured from the interned charset,
         // so the glyphs have to exist before the grid can be sized.
         _generateGlyphs();
 
-        _rowHeight = _dc.getFontHeight(_matrixFont);
-        _columnWidth = _widestGlyph();
+        _rowHeight = dc.getFontHeight(_matrixFont);
+        _columnWidth = _widestGlyph(dc);
 
         // The grid is built outward from the screen centre rather than from the top-left
         // corner: one glyph sits exactly at the centre and the cells step out symmetrically
@@ -236,11 +231,11 @@ class DigitalRain {
     // absent character -- so the pitch was a constant unrelated to the typeface, and
     // 3 pixels narrower than the widest glyph, which therefore overhung its cell by
     // 1.5 pixels on each side (#84).
-    private function _widestGlyph() as Number {
+    private function _widestGlyph(dc as Graphics.Dc) as Number {
 
         var width = 0;
         for (var i = 0; i < CHARSET_SIZE; ++i) {
-            var advance = _dc.getTextWidthInPixels(_glyphs[i], _matrixFont);
+            var advance = dc.getTextWidthInPixels(_glyphs[i], _matrixFont);
             if (advance > width) {
                 width = advance;
             }
@@ -354,10 +349,9 @@ class DigitalRain {
     // in a different order, and since glyphs do not overlap the frame is identical --
     // which holds because the pitch is the widest advance in the charset, not in spite
     // of the font being proportional (#84).
-    private function _drawTrails() {
+    private function _drawTrails(dc as Graphics.Dc) {
 
-        var dc = _dc,
-            font = _matrixFont,
+        var font = _matrixFont,
             transparent = Graphics.COLOR_TRANSPARENT,
             justify = JUSTIFY,
             shades = _shades,
@@ -424,7 +418,7 @@ class DigitalRain {
     }
 
 
-    private function _drawTime(x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) {
+    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var hour = info.hour;
@@ -433,8 +427,8 @@ class DigitalRain {
             hour = ((hour + 11) % 12) + 1;
         }
         var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
-        _dc.setColor(color, background);
-        _dc.drawText(x, y, font, time, JUSTIFY);
+        dc.setColor(color, background);
+        dc.drawText(x, y, font, time, JUSTIFY);
 
     }
 
