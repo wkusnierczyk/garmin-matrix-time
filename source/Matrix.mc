@@ -92,11 +92,19 @@ class DigitalRain {
 
 
     function initialize() {
+
+        // Math.rand() runs from a fixed default seed, so without this every launch
+        // produced the same starting grid and the same per-column head offsets -- two
+        // watches side by side fell in step, and so did the same watch across restarts.
+        // The clock is the one source of variation available this early (#27).
+        Math.srand(Time.now().value());
+
         var settings = System.getDeviceSettings();
         _width = settings.screenWidth;
         _height = settings.screenHeight;
         _centerX = _width / 2;
         _centerY = _height / 2;
+
     }
 
 
