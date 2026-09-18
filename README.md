@@ -33,6 +33,9 @@ Due to power constraints on watch faces, the digital rain does not appear to fal
 **Letters only**  
 The rain is drawn from the letters `a`-`z` alone. Matrix Code NFI maps letters to katakana-style glyphs but draws digits as recognisable digits, so a charset including `0`-`9` scattered numerals through the rain that competed with the clock for attention. The time is the only number on the screen.
 
+**Round screens**  
+The rain is laid out on a rectangular grid, so on a round watch the corners of that grid fall off the glass and are never drawn. A cell is kept when the cell itself overlaps the visible disc, not merely when its centre does, so the rain reaches the rim at every round resolution instead of stopping a cell short of it.
+
 **Always-on display**  
 Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, drawn at twice the size used on the woken screen, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Raising the wrist wakes the watch face and brings the rain back.
 

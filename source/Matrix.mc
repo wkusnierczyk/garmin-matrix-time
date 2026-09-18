@@ -216,13 +216,34 @@ class DigitalRain {
     private function _generateSpans() {
 
         // On a round display the grid's corners fall outside the glass. Precompute,
-        // per column, the first and last row whose cell centre is actually on the
-        // display, so _drawTrails can skip the rest instead of drawing off-screen.
+        // per column, the first and last row whose cell overlaps the display, so
+        // _drawTrails can skip the rest instead of drawing off-screen.
+        //
+        // The test is cell rectangle against circle, not cell centre against circle. A
+        // centre-in-circle test drops every cell whose centre has crossed the rim even
+        // when most of its glyph is still on the glass, which left a thin uncovered band
+        // right round the edge where the rain stopped short -- 1.9% to 3.4% of the
+        // visible disc, depending on the resolution (#63). Shrinking the centre distance
+        // by half a cell on each axis before the comparison keeps every cell whose
+        // rectangle touches the circle. It is the conservative direction for a culling
+        // test: it can keep a cell whose ink misses the glass, but never drops one whose
+        // ink would have hit it.
+        //
+        // Coverage does not depend on the resolution. _initialize lays the cells out as a
+        // gapless tiling that overhangs the screen on all four sides, so every point of
+        // the glass falls inside some cell, and keeping every cell that meets the disc
+        // therefore covers the disc entirely by construction. Sampling agrees: the
+        // uncovered band goes to 0.00% at each of the four round resolutions the manifest
+        // actually ships -- 360x360, 390x390, 416x416, 454x454 -- for 10-15% more cells.
+        // The four further round entries in resolutions.json are stale scaler config for
+        // devices the manifest does not list (#19), and model to 0.00% as well.
         _rowFirst = new [_columnCount];
         _rowLast = new [_columnCount];
 
         var round = System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND;
         var radius = (_width < _height ? _width : _height) / 2.0;
+        var halfColumn = _columnWidth / 2.0;
+        var halfRow = _rowHeight / 2.0;
 
         for (var i = 0; i < _columnCount; ++i) {
             if (!round) {
@@ -230,7 +251,12 @@ class DigitalRain {
                 _rowLast[i] = _rowCount - 1;
                 continue;
             }
-            var dx = (i - _centerColumn) * _columnWidth;
+            // Horizontal distance from the centre to the cell's nearer vertical edge,
+            // zero for the columns the vertical centre line passes through.
+            var dx = ((i - _centerColumn) * _columnWidth).abs() - halfColumn;
+            if (dx < 0.0) {
+                dx = 0.0;
+            }
             var span = radius * radius - dx * dx;
             if (span < 0) {
                 // whole column is off the glass
@@ -239,8 +265,10 @@ class DigitalRain {
                 continue;
             }
             // The grid is symmetric about the centre row, so the span is too: it reaches
-            // the same number of rows above and below it.
-            var reach = Math.floor(Math.sqrt(span) / _rowHeight).toNumber();
+            // the same number of rows above and below it. The half row added back is the
+            // vertical half of the same rectangle test -- a row is in reach when its
+            // nearer horizontal edge is inside the circle, not when its centre is.
+            var reach = Math.floor((Math.sqrt(span) + halfRow) / _rowHeight).toNumber();
             if (reach > _centerRow) {
                 reach = _centerRow;
             }
