@@ -25,10 +25,6 @@ const
     MATRIX_COLOR = 0x00FF2B,
     TIME_COLOR = Graphics.COLOR_GREEN;
 
-const 
-    SCREEN_WIDTH = System.getDeviceSettings().screenWidth,
-    SCREEN_HEIGHT = System.getDeviceSettings().screenHeight;
-
 const
     JUSTIFY = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
 
