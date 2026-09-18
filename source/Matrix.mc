@@ -225,10 +225,18 @@ class DigitalRain {
         // right round the edge where the rain stopped short -- 1.9% to 3.4% of the
         // visible disc, depending on the resolution (#63). Shrinking the centre distance
         // by half a cell on each axis before the comparison keeps every cell whose
-        // rectangle touches the circle, and closes that band to nothing at all four round
-        // resolutions for some 13-15% more cells. It is the conservative direction for a
-        // culling test: it can keep a cell whose ink misses the glass, but never drops
-        // one whose ink would have hit it.
+        // rectangle touches the circle. It is the conservative direction for a culling
+        // test: it can keep a cell whose ink misses the glass, but never drops one whose
+        // ink would have hit it.
+        //
+        // Coverage does not depend on the resolution. _initialize lays the cells out as a
+        // gapless tiling that overhangs the screen on all four sides, so every point of
+        // the glass falls inside some cell, and keeping every cell that meets the disc
+        // therefore covers the disc entirely by construction. Sampling agrees: the
+        // uncovered band goes to 0.00% at each of the four round resolutions the manifest
+        // actually ships -- 360x360, 390x390, 416x416, 454x454 -- for 10-15% more cells.
+        // The four further round entries in resolutions.json are stale scaler config for
+        // devices the manifest does not list (#19), and model to 0.00% as well.
         _rowFirst = new [_columnCount];
         _rowLast = new [_columnCount];
 
