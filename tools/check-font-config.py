@@ -21,6 +21,20 @@ import sys
 
 FONT_RE = re.compile(r'<font\s+id="(\w+)"\s+filename="([^"]+)"')
 REQUIRED_FONT_IDS = {'Matrix', 'Time', 'TimeLarge'}
+
+# Connect IQ selects a qualified resource directory by matching its name against the
+# device's `deviceFamily`, whose shape component has no hyphen and no capital. The
+# scaler concatenates the `shape` string from resolutions.json straight into the
+# directory name, so a shape spelled any other way produces a directory the compiler
+# can never select -- and it fails silently: no error, no warning, the device just
+# falls back to the unscaled default font set (#39).
+#
+# `garmin-font-scaler`'s own README documents `"shape": "semi-round"` in its example,
+# so this is easy to get wrong by following the upstream docs. Hard-coded rather than
+# read from the SDK device definitions because this script must run on a bare clone
+# with no SDK installed.
+CIQ_SHAPES = {'round', 'semiround', 'rectangle', 'semioctagon'}
+
 fail = []
 
 
@@ -73,6 +87,13 @@ ok(REQUIRED_FONT_IDS <= set(refsize),
 # the reference must itself be a generated target, or the base identity check is moot
 ok((rw, rh, ref['shape']) in targets,
    f"reference {rw}x{rh} {ref['shape']} is present in the target list")
+
+# every shape must be spelled the way Connect IQ spells it, or the directory the
+# scaler generates for it is invisible to the compiler (#39)
+for shape in sorted({ref['shape']} | {s for _, _, s in targets}):
+    ok(shape in CIQ_SHAPES,
+       f"shape {shape!r} is a Connect IQ deviceFamily qualifier "
+       f"(one of {sorted(CIQ_SHAPES)})")
 
 for fid, (stem, sz) in sorted(refsize.items()):
     for ext in ('fnt', 'png'):
