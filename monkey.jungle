@@ -43,15 +43,11 @@ vivoactive6.resourcePath = $(vivoactive6.resourcePath);resources-icon-54
 #
 #   0 Silent  1 Informative  2 Gradual  3 Strict
 #
-# 2 builds clean -- no errors -- and reports the remaining annotation gaps as
-# warnings instead of hiding them, which is the point: the nullable field
-# declarations this issue removed were wrong for a long time precisely because
-# nothing was checking them. 1 would have gone on saying nothing.
-#
-# 3 does not build yet. It requires a full annotation pass -- every function
-# return and member typed, and `new [n]` replaced with typed array construction,
-# some two dozen sites. Worth doing, but as its own change, not folded in here.
-project.typecheck = 2
+# Strict, and the source is annotated to meet it: 0 errors, 0 warnings (#88).
+# Anything less goes quiet about exactly the kind of mistake it exists to catch
+# -- the nullable field declarations #25 removed were wrong for a long time
+# because nothing was checking them. Keep this at 3; fix what it reports.
+project.typecheck = 3
 
 # Default sourcePath globs recursively from the project root, which sweeps in
 # .dev/profiler-repro/source/*.mc -- scratch code, gitignored, compiled into every

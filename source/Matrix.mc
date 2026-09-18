@@ -48,8 +48,8 @@ const
 class DigitalRain {
 
     private var 
-        _timeColor = TIME_COLOR,
-        _matrixColor = MATRIX_COLOR,
+        _timeColor as Graphics.ColorType = TIME_COLOR,
+        _matrixColor as Number = MATRIX_COLOR,
         _shades as Array<Graphics.ColorType> = [];
 
     // Loaded in initialize rather than declared const. A const initialised from
@@ -181,7 +181,7 @@ class DigitalRain {
     }
 
 
-    private function _initialize(dc as Graphics.Dc) {
+    private function _initialize(dc as Graphics.Dc) as Void {
 
         // _generateGlyphs runs first: the pitch is measured from the interned charset,
         // so the glyphs have to exist before the grid can be sized.
@@ -207,7 +207,7 @@ class DigitalRain {
         _originY = _centerY - _centerRow * _rowHeight;
 
         _trails = new [_columnCount] as Array<Array<String>>;
-        _heads = new [_columnCount];
+        _heads = new [_columnCount] as Array<Number>;
 
         for (var i = 0; i < _columnCount; ++i) {
             _trails[i] = new [_rowCount] as Array<String>;
@@ -227,7 +227,7 @@ class DigitalRain {
     }
 
 
-    private function _generateGlyphs() {
+    private function _generateGlyphs() as Void {
 
         // Dc.drawText takes a String and the trails used to hold Char, so every drawn
         // cell paid for a Char.toString() -- 160 short-lived Strings a frame, one per
@@ -269,7 +269,7 @@ class DigitalRain {
     }
 
 
-    private function _generateSpans() {
+    private function _generateSpans() as Void {
 
         // On a round display the grid's corners fall outside the glass. Precompute,
         // per column, the first and last row whose cell overlaps the display, so
@@ -293,8 +293,8 @@ class DigitalRain {
         // actually ships -- 360x360, 390x390, 416x416, 454x454 -- for 10-15% more cells.
         // The four further round entries in resolutions.json are stale scaler config for
         // devices the manifest does not list (#19), and model to 0.00% as well.
-        _rowFirst = new [_columnCount];
-        _rowLast = new [_columnCount];
+        _rowFirst = new [_columnCount] as Array<Number>;
+        _rowLast = new [_columnCount] as Array<Number>;
 
         var round = System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND;
         var radius = (_width < _height ? _width : _height) / 2.0;
@@ -335,18 +335,18 @@ class DigitalRain {
     }
 
 
-    private function _generateCoordinates() {
+    private function _generateCoordinates() as Void {
 
         // A cell's pixel position never changes: its x depends only on the column and
         // its y only on the row. Precomputing both replaces the two multiplications
         // _drawTrails did per drawn cell -- some 320 a frame -- with two array reads
         // (#60).
-        _columnX = new [_columnCount];
+        _columnX = new [_columnCount] as Array<Number>;
         for (var i = 0; i < _columnCount; ++i) {
             _columnX[i] = _originX + i * _columnWidth;
         }
 
-        _rowY = new [_rowCount];
+        _rowY = new [_rowCount] as Array<Number>;
         for (var j = 0; j < _rowCount; ++j) {
             _rowY[j] = _originY + j * _rowHeight;
         }
@@ -373,7 +373,7 @@ class DigitalRain {
     // in a different order, and since glyphs do not overlap the frame is identical --
     // which holds because the pitch is the widest advance in the charset, not in spite
     // of the font being proportional (#84).
-    private function _drawTrails(dc as Graphics.Dc) {
+    private function _drawTrails(dc as Graphics.Dc) as Void {
 
         var font = _matrixFont,
             transparent = Graphics.COLOR_TRANSPARENT,
@@ -442,7 +442,7 @@ class DigitalRain {
     }
 
 
-    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) {
+    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) as Void {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var hour = info.hour;
@@ -457,7 +457,7 @@ class DigitalRain {
     }
 
 
-    private function _generateShades() {
+    private function _generateShades() as Void {
 
         // The ramp needs at least one step to divide by. `_rowCount` is `2 * _centerRow + 1`
         // and `_centerRow` is at least 1 on every supported screen -- the smallest is
