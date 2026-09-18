@@ -4,7 +4,6 @@ using Toybox.Math;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
-using Toybox.WatchUi;
 
 import Toybox.Lang; 
 
