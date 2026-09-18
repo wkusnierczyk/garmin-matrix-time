@@ -277,9 +277,16 @@ class DigitalRain {
     //  - every field and constant the loop touches is read once into a local. A field
     //    access in Monkey C is a symbol lookup, not a struct offset, so a field read in
     //    the inner body is paid for per cell;
-    //  - the shade index is carried between iterations instead of recomputed with a
-    //    modulo per cell (see below);
-    //  - the cell coordinates come from the tables _generateCoordinates built.
+    //  - the traversal is by shade band rather than by column, so `setColor` is called
+    //    once per distinct shade instead of once per glyph (see below);
+    //  - the cell coordinates come from the tables `_generateCoordinates` built.
+    //
+    // The grid is walked outside-in by distance from the head rather than column by
+    // column. A cell's shade is fixed by that distance alone, so one band is one colour:
+    // `setColor` runs `_rowCount / 2` times a frame -- 8 on `epix2pro47mm` -- where
+    // column-major order called it once per drawn glyph, 160 times, 152 of them setting
+    // a colour that was already current (#58). The `drawText` calls are the same calls
+    // in a different order, and since glyphs do not overlap the frame is identical.
     private function _drawTrails() {
 
         var dc = _dc,
@@ -297,42 +304,54 @@ class DigitalRain {
             rowCount = _rowCount,
             columnCount = _columnCount;
 
-        for (var i = 0; i < columnCount; ++i) {
-            var trail = trails[i];
-            var head = heads[i];
-            var first = rowFirst[i];
-            var last = rowLast[i];
-            var x = columnX[i];
+        for (var d = 0; d < rowCount; ++d) {
 
-            // The shade index is (rowCount + head - j) % rowCount: it falls by one as j
-            // rises and wraps at zero. So only the first row of the column needs the
-            // modulo -- the rest step down and wrap on a comparison, which removes one
-            // modulo per scanned cell.
-            var index = (rowCount + head - first) % rowCount;
+            var shade = shades[d];
+            if (shade == 0) {
+                // The ramp fades to black over half a screen, so the far half of every
+                // trail is 0x000000. Drawing that on a black background paints nothing --
+                // skip the whole band rather than pay for setColor + drawText.
+                continue;
+            }
+            dc.setColor(shade, transparent);
 
-            for (var j = first; j <= last; ++j) {
-                var shade = shades[index];
-                index -= 1;
-                if (index < 0) {
-                    index = rowCount - 1;
+            for (var i = 0; i < columnCount; ++i) {
+
+                // The band index is the distance back from this column's head, so the
+                // row it names is head - d, wrapped. Both are in [0, rowCount), so the
+                // difference falls short by at most one ring and a single conditional
+                // add does what a modulo would.
+                var j = heads[i] - d;
+                if (j < 0) {
+                    j += rowCount;
                 }
-                if (shade == 0) {
-                    // The ramp fades to black over half a screen, so the far half of
-                    // every trail is 0x000000. Drawing that on a black background
-                    // paints nothing -- skip it rather than pay for setColor+drawText.
+
+                // Off the glass on a round display. Column-major order had this as a
+                // loop bound; brightness-major order visits one row per column per band,
+                // so it becomes a range test paid per cell instead.
+                if (j < rowFirst[i] || j > rowLast[i]) {
                     continue;
                 }
-                dc.setColor(shade, transparent);
-                dc.drawText(x, rowY[j], font, trail[j], justify);
+
+                dc.drawText(columnX[i], rowY[j], font, trails[i][j], justify);
+
             }
+
+        }
+
+        // The heads advance and the trails mutate once the whole frame is drawn. Both
+        // were per column inside the drawing loop, which no longer has one; moving them
+        // out changes nothing, since neither touched the column being drawn.
+        for (var i = 0; i < columnCount; ++i) {
 
             // head + 1 mod rowCount, without the modulo: head is already in range, so
             // the sum can only overshoot by one.
-            var next = head + 1;
+            var next = heads[i] + 1;
             heads[i] = (next == rowCount) ? 0 : next;
 
             // Change one random character in the trail to a new random character
-            trail[Math.rand() % rowCount] = glyphs[Math.rand() % CHARSET_SIZE];
+            trails[i][Math.rand() % rowCount] = glyphs[Math.rand() % CHARSET_SIZE];
+
         }
 
     }
