@@ -185,7 +185,7 @@ make build
 # start the simulator if it is not already running
 make sim
 
-# run unit tests -- no tests are defined yet, so this currently fails
+# run the unit tests
 make test
 
 # run the simulation
@@ -212,8 +212,29 @@ app session to relay the app's console output to your terminal, so the command s
 foreground while the watch face runs; press Ctrl-C when you are done. `make test` also uses
 `monkeydo`, but captures its output and does return.
 
-`make test` compiles and loads a unit-test binary, but the sources define no `(:test)` functions yet,
-so the run reports a failure rather than `PASSED`. The target is kept ready for the test suite; until
-that exists, treat a failing `make test` as expected.
+### Unit tests
+
+`make test` compiles a unit-test binary, loads it into the simulator and reports the result. The suite
+lives in `source/tests/` and runs on Garmin's Run No Evil framework, which only exists inside the
+simulator -- there is no way to run these on a watch, or without the SDK.
+
+The tests cover the arithmetic behind the scene rather than the pixels: the trail's colour ramp, the
+grid's size and origin, the round-display cull, the always-on jitter and the clock string all live in
+`source/utils/RainMath.mc` as pure functions, and `RainMathTest` checks them against expected values
+and against the properties they are supposed to hold. `DigitalRainTest` covers what cannot be reduced
+to numbers -- the head and shade indices inside the drawing loop -- by drawing enough frames into a
+scratch bitmap for every index the ring can produce.
+
+`source/utils/PropertyUtils.mc` is deliberately not covered: its one function does not behave as
+documented while the project has no settings resource, which is #91.
+
+Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
+two test classes carry the annotation themselves, which drops their bodies too and leaves 160 bytes of
+class shell in the `.prg` -- 0.15% of it, and nothing at all in the memory budget, since neither class
+is ever instantiated.
+
+Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
+line rather than the exit status. A run that cannot reach the simulator prints no summary and is
+reported as a failure, which is the intended behaviour.
 
 To sideload your application to your Garmin watch, see [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
