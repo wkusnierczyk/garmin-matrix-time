@@ -16,9 +16,17 @@ class View extends WatchUi.WatchFace {
     // low-power scene has to be a different, much smaller one -- see
     // DigitalRain.drawLowPower.
     //
-    // The state is tracked from the sleep callbacks rather than read per frame:
-    // System.getDisplayMode() is the alternative, and it needs API 5.0.0, which the
-    // manifest does not yet declare (#13).
+    // The state is tracked from the sleep callbacks rather than read per frame.
+    // System.getDisplayMode() is the alternative, and since #13 raised minApiLevel to
+    // 5.0.0 it is available on every product in the manifest -- but it reports nothing
+    // the callbacks do not, so it was investigated and left alone (#68). Its one extra
+    // state, DISPLAY_MODE_OFF, is unreachable from here: onUpdate is not called while
+    // the display is off, and the simulator cannot produce the state either -- its
+    // Display Mode menu offers High Power and Always-On and nothing else. The callbacks
+    // also set the state synchronously, where getDisplayMode() is a poll whose timing
+    // against the sleep transition is unverified, and reading it a beat early would draw
+    // the full rain in always-on mode -- exactly what the burn-in protector shuts the
+    // screen off for.
     private var _lowPower as Boolean = false;
 
     // There is deliberately no onPartialUpdate. Per-second partial updates are a MIP
