@@ -18,15 +18,21 @@ class View extends WatchUi.WatchFace {
     //
     // The state is tracked from the sleep callbacks rather than read per frame.
     // System.getDisplayMode() is the alternative, and since #13 raised minApiLevel to
-    // 5.0.0 it is available on every product in the manifest -- but it reports nothing
-    // the callbacks do not, so it was investigated and left alone (#68). Its one extra
-    // state, DISPLAY_MODE_OFF, is unreachable from here: onUpdate is not called while
-    // the display is off, and the simulator cannot produce the state either -- its
-    // Display Mode menu offers High Power and Always-On and nothing else. The callbacks
-    // also set the state synchronously, where getDisplayMode() is a poll whose timing
-    // against the sleep transition is unverified, and reading it a beat early would draw
-    // the full rain in always-on mode -- exactly what the burn-in protector shuts the
-    // screen off for.
+    // 5.0.0 it is available on every product in the manifest. It was investigated and
+    // left alone (#68).
+    //
+    // It does report one state the callbacks cannot distinguish: DISPLAY_MODE_OFF, the
+    // screen off, as against DISPLAY_MODE_LOW_POWER for always-on. Both arrive here as
+    // _lowPower == true. That distinction is unreachable from onUpdate, though, because
+    // onUpdate is not called at all while the display is off -- a branch on
+    // DISPLAY_MODE_OFF would never be taken, and the simulator cannot produce the state
+    // to show otherwise: its Display Mode menu offers High Power and Always-On and
+    // nothing else.
+    //
+    // What that leaves is a poll in place of a flag the callbacks set synchronously,
+    // with the poll's timing against the sleep transition unverified. Read a beat early
+    // it draws the full rain in always-on mode, which is exactly what the burn-in
+    // protector shuts the screen off for.
     private var _lowPower as Boolean = false;
 
     // There is deliberately no onPartialUpdate. Per-second partial updates are a MIP
