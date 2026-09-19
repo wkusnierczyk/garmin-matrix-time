@@ -105,15 +105,23 @@ run: build sim
 
 # monkeydo's output is printed rather than piped straight into grep: piping hid
 # every real failure behind a bare "Error 1" from grep matching nothing.
+#
+# Its exit status is not consulted, because it carries nothing: monkeydo exits 1 on a
+# suite that passes every test and 1 on a suite that fails one, measured both ways on
+# SDK 9.2.0. What the status used to gate was therefore an unconditional failure once
+# there were tests to run at all. The summary line is the only signal there is, and it
+# is unambiguous -- "PASSED (passed=N, failed=0, errors=0)" or "FAILED (...)" in the
+# first column -- so the grep is anchored there rather than matching the word anywhere
+# in the log, where a test name could supply it (#23).
 test: sim
 	$(require_sdk)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
 	@echo "Loading tests into simulator..."
-	@output=$$($(MONKEYDO) test_build.prg $(DEVICE) -t); status=$$?; \
+	@output=$$($(MONKEYDO) test_build.prg $(DEVICE) -t 2>&1); \
 	  echo "$$output"; \
-	  test $$status -eq 0 || exit $$status; \
-	  echo "$$output" | grep -q PASSED || { echo "Unit tests did not report PASSED."; exit 1; }
+	  echo "$$output" | grep -qE '^PASSED \(' || { \
+	    echo "Unit tests did not report PASSED."; exit 1; }
 
 check-fonts:
 	@echo "Checking font configuration consistency..."

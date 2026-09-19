@@ -22,12 +22,6 @@ const
     JUSTIFY = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
 
 const
-    RED_SHIFT = 16,
-    GREEN_SHIFT = 8,
-    BLUE_SHIFT = 0,
-    MASK = 0xFF;
-
-const
     // The always-on scene: TIME_COLOR at two thirds of its brightness, stepped round
     // the four corners of a small square so that no pixel stays lit for more than
     // one minute at a time. The offset is a fraction of the screen width so that it
@@ -41,7 +35,8 @@ const
     // that remain after #19 are a subset of those thirteen, so the result still holds.
     // 16 is the largest round value below that, and halves as the font doubled -- at
     // the previous 32 the doubled glyphs would have had up to 31 permanently lit
-    // pixels (#69).
+    // pixels (#69). The two jitter constants are read by RainMath.jitter; the colour is
+    // used below.
     LOW_POWER_TIME_COLOR = 0x00AA00,
     LOW_POWER_POSITIONS = 4,
     LOW_POWER_JITTER_DIVISOR = 16;
@@ -176,14 +171,9 @@ class DigitalRain {
     // behind it there is nothing for it to mask anyway.
     function drawLowPower(dc as Graphics.Dc) as DigitalRain {
 
-        // The minute number, taken straight off the Moment: the jitter needs nothing
-        // else from the calendar, and Gregorian.info is comparatively expensive.
-        var step = (_time.value() / 60) % LOW_POWER_POSITIONS;
-        var jitter = _width / LOW_POWER_JITTER_DIVISOR;
-        var dx = (step == 0 || step == 3) ? -jitter : jitter;
-        var dy = (step < 2) ? -jitter : jitter;
+        var offset = RainMath.jitter(_time.value(), _width);
 
-        _drawTime(dc, _centerX + dx, _centerY + dy, _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
+        _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
 
         return self;
 
@@ -199,17 +189,11 @@ class DigitalRain {
         _rowHeight = dc.getFontHeight(_matrixFont);
         _columnWidth = _widestGlyph(dc);
 
-        // The grid is built outward from the screen centre rather than from the top-left
-        // corner: one glyph sits exactly at the centre and the cells step out symmetrically
-        // in both directions. A corner-anchored grid centred its first row and column on
-        // y = 0 / x = 0 -- half of every one of those glyphs off the screen -- while leaving
-        // the far edge ragged by whatever the cell size did not divide (#10).
-        //
-        // The half-cell term picks the smallest number of steps whose outermost glyph still
-        // reaches the edge, so the grid covers the screen without any cell landing entirely
-        // outside it.
-        _centerColumn = Math.ceil((_centerX - _columnWidth / 2.0) / _columnWidth).toNumber();
-        _centerRow = Math.ceil((_centerY - _rowHeight / 2.0) / _rowHeight).toNumber();
+        // Built outward from the screen centre, one glyph sitting exactly at the centre
+        // and the cells stepping out symmetrically in both directions -- see
+        // RainMath.centerSteps for why (#10).
+        _centerColumn = RainMath.centerSteps(_centerX, _columnWidth);
+        _centerRow = RainMath.centerSteps(_centerY, _rowHeight);
         _columnCount = 2 * _centerColumn + 1;
         _rowCount = 2 * _centerRow + 1;
         _originX = _centerX - _centerColumn * _columnWidth;
@@ -282,33 +266,14 @@ class DigitalRain {
 
         // On a round display the grid's corners fall outside the glass. Precompute,
         // per column, the first and last row whose cell overlaps the display, so
-        // _drawTrails can skip the rest instead of drawing off-screen.
-        //
-        // The test is cell rectangle against circle, not cell centre against circle. A
-        // centre-in-circle test drops every cell whose centre has crossed the rim even
-        // when most of its glyph is still on the glass, which left a thin uncovered band
-        // right round the edge where the rain stopped short -- 1.9% to 3.4% of the
-        // visible disc, depending on the resolution (#63). Shrinking the centre distance
-        // by half a cell on each axis before the comparison keeps every cell whose
-        // rectangle touches the circle. It is the conservative direction for a culling
-        // test: it can keep a cell whose ink misses the glass, but never drops one whose
-        // ink would have hit it.
-        //
-        // Coverage does not depend on the resolution. _initialize lays the cells out as a
-        // gapless tiling that overhangs the screen on all four sides, so every point of
-        // the glass falls inside some cell, and keeping every cell that meets the disc
-        // therefore covers the disc entirely by construction. Sampling agrees: measured
-        // across every round resolution configured at the time -- the four the manifest
-        // ships, 360x360, 390x390, 416x416 and 454x454, plus the four stale entries #19
-        // has since removed -- the uncovered band came out at 0.00% everywhere, for
-        // 10-15% more cells.
+        // _drawTrails can skip the rest instead of drawing off-screen. RainMath.rowReach
+        // does the overlap test and explains why it is a rectangle test, not a centre
+        // test (#63, #83).
         _rowFirst = new [_columnCount] as Array<Number>;
         _rowLast = new [_columnCount] as Array<Number>;
 
         var round = System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND;
         var radius = (_width < _height ? _width : _height) / 2.0;
-        var halfColumn = _columnWidth / 2.0;
-        var halfRow = _rowHeight / 2.0;
 
         for (var i = 0; i < _columnCount; ++i) {
             if (!round) {
@@ -316,26 +281,12 @@ class DigitalRain {
                 _rowLast[i] = _rowCount - 1;
                 continue;
             }
-            // Horizontal distance from the centre to the cell's nearer vertical edge,
-            // zero for the columns the vertical centre line passes through.
-            var dx = ((i - _centerColumn) * _columnWidth).abs() - halfColumn;
-            if (dx < 0.0) {
-                dx = 0.0;
-            }
-            var span = radius * radius - dx * dx;
-            if (span < 0) {
+            var reach = RainMath.rowReach(i - _centerColumn, _columnWidth, _rowHeight, radius, _centerRow);
+            if (reach < 0) {
                 // whole column is off the glass
                 _rowFirst[i] = 0;
                 _rowLast[i] = -1;
                 continue;
-            }
-            // The grid is symmetric about the centre row, so the span is too: it reaches
-            // the same number of rows above and below it. The half row added back is the
-            // vertical half of the same rectangle test -- a row is in reach when its
-            // nearer horizontal edge is inside the circle, not when its centre is.
-            var reach = Math.floor((Math.sqrt(span) + halfRow) / _rowHeight).toNumber();
-            if (reach > _centerRow) {
-                reach = _centerRow;
             }
             _rowFirst[i] = _centerRow - reach;
             _rowLast[i] = _centerRow + reach;
@@ -346,19 +297,8 @@ class DigitalRain {
 
     private function _generateCoordinates() as Void {
 
-        // A cell's pixel position never changes: its x depends only on the column and
-        // its y only on the row. Precomputing both replaces the two multiplications
-        // _drawTrails did per drawn cell -- some 320 a frame -- with two array reads
-        // (#60).
-        _columnX = new [_columnCount] as Array<Number>;
-        for (var i = 0; i < _columnCount; ++i) {
-            _columnX[i] = _originX + i * _columnWidth;
-        }
-
-        _rowY = new [_rowCount] as Array<Number>;
-        for (var j = 0; j < _rowCount; ++j) {
-            _rowY[j] = _originY + j * _rowHeight;
-        }
+        _columnX = RainMath.axis(_originX, _columnWidth, _columnCount);
+        _rowY = RainMath.axis(_originY, _rowHeight, _rowCount);
 
     }
 
@@ -454,12 +394,7 @@ class DigitalRain {
     private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) as Void {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
-        var hour = info.hour;
-        if (!System.getDeviceSettings().is24Hour) {
-            // FORMAT_SHORT always yields 0-23; map to a 12-hour clock where 0 and 12 read as 12
-            hour = ((hour + 11) % 12) + 1;
-        }
-        var time = Lang.format("$1$:$2$", [hour.format("%2d"), info.min.format("%02d")]);
+        var time = RainMath.timeText(info.hour, info.min, System.getDeviceSettings().is24Hour);
         dc.setColor(color, background);
         dc.drawText(x, y, font, time, JUSTIFY);
 
@@ -467,44 +402,7 @@ class DigitalRain {
 
 
     private function _generateShades() as Void {
-
-        // The ramp needs at least one step to divide by. `_rowCount` is `2 * _centerRow + 1`
-        // and `_centerRow` is at least 1 on every supported screen -- the smallest is
-        // 360x360 with a 22 px row, giving `_rowCount` 17 -- so this cannot bite today. It
-        // guards the arithmetic rather than a known input: a future device with a row
-        // height past half the screen would make `steps` 0 and divide by it three times a
-        // row (#28).
-        var steps = _rowCount / 2;
-        if (steps < 1) {
-            steps = 1;
-        }
-
-        var red = (_matrixColor >> RED_SHIFT) & MASK,
-            green = (_matrixColor >> GREEN_SHIFT) & MASK,
-            blue = (_matrixColor >> BLUE_SHIFT) & MASK;
-
-        // The ramp fades linearly to black over `steps` rows and is black for the rest of
-        // the ring, which `_drawTrails` skips (#8). The clamp is on `scale`, before it
-        // reaches a channel, so with `scale` in [0, steps] and each channel in [0, 255]
-        // every term is in range by construction.
-        //
-        // What it replaces -- `if (_shades[i] < 0) { _shades[i] = 0; }` on the packed
-        // colour -- gave the same ramp for every `MATRIX_COLOR`, but only via a 32-bit
-        // sign-propagation argument: past `steps` all three channels scale by the same
-        // negative factor, and a channel in [-255, 0] still sets the sign bit after a
-        // shift of 16 or less, so the OR is negative whenever any channel is. Correct,
-        // and far too subtle to leave a colour change resting on (#9).
-        _shades = new [_rowCount] as Array<Graphics.ColorType>;
-        for (var i = 0; i < _rowCount; ++i) {
-            var scale = steps - i;
-            if (scale < 0) {
-                scale = 0;
-            }
-            _shades[i] = ((red * scale / steps) << RED_SHIFT) |
-                        ((green * scale / steps) << GREEN_SHIFT) |
-                        ((blue * scale / steps) << BLUE_SHIFT);
-        }
-
+        _shades = RainMath.shades(_rowCount, _matrixColor);
     }
 
 }
