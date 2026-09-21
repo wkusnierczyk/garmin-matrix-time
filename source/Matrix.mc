@@ -5,10 +5,10 @@ using Toybox.System;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
 
-import Toybox.Lang; 
+import Toybox.Lang;
 
 
-const 
+const
     // Letters only. MatrixCodeNFI maps letters to katakana-style glyphs but renders
     // digits as recognisable digits, so a charset with 0-9 in it scatters numerals
     // through the rain that compete with the clock for attention (#54). The time is
@@ -44,7 +44,7 @@ const
 
 class DigitalRain {
 
-    private var 
+    private var
         _timeColor as Graphics.ColorType = TIME_COLOR,
         _matrixColor as Number = MATRIX_COLOR,
         _shades as Array<Graphics.ColorType> = [];
