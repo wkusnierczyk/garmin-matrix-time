@@ -461,12 +461,13 @@ For the manual route, or for sideloading from another platform, see
 ### Continuous integration
 
 Every push to `main` and every pull request runs
-[`.github/workflows/build.yml`](.github/workflows/build.yml), which does two things:
+[`.github/workflows/build.yml`](.github/workflows/build.yml), which does three things:
 
 | Job | What it proves |
 | :-- | :------------- |
 | `consistency checks` | `make check-fonts` and `make check-icons` pass. Pure Python, no SDK, seconds. |
 | `build` | the face compiles, for one product per `deviceFamily`, and `make export` produces the store bundle. |
+| `unit tests` | `make test` passes: the Run No Evil suite, in the simulator, under a virtual display. |
 
 Building one product per family rather than all fifty-one is the cheapest set that still compiles
 every resolution and shape the face ships: resource qualifiers resolve per family, so within a family
@@ -484,8 +485,9 @@ release day. It is the same `make export` a developer runs, with the same flags,
 spelling of the build in the workflow; the bundle's size is logged and then discarded, since publishing
 it is release automation's business rather than this job's.
 
-The build job runs in [`ghcr.io/matco/connectiq-tester`](https://github.com/matco/connectiq-tester),
-which carries the SDK, the device definitions and the simulator. The container is not a convenience:
+The `build` and `unit tests` jobs run in
+[`ghcr.io/matco/connectiq-tester`](https://github.com/matco/connectiq-tester), which carries the SDK,
+the device definitions and the simulator. The container is not a convenience:
 the SDK itself is a public download, but the device definitions `monkeyc` needs are fetched by the
 SDK manager from Garmin behind an account sign-in, one product at a time, and are not in the SDK
 archive. There is no headless fetch, so they have to arrive in the image. The image is pinned by
@@ -499,14 +501,24 @@ proves nothing an unsigned-in-practice one does not, and the real key -- the ide
 app is signed with -- does not belong in a public repository's secrets. That changes if and when
 release automation is added, which is the point at which a real key first earns its place.
 
-Both jobs check out with Git LFS fetched. Several binaries here are LFS objects -- the launcher icon
+Every job checks out with Git LFS fetched. Several binaries here are LFS objects -- the launcher icon
 fallback and both source typefaces among them -- and a checkout without it leaves a pointer file where
 the `.png` should be: `check-icons` then fails on the fallback's dimensions, and `monkeyc` compiles the
 pointer as a drawable without a word. The first run of this workflow found exactly that; see
 [Git LFS](#git-lfs) for what it looks like locally.
 
-Unit tests do not run in CI yet. They need the simulator, which the image can run under `xvfb`; that
-is the next stage rather than a limitation of the approach.
+The unit tests run in a job of their own rather than as another step of `build`, because the two prove
+different things and fail for different reasons: a red there is a compile failure, a red here is a
+test failure, and reading one as the other wastes the first ten minutes of every investigation. They
+need the simulator, which is a GUI application -- `monkeydo` pushes the test build into a *running*
+one -- so the job starts an X server with `xvfb-run` and runs `make test` inside it. The same
+`make test` a developer runs: `make sim` still probes port 1234 until the simulator accepts
+connections rather than sleeping a fixed interval, which is why the job installs `netcat`, and the
+suite's verdict is still read off the anchored `PASSED (` line rather than `monkeydo`'s exit status,
+which is `1` whether every test passed or one failed (#23).
+
+Release automation -- tagging, and publishing the bundle the export step already builds -- is the
+stage that remains.
 
 ## Upstream bug reports
 
