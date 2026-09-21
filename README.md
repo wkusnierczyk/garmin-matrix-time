@@ -53,7 +53,7 @@ The Matrix Time watch face supports the following features:
 |-|:-|
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a bacground for the current time.
 
-In the initial version, there are no customisation settings.
+In the initial version, there are no customisation settings. The watch face does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
 ## Fonts
 
@@ -281,13 +281,16 @@ and against the properties they are supposed to hold. `DigitalRainTest` covers w
 to numbers -- the head and shade indices inside the drawing loop -- by drawing enough frames into a
 scratch bitmap for every index the ring can produce.
 
-`source/utils/PropertyUtils.mc` is deliberately not covered: its one function does not behave as
-documented while the project has no settings resource, which is #91.
+`PropertyUtilsTest` covers `source/utils/PropertyUtils.mc`, whose one function nothing calls yet. What
+it really checks is the resource: `resources/properties/properties.xml` declares one property, and that
+declaration is what lets `Properties.getValue` fall back to the default on an unknown key instead of
+taking the app down with an error no `catch` clause sees (#91, #93). Remove the resource, or empty it
+out, and both tests report an error rather than a failure.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
-two test classes carry the annotation themselves, which drops their bodies too and leaves 160 bytes of
-class shell in the `.prg` -- 0.15% of it, and nothing at all in the memory budget, since neither class
-is ever instantiated.
+three test classes carry the annotation themselves, which drops their bodies too and leaves 240 bytes
+of class shell in the `.prg` -- 0.22% of it, and nothing at all in the memory budget, since none of the
+three is ever instantiated.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is

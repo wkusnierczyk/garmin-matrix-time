@@ -1,0 +1,17 @@
+<properties xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+    <!-- Lite has no user-facing settings. This entry is a schema marker, and it is a hack:
+         it exists so that the property table exists at all. With no declared property,
+         Properties.getValue does not raise the documented InvalidKeyException; it fails
+         with an uncatchable system error that takes the app down, and an empty properties
+         element is not enough either (#91, #93). Pro's real settings will join it.
+
+         A property with no matching entry in a settings.xml is storage, not a settings
+         screen, so this stays invisible to users.
+
+         Note for editors: XML forbids a double hyphen inside a comment, and monkeyc rejects
+         the whole resource file over one, which is why the prose above uses none. -->
+    <property id="settingsSchema" type="number">1</property>
+
+</properties>
