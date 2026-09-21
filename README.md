@@ -1,5 +1,7 @@
 # Garmin Matrix Time
 
+[![build](https://github.com/wkusnierczyk/garmin-matrix-time/actions/workflows/build.yml/badge.svg)](https://github.com/wkusnierczyk/garmin-matrix-time/actions/workflows/build.yml)
+
 A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face that displays the current time with the Digital Rain design in the background.
 
 ![Matrix Time](resources/graphics/MatrixTimeHero-small.png)
@@ -376,6 +378,41 @@ proper uses.
 
 For the manual route, or for sideloading from another platform, see
 [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
+
+### Continuous integration
+
+Every push to `main` and every pull request runs
+[`.github/workflows/build.yml`](.github/workflows/build.yml), which does two things:
+
+| Job | What it proves |
+| :-- | :------------- |
+| `consistency checks` | `make check-fonts` and `make check-icons` pass. Pure Python, no SDK, seconds. |
+| `build` | the face compiles, for one product per `deviceFamily`. |
+
+Building one product per family rather than all fifty-one is the cheapest set that still compiles
+every resolution and shape the face ships: resource qualifiers resolve per family, so within a family
+the compiler sees the same sources, the same bitmaps and the same layout. The set is derived at run
+time by `tools/ci-devices.py`, from `manifest.xml` and the SDK's device definitions, so a newly
+supported product is covered the moment it is added and there is no list in the workflow to forget.
+A product the manifest names but the SDK has no definition for fails the job rather than being
+skipped -- that is the state in which the store bundle fails to build, and CI is the right place to
+hear about it first.
+
+The build job runs in [`ghcr.io/matco/connectiq-tester`](https://github.com/matco/connectiq-tester),
+which carries the SDK, the device definitions and the simulator. The container is not a convenience:
+the SDK itself is a public download, but the device definitions `monkeyc` needs are fetched by the
+SDK manager from Garmin behind an account sign-in, one product at a time, and are not in the SDK
+archive. There is no headless fetch, so they have to arrive in the image. The image is pinned to a
+release tag so that an SDK bump is a visible change with a green run behind it; the `Makefile`, by
+contrast, deliberately follows whatever SDK the SDK manager has selected.
+
+No developer key is involved. CI generates a throwaway one per run and discards it: a signed build
+proves nothing an unsigned-in-practice one does not, and the real key -- the identity every published
+app is signed with -- does not belong in a public repository's secrets. That changes if and when
+release automation is added, which is the point at which a real key first earns its place.
+
+Unit tests do not run in CI yet. They need the simulator, which the image can run under `xvfb`; that
+is the next stage rather than a limitation of the approach.
 
 ## Upstream bug reports
 
