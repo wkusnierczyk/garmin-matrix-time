@@ -27,8 +27,8 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 
 Matrix Time displays the current time as digits with [Digital Rain](https://en.wikipedia.org/wiki/Digital_rain) in the background.
 
-**Note**  
-Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.
+**Stepped, not smooth**  
+Every frame advances each column of rain by exactly one row, and a watch face is given at most one frame a second: `onUpdate` is called about once a second while the watch is awake, and only once a minute once it has dropped into low power. The rain therefore steps rather than flows. It also steps only while the watch is awake, because the always-on screen leaves the rain out altogether; see **Always-on display** below. The callback that would add frames in low power, `onPartialUpdate`, is a memory-in-pixel mechanism and is deliberately not implemented here: on an AMOLED product it is the burn-in protector, not the frame rate, that decides what the always-on screen may draw.
 
 **Letters only**  
 The rain is drawn from the letters `a`-`z` alone. Matrix Code NFI maps letters to katakana-style glyphs but draws digits as recognisable digits, so a charset including `0`-`9` scattered numerals through the rain that competed with the clock for attention. The time is the only number on the screen.
