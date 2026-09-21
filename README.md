@@ -199,9 +199,56 @@ To modify and build the sources, you need to have installed:
 
 * [Visual Studio Code](https://code.visualstudio.com/) with [Monkey C extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/).
 * [Garmin Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/).
+* [Git LFS](https://git-lfs.com) -- the typefaces, the launcher icon fallback and the graphics are
+  LFS objects, and a clone made without it builds from pointer files without complaining.
 
 The [Monkey C Visual Studio Code Extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/)
 reference guide covers the extension in full; what follows is the part of it this project actually uses.
+
+### Git LFS
+
+Ten binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
+`resources/fonts/MatrixCodeNFI.ttf` and `resources/fonts/SUSEMono-Regular.ttf`; the launcher icon
+fallback, `resources/drawables/launcher_icon.png`; and the seven hero and screenshot graphics under
+`resources/graphics/`. Everything else is stored normally, the generated bitmap fonts and the
+per-device launcher icons included -- they are build output of the two typefaces, small, and worth
+diffing.
+
+`git lfs install` is once per machine, not once per repository, and wants doing before the clone:
+
+```bash
+brew install git-lfs        # apt install git-lfs, dnf install git-lfs, ...
+git lfs install
+git clone https://github.com/wkusnierczyk/garmin-matrix-time.git
+```
+
+For a clone already made without it, install `git-lfs` and run `git lfs pull` in the working tree;
+the pointer files are replaced in place.
+
+**What a clone without it looks like is worth reading before the first build, because nothing
+announces it.** Each of the ten files is a three-line text pointer of about 130 bytes, beginning
+`version https://git-lfs.github.com/spec/v1`, and each tool takes it for the file it stands in for:
+
+* `monkeyc` compiles the pointer as a drawable without a word. The shipped icon survives that only
+  by luck -- every product overrides `LauncherIcon` from its own generated icon directory -- but the
+  fallback that mapping exists to provide is garbage, which is exactly what a newly added product
+  falls back to.
+* `make icons` renders the per-device icons from `resources/fonts/MatrixCodeNFI.ttf` and can do
+  nothing sensible with a pointer file.
+* `make check-icons` fails, naming the symptom rather than the cause:
+
+      FAIL  resources/drawables/launcher_icon.png is the 70x70 fallback, the largest size mapped
+
+  A failure on the fallback's dimensions, or a font tool that cannot read a typeface, is this and not
+  a real inconsistency. `head -c 8 resources/drawables/launcher_icon.png` settles it: a real PNG
+  starts with a `PNG` signature, a pointer with `version`.
+* `make check-fonts` passes -- nothing it inspects is an LFS object -- so a green `check-fonts` is no
+  evidence that the clone is whole.
+* The images in this file render as broken links locally. On GitHub they are fine, which is why this
+  is easy to miss.
+
+This is how the first CI run failed (#102): `actions/checkout` does not fetch LFS objects unless
+asked, so the runner reproduced a `git-lfs`-less clone exactly.
 
 ### A developer key
 
@@ -416,7 +463,8 @@ release automation is added, which is the point at which a real key first earns 
 Both jobs check out with Git LFS fetched. Several binaries here are LFS objects -- the launcher icon
 fallback and both source typefaces among them -- and a checkout without it leaves a pointer file where
 the `.png` should be: `check-icons` then fails on the fallback's dimensions, and `monkeyc` compiles the
-pointer as a drawable without a word. The first run of this workflow found exactly that.
+pointer as a drawable without a word. The first run of this workflow found exactly that; see
+[Git LFS](#git-lfs) for what it looks like locally.
 
 Unit tests do not run in CI yet. They need the simulator, which the image can run under `xvfb`; that
 is the next stage rather than a limitation of the approach.
