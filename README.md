@@ -27,8 +27,8 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 
 Matrix Time displays the current time as digits with [Digital Rain](https://en.wikipedia.org/wiki/Digital_rain) in the background.
 
-**Note**  
-Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.
+**Stepped, not smooth**  
+Every frame advances each column of rain by exactly one row, and a watch face is given at most one frame a second: `onUpdate` is called about once a second while the watch is awake, and only once a minute once it has dropped into low power. The rain therefore steps rather than flows. It also steps only while the watch is awake, because the always-on screen leaves the rain out altogether; see **Always-on display** below. The callback that would add frames in low power, `onPartialUpdate`, is a memory-in-pixel mechanism and is deliberately not implemented here: on an AMOLED product it is the burn-in protector, not the frame rate, that decides what the always-on screen may draw.
 
 **Letters only**  
 The rain is drawn from the letters `a`-`z` alone. Matrix Code NFI maps letters to katakana-style glyphs but draws digits as recognisable digits, so a charset including `0`-`9` scattered numerals through the rain that competed with the clock for attention. The time is the only number on the screen.
@@ -174,9 +174,53 @@ To modify and build the sources, you need to have installed:
 * [Visual Studio Code](https://code.visualstudio.com/) with [Monkey C extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/).
 * [Garmin Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/).
 
-Consult [Monkey C Visual Studio Code Extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/) for how to execute commands such as `build` and `test` to the Monkey C runtime.
+The [Monkey C Visual Studio Code Extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/)
+reference guide covers the extension in full; what follows is the part of it this project actually uses.
 
-You can use the included `Makefile` to conveniently trigger some of the actions from the command line.
+### A developer key
+
+Every build is signed, so nothing compiles until a developer key exists. Generate one from the command
+palette with `Monkey C: Generate a Developer Key`, or by hand:
+
+```bash
+openssl genrsa -out developer_key.pem 4096
+openssl pkcs8 -topk8 -inform PEM -outform DER -in developer_key.pem -out developer_key -nocrypt
+```
+
+`monkeyc` wants the DER file, `developer_key`. Point the extension at it with the `monkeyC.developerKeyPath`
+setting, and the `Makefile` at it with `DEV_KEY`, which defaults to `../garmin-keys/developer_key`, that is,
+outside the working tree. Keep it there: the key is the identity every app you publish is signed with, and
+losing it or leaking it cannot be undone by a new one. `.gitignore` guards `developer_key*` as a second line
+of defence, not as a licence to keep the key in the repository.
+
+### From Visual Studio Code
+
+`Cmd+Shift+P` on macOS, `Ctrl+Shift+P` on Windows and Linux, opens the command palette. The commands
+that matter here:
+
+| Command | What it does |
+| :------ | :----------- |
+| `Monkey C: Build Current Project` | compiles for one device and writes the `.prg` into `bin/` |
+| `Monkey C: Build for Device` | the same build, written to a folder you choose, for sideloading |
+| `Monkey C: Run Tests` | runs the unit test suite in the simulator, reporting into the Test Explorer |
+| `Monkey C: Export Project` | builds the signed `.iq` bundle to upload to the store |
+| `Monkey C: Edit Products` | edits the supported device list in `manifest.xml` |
+| `Monkey C: Verify Installation` | checks that a current SDK is selected, that its version is supported, and that device definitions have been downloaded |
+
+`F5` runs the watch face in the simulator under the debugger, `Ctrl+F5` without it. Both read a `monkeyc`
+launch configuration from `.vscode/launch.json`; the extension offers to write one the first time.
+
+Each build asks which device to build for, choosing from the products listed in `manifest.xml`, with the
+device you built last offered at the top. A launch configuration whose `device` is `${command:GetTargetDevice}`
+asks that same question on every run; replacing it with a product id, `"device": "epix2pro47mm"`, pins it.
+`.vscode/` is not committed, so the launch configuration and the key path are per clone, not per project.
+
+`Monkey C: Export Project` is the only one of these with no `Makefile` equivalent: the store bundle is built
+from VS Code.
+
+### From the command line
+
+The included `Makefile` covers everything except the export.
 
 ```bash
 # build binaries from sources
@@ -201,6 +245,18 @@ make check-icons
 # clean up the project directory
 make clean
 ```
+
+Every target that compiles builds for `DEVICE`, which defaults to `epix2pro47mm`, the reference device;
+override it with `make build DEVICE=venu3` for any other product listed in `manifest.xml`. `make build`
+needs no arguments at all.
+
+`make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no SDK.
+`check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one another
+and with the bitmaps on disk, that the rain charset is the same string in `source/Matrix.mc`,
+`resources/fonts/charsets.json` and `tools/make-launcher-icons.py`, that the base fonts are byte-identical
+to the generated reference-resolution ones, and that the size tables in this file and in `fonts.md` are
+what the scaler produced. `check-icons` does the same for the launcher icons and their per-product mapping
+in `monkey.jungle`; see [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
 accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both
