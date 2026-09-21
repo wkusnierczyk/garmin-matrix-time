@@ -61,15 +61,18 @@ jobs:
     container:
       image: ghcr.io/matco/connectiq-tester:v2.10.0
     steps:
-      # The image is ubuntu:jammy plus the SDK, so it carries neither make nor
-      # git. git is what lets actions/checkout clone rather than fall back to a
-      # tarball download, and make is how the build is spelled everywhere else in
-      # this project -- calling monkeyc directly here would be a second copy of
-      # the build flags, free to drift from the Makefile's.
-      - name: Install make and git
+      # The image is ubuntu:jammy plus the SDK, so it carries none of these.
+      # make is how the build is spelled everywhere else in this project --
+      # calling monkeyc directly here would be a second copy of the build flags,
+      # free to drift from the Makefile's. git lets actions/checkout clone rather
+      # than fall back to a tarball download, and git-lfs is what makes its
+      # lfs: true below do anything: without it checkout fails outright with
+      # "Unable to locate executable file: git-lfs". The hosted runner the checks
+      # job uses carries all three already.
+      - name: Install make, git and git-lfs
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends make git
+          apt-get install -y --no-install-recommends make git git-lfs
 
       # lfs: true for the reason given in the checks job above.
       - uses: actions/checkout@v7
