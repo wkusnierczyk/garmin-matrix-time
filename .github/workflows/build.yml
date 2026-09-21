@@ -35,7 +35,15 @@ jobs:
     name: consistency checks
     runs-on: ubuntu-latest
     steps:
+      # lfs: true, and not only for tidiness. Several binaries here are LFS
+      # objects -- the launcher icon fallback and both source typefaces among
+      # them -- and a checkout without it leaves a 129-byte pointer file where
+      # the .png should be. check-icons reads that file's dimensions out of its
+      # header and fails; monkeyc, worse, compiles the pointer as a drawable
+      # without a word. Found the first time this workflow ran.
       - uses: actions/checkout@v7
+        with:
+          lfs: true
 
       # Both targets are pure Python and read only what is committed, so they run
       # on a bare runner in seconds. check-icons cross-checks its mapping against
@@ -63,7 +71,10 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends make git
 
+      # lfs: true for the reason given in the checks job above.
       - uses: actions/checkout@v7
+        with:
+          lfs: true
 
       # See the note at the top: a throwaway key, generated per run, never stored.
       - name: Generate a throwaway signing key

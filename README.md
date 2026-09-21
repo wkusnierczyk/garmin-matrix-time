@@ -411,6 +411,11 @@ proves nothing an unsigned-in-practice one does not, and the real key -- the ide
 app is signed with -- does not belong in a public repository's secrets. That changes if and when
 release automation is added, which is the point at which a real key first earns its place.
 
+Both jobs check out with Git LFS fetched. Several binaries here are LFS objects -- the launcher icon
+fallback and both source typefaces among them -- and a checkout without it leaves a pointer file where
+the `.png` should be: `check-icons` then fails on the fallback's dimensions, and `monkeyc` compiles the
+pointer as a drawable without a word. The first run of this workflow found exactly that.
+
 Unit tests do not run in CI yet. They need the simulator, which the image can run under `xvfb`; that
 is the next stage rather than a limitation of the approach.
 
