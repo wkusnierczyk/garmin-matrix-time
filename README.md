@@ -466,7 +466,7 @@ Every push to `main` and every pull request runs
 | Job | What it proves |
 | :-- | :------------- |
 | `consistency checks` | `make check-fonts` and `make check-icons` pass. Pure Python, no SDK, seconds. |
-| `build` | the face compiles, for one product per `deviceFamily`. |
+| `build` | the face compiles, for one product per `deviceFamily`, and `make export` produces the store bundle. |
 
 Building one product per family rather than all fifty-one is the cheapest set that still compiles
 every resolution and shape the face ships: resource qualifiers resolve per family, so within a family
@@ -476,6 +476,13 @@ supported product is covered the moment it is added and there is no list in the 
 A product the manifest names but the SDK has no definition for fails the job rather than being
 skipped -- that is the state in which the store bundle fails to build, and CI is the right place to
 hear about it first.
+
+The export step is a different check rather than a larger one. `monkeyc -e` builds every product in
+`manifest.xml`, and fails if any single one of them lacks a device definition -- so it covers what
+one-product-per-family cannot, and the `.iq` that gets uploaded is proved on every push instead of on
+release day. It is the same `make export` a developer runs, with the same flags, so there is no second
+spelling of the build in the workflow; the bundle's size is logged and then discarded, since publishing
+it is release automation's business rather than this job's.
 
 The build job runs in [`ghcr.io/matco/connectiq-tester`](https://github.com/matco/connectiq-tester),
 which carries the SDK, the device definitions and the simulator. The container is not a convenience:
