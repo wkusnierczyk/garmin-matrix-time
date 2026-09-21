@@ -224,11 +224,36 @@ sideload:
 # packaging step shows up. monkeyc counts part numbers rather than products as it
 # goes, so it reports more devices than manifest.xml lists: several products ship
 # under more than one part, venu2 under four.
+# monkeyc prints one progress line per device, "<n> OUT OF <total> DEVICES BUILT",
+# with the counter left-aligned, so the whole line jogs right as n gains a digit.
+# Pad n to the width of the total and the column stands still. Three things the
+# filter must not break, hence its shape:
+#
+#   - monkeyc's exit status. A pipeline reports its LAST command's status, so a
+#     plain "monkeyc | awk" would report awk's and make every failed export look
+#     successful. "set -o pipefail" is not portable to every shell make might run
+#     a recipe under, so the status crosses the pipe as a sentinel line that awk
+#     strips and exits with;
+#   - stderr, which stays out of the pipe entirely. Only stdout carries the
+#     progress lines, so a compiler error reaches the terminal unfiltered and
+#     unbuffered, exactly as before;
+#   - live output. The counter is the only sign the build is moving, so awk
+#     flushes per line rather than holding 65 of them until the end.
+#
+# Any line the pattern does not match passes through untouched: BUILD SUCCESSFUL,
+# warnings, errors, and whatever monkeyc adds next.
+EXPORT_STATUS := __monkeyc_status__:
+
 export:
 	$(require_sdk)
 	@echo "Exporting $(EXPORT) for every product in manifest.xml..."
 	@mkdir -p $(EXPORT_DIR)
-	@$(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT)
+	@{ $(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT); echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
+	  index($$0, s) == 1 { status = substr($$0, length(s) + 1); next } \
+	  $$0 ~ /^[0-9]+ OUT OF [0-9]+ DEVICES BUILT$$/ { \
+	    printf "%*d OUT OF %s DEVICES BUILT\n", length($$4), $$1, $$4; fflush(); next } \
+	  { print; fflush() } \
+	  END { exit status + 0 }'
 	@echo "Export complete: $(EXPORT)"
 
 check-fonts:
