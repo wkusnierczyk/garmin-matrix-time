@@ -1,7 +1,8 @@
-# Stages 1 and 2 of #41: build and package verification. Every push to main and
-# every pull request runs the consistency checks that need no SDK at all, compiles
-# the face for one product per deviceFamily, and then exports the store bundle,
-# which builds every product manifest.xml names.
+# Stages 1 to 3 of #41: build, package and test verification. Every push to main
+# and every pull request runs the consistency checks that need no SDK at all,
+# compiles the face for one product per deviceFamily, exports the store bundle --
+# which builds every product manifest.xml names -- and runs the unit test suite in
+# the simulator under a virtual display.
 #
 # Why a container rather than a plain runner. The SDK is a public, unauthenticated
 # download -- developer.garmin.com/downloads/connect-iq/sdks/sdks.json lists every
@@ -166,3 +167,83 @@ jobs:
         run: |
           make export SDK_BIN=/connectiq/bin DEV_KEY=/tmp/ci_key
           ls -l export/MatrixTime.iq
+
+  test:
+    name: unit tests
+    runs-on: ubuntu-latest
+    # Stage 3 of #41. #41 called the simulator "the real wall": monkeydo pushes a
+    # .prg into a *running* simulator, and the simulator is a GUI application. The
+    # container had already climbed most of it -- the image carries xvfb because
+    # its own entrypoint runs the simulator under one -- but a container job
+    # replaces that entrypoint with its own command, so the display is this
+    # workflow's to start.
+    #
+    # Separate from build rather than a step inside it. The two prove different
+    # things and fail for different reasons, so a red here should not be read as a
+    # compile failure; they run in parallel, and #104 -- extracting the shared
+    # parts into a reusable workflow -- has a cleaner seam to cut along.
+    #
+    # timeout-minutes because a hung monkeydo is this job's characteristic failure:
+    # a second session started against a simulator the first still holds produces
+    # no output and never returns, and GitHub's default would let that burn six
+    # hours before anyone heard about it. The suite needs a small fraction of this.
+    timeout-minutes: 15
+    container:
+      # The same digest the build job pins, for the same reasons; see the note
+      # there. Bump both together.
+      image: ghcr.io/matco/connectiq-tester@sha256:64958e8fd2925d0c4986d72a9aa9d8e2101297a881354aab0118be2f1dc22105  # v2.10.0
+    steps:
+      # make, git and git-lfs for the reasons the build job gives. Two more here:
+      #
+      #   - netcat, which ubuntu:jammy does not carry. "make sim" probes port 1234
+      #     until the simulator accepts connections and gives up, with advice,
+      #     after sixty. That is a deterministic wait where upstream's tester.sh
+      #     sleeps a flat five seconds, so the dependency is worth installing
+      #     rather than trading the probe away for a sleep;
+      #   - xauth, which xvfb only Recommends and --no-install-recommends
+      #     therefore skips. xvfb-run is a shell script and exits non-zero without
+      #     it. xvfb itself is already in the image; naming it makes the
+      #     dependency ours rather than a side effect of how the image was built.
+      - name: Install make, git, git-lfs, netcat and xvfb
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            make git git-lfs netcat-openbsd xvfb xauth
+
+      # lfs: true for the reason given in the checks job above. The typefaces are
+      # LFS objects, and the test build compiles the same resources the app does.
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      # monkeyc signs the test build like any other, so this job needs a key too.
+      - name: Generate a throwaway signing key
+        run: |
+          openssl genrsa -out /tmp/ci_key.pem 4096
+          openssl pkcs8 -topk8 -inform PEM -outform DER \
+            -in /tmp/ci_key.pem -out /tmp/ci_key -nocrypt
+
+      # xvfb-run -a starts an X server on the first free display, runs the command
+      # against it and tears it down afterwards. The whole of "make test" goes
+      # inside it, not just monkeydo: the target depends on "sim", so the simulator
+      # is started within the same invocation and has to see the same DISPLAY.
+      #
+      # DEVICE is named rather than left to the Makefile's default, which is a
+      # developer's convenience and free to change; CI should not follow it
+      # silently. Which product it is does not matter -- the suite tests logic, not
+      # layout -- so this is one of the products the build job already compiles.
+      #
+      # HOME for the device definitions, as in the build job.
+      #
+      # What "make test" reports on is the anchored "^PASSED (" line, not
+      # monkeydo's exit status, which is 1 whether every test passed or one failed
+      # (#23). Do not "simplify" this into trusting the status.
+      - name: Run the unit tests
+        shell: bash
+        timeout-minutes: 10
+        env:
+          HOME: /root
+        run: |
+          xvfb-run -a make test DEVICE=epix2pro47mm \
+                                SDK_BIN=/connectiq/bin \
+                                DEV_KEY=/tmp/ci_key
