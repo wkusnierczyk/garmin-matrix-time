@@ -276,9 +276,12 @@ openssl pkcs8 -topk8 -inform PEM -outform DER -in developer_key.pem -out develop
 
 `monkeyc` wants the DER file, `developer_key`. Point the extension at it with the `monkeyC.developerKeyPath`
 setting, and the `Makefile` at it with `DEV_KEY`, which defaults to `../garmin-keys/developer_key`, that is,
-outside the working tree. Keep it there: the key is the identity every app you publish is signed with, and
-losing it or leaking it cannot be undone by a new one. `.gitignore` guards `developer_key*` as a second line
-of defence, not as a licence to keep the key in the repository.
+outside the working tree. `DEV_KEY` is a path relative to the project directory, so that default names the
+sibling of this project and keeps naming it wherever the tree is moved; override it per invocation with
+`make build DEV_KEY=/path/to/developer_key` to try another key without editing anything. Keep the key outside
+the working tree: it is the identity every app you publish is signed with, and losing it or leaking it cannot
+be undone by a new one. `.gitignore` guards `developer_key*` as a second line of defence, not as a licence to
+keep the key in the repository.
 
 ### From Visual Studio Code
 
