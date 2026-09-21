@@ -19,6 +19,12 @@ DEVICE ?= epix2pro47mm
 # Output filename
 OUTPUT := MatrixTime.prg
 
+# The store bundle "make export" produces: one signed package covering every
+# product in manifest.xml, not one device's binary. Written under export/, which
+# "make clean" already removes -- it is an upload artefact, not a build tree.
+EXPORT_DIR := export
+EXPORT := $(EXPORT_DIR)/MatrixTime.iq
+
 # How long "make sideload" keeps looking for a watch before giving up. Empty --
 # the default -- is no looking at all: the first probe decides, which is the right
 # behaviour for a watch that is already plugged in. WAIT=1 turns the wait on with
@@ -65,8 +71,13 @@ endef
 # -w: warn, -y: private key, -d: device, -f: jungle file, -o: output
 BUILD_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle
 TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
+# -e: package the app, -r: strip debug information. No -d: the package covers every
+# product manifest.xml names, which is the whole point of it. -r is the difference
+# between this and build: the .prg keeps its debug symbols so the simulator and the
+# profiler can say something useful, and the shipped bundle has no use for them.
+EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f monkey.jungle
 
-.PHONY: all build sim run test sideload check-fonts icons check-icons clean
+.PHONY: all build sim run test sideload export check-fonts icons check-icons clean
 
 all: build
 
@@ -202,6 +213,23 @@ sideload:
 	  exit 1; }; \
 	$(SUBMAKE) --no-print-directory build DEVICE=$$watch && \
 	tools/sideload.sh install $(OUTPUT)
+
+# The store bundle. "export" is also a GNU make directive, but only when what
+# follows on the line is a variable name or an assignment; with a colon it is an
+# ordinary rule, and has been since 3.81, the make macOS ships. Do not rename it
+# on that suspicion.
+#
+# This is the one build whose output is uploaded, and the only one that compiles
+# every product rather than one, so it is also where a device that breaks the
+# packaging step shows up. monkeyc counts part numbers rather than products as it
+# goes, so it reports more devices than manifest.xml lists: several products ship
+# under more than one part, venu2 under four.
+export:
+	$(require_sdk)
+	@echo "Exporting $(EXPORT) for every product in manifest.xml..."
+	@mkdir -p $(EXPORT_DIR)
+	@$(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT)
+	@echo "Export complete: $(EXPORT)"
 
 check-fonts:
 	@echo "Checking font configuration consistency..."

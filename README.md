@@ -241,8 +241,8 @@ device you built last offered at the top. A launch configuration whose `device` 
 asks that same question on every run; replacing it with a product id, `"device": "epix2pro47mm"`, pins it.
 `.vscode/` is not committed, so the launch configuration and the key path are per clone, not per project.
 
-`Monkey C: Export Project` is the only one of these with no `Makefile` equivalent: the store bundle is built
-from VS Code.
+Every one of these has a `Makefile` equivalent, `Monkey C: Export Project` included: `make export`
+builds the same store bundle, and is described below.
 
 ### From the command line
 
@@ -260,6 +260,9 @@ make test
 
 # run the simulation
 make run
+
+# build the signed .iq store bundle, for every supported device
+make export
 
 # build for the connected watch and install the binary on it
 make sideload
@@ -281,6 +284,16 @@ make clean
 Every target that compiles builds for `DEVICE`, which defaults to `epix2pro47mm`, the reference device;
 override it with `make build DEVICE=venu3` for any other product listed in `manifest.xml`. `make build`
 needs no arguments at all.
+
+`make export` is the exception, and the only compiling target that ignores `DEVICE`: it packages
+every product `manifest.xml` names into one signed `.iq` under `export/`, which is the file the
+Connect IQ store takes. It also strips debug information, which `make build` deliberately keeps so
+that the simulator and the profiler have something to say. `monkeyc` counts part numbers rather than
+products as it works, so it reports more devices than the manifest lists -- several products ship
+under more than one part, and `venu2` under four. The whole set builds in well under a minute, and
+this is the only build that exercises the packaging step, so it is worth running before a release
+even when nothing about the devices has changed. Uploading the bundle is still manual, through the
+store's web form.
 
 `make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no SDK.
 `check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one another
