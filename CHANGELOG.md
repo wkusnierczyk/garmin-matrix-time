@@ -9,10 +9,14 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
-## 0.2.0 -- 2026-09-21
+## 0.2.1 -- 2026-09-21
 
 Everything since the first release. The always-on screen was rewritten, the digits left the rain,
 the rain loop was rebuilt around the profiler, and the supported device list grew by half.
+
+There is no 0.2.0. A bundle carrying that version was uploaded to the store and withdrawn before
+release; the store keeps the number whether or not anything shipped under it, so the first version
+this work can reach anyone under is 0.2.1. The two are the same face.
 
 ### Added
 
