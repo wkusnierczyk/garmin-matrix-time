@@ -201,9 +201,68 @@ To modify and build the sources, you need to have installed:
 
 * [Visual Studio Code](https://code.visualstudio.com/) with [Monkey C extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/).
 * [Garmin Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/).
+* [Git LFS](https://git-lfs.com) -- the typefaces, the launcher icon fallback and the graphics are
+  LFS objects, and a clone made without it builds from pointer files without complaining.
 
 The [Monkey C Visual Studio Code Extension](https://developer.garmin.com/connect-iq/reference-guides/visual-studio-code-extension/)
 reference guide covers the extension in full; what follows is the part of it this project actually uses.
+
+### Git LFS
+
+Ten binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
+`resources/fonts/MatrixCodeNFI.ttf` and `resources/fonts/SUSEMono-Regular.ttf`; the launcher icon
+fallback, `resources/drawables/launcher_icon.png`; and the seven hero and screenshot graphics under
+`resources/graphics/`. Everything else is stored normally, the generated bitmap fonts and the
+per-device launcher icons included -- they are build output of the two typefaces, small, and worth
+diffing.
+
+`git lfs install` is once per machine, not once per repository, and wants doing before the clone:
+
+```bash
+brew install git-lfs        # apt install git-lfs, dnf install git-lfs, ...
+git lfs install
+git clone https://github.com/wkusnierczyk/garmin-matrix-time.git
+```
+
+For a clone already made without it, install `git-lfs` and then run both of these in the working
+tree:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+`git lfs pull` on its own does replace the pointers that are in the tree now, so it is tempting to
+stop there. It is `git lfs install` that registers the clean and smudge filters in your Git
+configuration, and installing the package does not reliably do that for you. Without the filters the
+next `git checkout` writes the pointers straight back, and a commit touching one of these files
+stores the binary itself instead of a pointer: a filter that `.gitattributes` names but the
+configuration does not define is skipped rather than reported.
+
+**What a clone without it looks like is worth reading before the first build, because nothing
+announces it.** Each of the ten files is a three-line text pointer of about 130 bytes, beginning
+`version https://git-lfs.github.com/spec/v1`, and each tool takes it for the file it stands in for:
+
+* `monkeyc` compiles the pointer as a drawable without a word. The shipped icon survives that only
+  by luck -- every product overrides `LauncherIcon` from its own generated icon directory -- but the
+  fallback that mapping exists to provide is garbage, which is exactly what a newly added product
+  falls back to.
+* `make icons` renders the per-device icons from `resources/fonts/MatrixCodeNFI.ttf` and can do
+  nothing sensible with a pointer file.
+* `make check-icons` fails, naming the symptom rather than the cause:
+
+      FAIL  resources/drawables/launcher_icon.png is the 70x70 fallback, the largest size mapped
+
+  A failure on the fallback's dimensions, or a font tool that cannot read a typeface, is this and not
+  a real inconsistency. `head -c 8 resources/drawables/launcher_icon.png` settles it: a real PNG
+  starts with a `PNG` signature, a pointer with `version`.
+* `make check-fonts` passes -- nothing it inspects is an LFS object -- so a green `check-fonts` is no
+  evidence that the clone is whole.
+* The images in this file render as broken links locally. On GitHub they are fine, which is why this
+  is easy to miss.
+
+This is how the first CI run failed (#102): `actions/checkout` does not fetch LFS objects unless
+asked, so the runner reproduced a `git-lfs`-less clone exactly.
 
 ### A developer key
 
@@ -243,12 +302,14 @@ device you built last offered at the top. A launch configuration whose `device` 
 asks that same question on every run; replacing it with a product id, `"device": "epix2pro47mm"`, pins it.
 `.vscode/` is not committed, so the launch configuration and the key path are per clone, not per project.
 
-`Monkey C: Export Project` is the only one of these with no `Makefile` equivalent: the store bundle is built
-from VS Code.
+`Monkey C: Export Project` has a `Makefile` equivalent as of `make export`, described below, which
+builds the same store bundle. Two of these have none, and want none: `Monkey C: Edit Products` edits
+the product list in `manifest.xml`, and `Monkey C: Verify Installation` inspects the SDK installation
+rather than the project.
 
 ### From the command line
 
-The included `Makefile` covers everything except the export.
+The included `Makefile` covers every build the project does, the store bundle included.
 
 ```bash
 # build binaries from sources
@@ -262,6 +323,9 @@ make test
 
 # run the simulation
 make run
+
+# build the signed .iq store bundle, for every supported device
+make export
 
 # build for the connected watch and install the binary on it
 make sideload
@@ -283,6 +347,16 @@ make clean
 Every target that compiles builds for `DEVICE`, which defaults to `epix2pro47mm`, the reference device;
 override it with `make build DEVICE=venu3` for any other product listed in `manifest.xml`. `make build`
 needs no arguments at all.
+
+`make export` is the exception, and the only compiling target that ignores `DEVICE`: it packages
+every product `manifest.xml` names into one signed `.iq` under `export/`, which is the file the
+Connect IQ store takes. It also strips debug information, which `make build` deliberately keeps so
+that the simulator and the profiler have something to say. `monkeyc` counts part numbers rather than
+products as it works, so it reports more devices than the manifest lists -- several products ship
+under more than one part, and `venu2` under four. The whole set builds in well under a minute, and
+this is the only build that exercises the packaging step, so it is worth running before a release
+even when nothing about the devices has changed. Uploading the bundle is still manual, through the
+store's web form.
 
 `make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no SDK.
 `check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one another
@@ -418,7 +492,8 @@ release automation is added, which is the point at which a real key first earns 
 Both jobs check out with Git LFS fetched. Several binaries here are LFS objects -- the launcher icon
 fallback and both source typefaces among them -- and a checkout without it leaves a pointer file where
 the `.png` should be: `check-icons` then fails on the fallback's dimensions, and `monkeyc` compiles the
-pointer as a drawable without a word. The first run of this workflow found exactly that.
+pointer as a drawable without a word. The first run of this workflow found exactly that; see
+[Git LFS](#git-lfs) for what it looks like locally.
 
 Unit tests do not run in CI yet. They need the simulator, which the image can run under `xvfb`; that
 is the next stage rather than a limitation of the approach.
