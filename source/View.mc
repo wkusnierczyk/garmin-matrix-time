@@ -1,7 +1,7 @@
 using Toybox.Application.Properties;
 using Toybox.Graphics;
-using Toybox.WatchUi;
 using Toybox.Time;
+using Toybox.WatchUi;
 
 import Toybox.Lang;
 
