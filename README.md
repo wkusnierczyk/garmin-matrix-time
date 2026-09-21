@@ -402,9 +402,11 @@ The build job runs in [`ghcr.io/matco/connectiq-tester`](https://github.com/matc
 which carries the SDK, the device definitions and the simulator. The container is not a convenience:
 the SDK itself is a public download, but the device definitions `monkeyc` needs are fetched by the
 SDK manager from Garmin behind an account sign-in, one product at a time, and are not in the SDK
-archive. There is no headless fetch, so they have to arrive in the image. The image is pinned to a
-release tag so that an SDK bump is a visible change with a green run behind it; the `Makefile`, by
-contrast, deliberately follows whatever SDK the SDK manager has selected.
+archive. There is no headless fetch, so they have to arrive in the image. The image is pinned by
+digest rather than by tag -- a tag is mutable, and a retag upstream would swap both the build
+environment and the code CI runs with no diff here to show it -- so an SDK bump is a deliberate,
+visible change with a green run behind it. The `Makefile`, by contrast, deliberately follows whatever
+SDK the SDK manager has selected.
 
 No developer key is involved. CI generates a throwaway one per run and discards it: a signed build
 proves nothing an unsigned-in-practice one does not, and the real key -- the identity every published

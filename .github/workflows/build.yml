@@ -59,20 +59,33 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/matco/connectiq-tester:v2.10.0
+      # Pinned by digest, not by tag. v2.10.0 is what this digest was published
+      # as, and the two agreed when it was verified -- but a registry tag is
+      # mutable, so a retag upstream would swap the whole build environment, and
+      # the code CI executes, without a diff here to show it. The digest cannot
+      # be moved. Bump both together, deliberately, and re-check that the image
+      # still defines every product in manifest.xml; #105 is where the wider
+      # question of depending on this image at all is being settled.
+      image: ghcr.io/matco/connectiq-tester@sha256:64958e8fd2925d0c4986d72a9aa9d8e2101297a881354aab0118be2f1dc22105  # v2.10.0
     steps:
-      # The image is ubuntu:jammy plus the SDK, so it carries none of these.
-      # make is how the build is spelled everywhere else in this project --
-      # calling monkeyc directly here would be a second copy of the build flags,
-      # free to drift from the Makefile's. git lets actions/checkout clone rather
-      # than fall back to a tarball download, and git-lfs is what makes its
-      # lfs: true below do anything: without it checkout fails outright with
-      # "Unable to locate executable file: git-lfs". The hosted runner the checks
-      # job uses carries all three already.
-      - name: Install make, git and git-lfs
+      # The image is ubuntu:jammy plus the SDK, so it carries none of these as a
+      # matter of its own design. make is how the build is spelled everywhere
+      # else in this project -- calling monkeyc directly here would be a second
+      # copy of the build flags, free to drift from the Makefile's. git lets
+      # actions/checkout clone rather than fall back to a tarball download, and
+      # git-lfs is what makes its lfs: true below do anything: without it
+      # checkout fails outright with "Unable to locate executable file:
+      # git-lfs". The hosted runner the checks job uses carries all of them.
+      #
+      # python3 is named even though it is already there: it arrives as a
+      # transitive dependency of the simulator's GTK stack rather than because
+      # anyone chose it, so an upstream slimming of the image would take
+      # tools/ci-devices.py with it and the failure would look like a broken
+      # script. Naming it costs nothing and makes the dependency ours.
+      - name: Install make, git, git-lfs and python3
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends make git git-lfs
+          apt-get install -y --no-install-recommends make git git-lfs python3
 
       # lfs: true for the reason given in the checks job above.
       - uses: actions/checkout@v7
