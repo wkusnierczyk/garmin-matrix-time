@@ -15,10 +15,13 @@ import Toybox.Lang;
 (:test)
 class RainMathTest {
 
-    // The four round radii the manifest ships -- 360x360, 390x390, 416x416, 454x454 --
-    // and the one rectangle, 320x360, whose shorter side is its width.
-    static const RADII = [180.0, 195.0, 208.0, 227.0, 160.0];
-    static const WIDTHS = [360, 390, 416, 454, 320];
+    // The five round radii the manifest ships -- 360x360, 390x390, 416x416, 454x454,
+    // 466x466 -- and the two rectangles, 320x360 and 448x486, whose shorter side is
+    // their width. Half the width in each case, so a rectangle's entry is not a disc
+    // radius at all: it is the half-width the cull and the jitter are measured against,
+    // which is what these fixtures feed.
+    static const RADII = [180.0, 195.0, 208.0, 227.0, 233.0, 160.0, 224.0];
+    static const WIDTHS = [360, 390, 416, 454, 466, 320, 448];
 
     // The three channels of a packed 0xRRGGBB colour.
     static const SHIFTS = [RED_SHIFT, GREEN_SHIFT, BLUE_SHIFT];

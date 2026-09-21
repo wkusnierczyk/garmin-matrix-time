@@ -98,13 +98,19 @@ The table below lists all font sizes provided for the supported screen resolutio
 |  454 x 454 | round     | Matrix     | MatrixCodeNFI    |   29 |
 |  454 x 454 | round     | Time       | SUSEMono regular |   29 |
 |  454 x 454 | round     | Time large | SUSEMono regular |   59 |
+|  466 x 466 | round     | Matrix     | MatrixCodeNFI    |   30 |
+|  466 x 466 | round     | Time       | SUSEMono regular |   30 |
+|  466 x 466 | round     | Time large | SUSEMono regular |   60 |
+|  448 x 486 | rectangle | Matrix     | MatrixCodeNFI    |   29 |
+|  448 x 486 | rectangle | Time       | SUSEMono regular |   29 |
+|  448 x 486 | rectangle | Time large | SUSEMono regular |   58 |
 
 ## Launcher icon
 
 The launcher icon is the digital rain held still: glyphs from the same typeface, in the same green
 and from the same letters-only charset, that the watch face draws with.
 
-Garmin sets the launcher icon size per device. The 34 supported products ask for eight different
+Garmin sets the launcher icon size per device. The 37 supported products ask for eight different
 sizes, from 38 x 38 on the Instinct Crossover AMOLED to 70 x 70 on the Venu 3. The size does not
 follow the screen, and so cannot be served by the `deviceFamily` qualifier the fonts use: the
 `round-390x390` family alone spans 38 x 38, 54 x 54, 56 x 56, 60 x 60 and 70 x 70. Every device is
@@ -127,11 +133,14 @@ Each supported product is mapped to the icon its device asks for:
 | venu3s                  | 70 x 70 |
 | fenix847mm              | 65 x 65 |
 | fenix8pro47mm           | 65 x 65 |
+| fenix9pro51mm           | 65 x 65 |
 | fr57047mm               | 65 x 65 |
 | fr965                   | 65 x 65 |
 | fr970                   | 65 x 65 |
 | venu445mm               | 65 x 65 |
+| venux1                  | 65 x 65 |
 | venu2s                  | 61 x 61 |
+| descentg2               | 60 x 60 |
 | descentmk343mm          | 60 x 60 |
 | descentmk351mm          | 60 x 60 |
 | epix2                   | 60 x 60 |
