@@ -461,7 +461,7 @@ For the manual route, or for sideloading from another platform, see
 ### Continuous integration
 
 Every push to `main` and every pull request runs
-[`.github/workflows/build.yml`](.github/workflows/build.yml), which does two things:
+[`.github/workflows/build.yml`](.github/workflows/build.yml), which does three things:
 
 | Job | What it proves |
 | :-- | :------------- |
