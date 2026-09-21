@@ -125,10 +125,15 @@ WAIT_SECONDS=0
 # Trim the leading zeros off a digit string, because shell arithmetic reads them
 # as octal: untrimmed, WAIT=010 waits 8 seconds while printing "010s", and
 # WAIT=08 is not a number at all -- this /bin/sh ends the run with "value too
-# great for base (error token is \"08\")". Both arrive the moment someone writes
-# a duration with a zero in front of it, so every digit string that is going to
-# be used as a number goes through here first. An all-zero string trims to "0"
+# great for base (error token is "08")". Both arrive the moment someone writes a
+# duration with a zero in front of it, so every digit string that is going to be
+# used as a number goes through here first. An all-zero string trims to "0"
 # rather than to nothing.
+#
+# The argument must already be digits only: this trims, it does not validate, and
+# a non-digit string comes back unchanged to fail at whatever arithmetic uses it.
+# Both callers screen with a *[!0-9]* case first, and tell the user what to type
+# instead; a new one has to do the same.
 DECIMAL=0
 
 decimal() {
