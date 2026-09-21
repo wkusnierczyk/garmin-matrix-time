@@ -235,6 +235,9 @@ make test
 # run the simulation
 make run
 
+# build for the connected watch and install the binary on it
+make sideload
+
 # regenerate the launcher icons and their jungle mapping
 make icons
 
@@ -296,4 +299,33 @@ Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make 
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
 reported as a failure, which is the intended behaviour.
 
-To sideload your application to your Garmin watch, see [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
+### Sideloading to the watch
+
+`make sideload` builds the binary and copies it into `GARMIN/Apps` on a watch connected by USB, which
+is the whole of what installing a development build takes: the watch face appears in the watch face
+list on the device, with no store submission and no phone involved.
+
+The transfer goes over MTP rather than mass storage. macOS does not mount MTP devices as volumes --
+that is what OpenMTP exists to work around -- and the reference device presents nothing macOS will
+mount: with the watch attached, nothing appears under `/Volumes`. The target therefore needs a
+command-line MTP client, which is the one dependency it adds:
+
+```bash
+brew install libmtp
+```
+
+The device is read off the watch rather than assumed. `tools/sideload.sh` pulls `GarminDevice.xml` off
+the watch, takes the part number out of it, matches that against the SDK's own device definitions, and
+builds for whatever comes back. `make sideload` therefore needs no `DEVICE`, and a `DEVICE` passed
+anyway is checked against the watch and refused when the two disagree: a `.prg` built for another
+product installs without complaint and fails only once the watch tries to run it, which is a slow way
+to find out.
+
+What landed is verified rather than assumed. The size is read back off the watch and compared with the
+local file, and a short copy is deleted instead of being left to fail on the wrist. None of this can
+lean on exit statuses -- `mtp-sendfile` exits 0 whether it transferred the file or skipped it
+entirely -- so the script reads the tools' output instead, and the comments in it say where each of
+those quirks was measured.
+
+For the manual route, or for sideloading from another platform, see
+[developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).

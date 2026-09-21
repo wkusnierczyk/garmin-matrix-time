@@ -30,6 +30,14 @@ MONKEYC := "$(SDK_BIN)/monkeyc"
 MONKEYDO := "$(SDK_BIN)/monkeydo"
 CONNECTIQ := "$(SDK_BIN)/connectiq"
 
+# The sub-make sideload runs, held at one remove on purpose. make executes a
+# recipe line that literally contains "$$(MAKE)" even under -n, so spelling it
+# directly there would make "make -n sideload" detect the watch and transfer to
+# it -- a dry run with a side effect on hardware. Behind a variable the line is
+# only printed, and the flags a sub-make needs still reach it through MAKEFLAGS,
+# which is exported either way.
+SUBMAKE := $(MAKE)
+
 # Fail with a readable message rather than "No such file or directory".
 # Checked inside the recipes rather than at parse time, so targets that need no
 # SDK -- clean, check-fonts, check-icons -- still work on a machine without one.
@@ -48,7 +56,7 @@ endef
 BUILD_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle
 TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
 
-.PHONY: all build sim run test check-fonts icons check-icons clean
+.PHONY: all build sim run test sideload check-fonts icons check-icons clean
 
 all: build
 
@@ -122,6 +130,45 @@ test: sim
 	  echo "$$output"; \
 	  echo "$$output" | grep -qE '^PASSED \(' || { \
 	    echo "Unit tests did not report PASSED."; exit 1; }
+
+# Sideloading goes over MTP rather than mass storage. macOS does not mount MTP
+# devices as volumes -- which is what OpenMTP exists to work around -- and the
+# epix Pro (Gen 2) presents nothing macOS will mount: with the watch attached,
+# /Volumes stays empty and the watch answers as MTP. The transfer therefore needs
+# libmtp ("brew install libmtp"); tools/sideload.sh says so if it is missing, and
+# carries the rest of the detail, the awkward parts of libmtp's CLI included.
+#
+# The device is read off the watch rather than assumed, because a .prg built for
+# another product installs without complaint and only fails once the watch tries
+# to run it. DEVICE is therefore resolved from the watch by default. An explicit
+# DEVICE -- on the command line or in the environment, which "origin" separates
+# from this file's own default -- is honoured but checked against the watch, so a
+# mismatch is reported rather than silently overridden either way. A watch this
+# face does not support is caught here too, against manifest.xml, rather than
+# left to surface as a compiler error about an unknown product.
+#
+# build is reached through a sub-make (SUBMAKE, see above) rather than named as a
+# prerequisite: the
+# device has to be known before the binary is compiled, and a prerequisite would
+# have built for the default DEVICE before the watch was ever consulted. The
+# binary is still always current, which is what that ordering is for.
+sideload:
+	$(require_sdk)
+	@watch=$$(CIQ_HOME="$(CIQ_HOME)" tools/sideload.sh detect) || exit 1; \
+	if [ "$(origin DEVICE)" != "file" ] && [ "$$watch" != "$(DEVICE)" ]; then \
+	  echo "DEVICE=$(DEVICE) was asked for, but the watch is a $$watch."; \
+	  echo "A .prg built for another product fails on the watch rather than at"; \
+	  echo "install time, so this is refused. Drop DEVICE to build for the watch."; \
+	  exit 1; \
+	fi; \
+	grep -q '<iq:product id="'"$$watch"'"/>' manifest.xml || { \
+	  echo "The watch is a $$watch, which this face does not support:"; \
+	  echo "manifest.xml lists no <iq:product> for it, so there is nothing to build."; \
+	  echo "Matrix Time is AMOLED-only; see \"Features\" in README.md."; \
+	  exit 1; }; \
+	echo "Watch detected: $$watch"; \
+	$(SUBMAKE) --no-print-directory build DEVICE=$$watch && \
+	tools/sideload.sh install $(OUTPUT)
 
 check-fonts:
 	@echo "Checking font configuration consistency..."
