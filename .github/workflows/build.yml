@@ -86,11 +86,32 @@ jobs:
           openssl pkcs8 -topk8 -inform PEM -outform DER \
             -in /tmp/ci_key.pem -out /tmp/ci_key -nocrypt
 
-      # Every family is built even after one fails, so a run reports all the
-      # damage rather than the first of it.
+      # HOME, explicitly, because the image put the device definitions in root's
+      # home -- /root/.Garmin/ConnectIQ/Devices -- while a container job runs with
+      # HOME=/github/home. Both monkeyc and tools/ci-devices.py find the
+      # definitions by expanding ~, so without this neither looks in the one place
+      # they exist.
+      #
+      # The device set is resolved into a variable first, and the job's bash runs
+      # under -e, so a failure to resolve it stops the step. It used to be read
+      # straight into the loop from a process substitution, where the script's
+      # exit status is discarded: the step then read an empty list, built nothing,
+      # and reported success. Same shape of mistake as #23 -- a green result that
+      # means the check never ran is worse than a red one.
+      #
+      # Past that, every family is built even after one fails, so a run reports
+      # all the damage rather than the first of it. A `make` in an `if` condition
+      # is exempt from -e, which is what lets the status be accumulated.
       - name: Build one product per device family
         shell: bash
+        env:
+          HOME: /root
         run: |
+          devices=$(python3 tools/ci-devices.py)
+          test -n "$devices" || { echo "::error::no device families resolved"; exit 1; }
+          echo "Building $(echo "$devices" | wc -l) families:"
+          echo "$devices"
+
           mkdir -p bin
           status=0
           while read -r family device; do
@@ -105,5 +126,5 @@ jobs:
               status=1
             fi
             echo "::endgroup::"
-          done < <(python3 tools/ci-devices.py)
+          done <<< "$devices"
           exit $status
