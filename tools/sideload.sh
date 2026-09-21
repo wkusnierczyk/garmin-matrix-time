@@ -122,6 +122,25 @@ WAIT_DEFAULT=300
 # end only the subshell.
 WAIT_SECONDS=0
 
+# Trim the leading zeros off a digit string, because shell arithmetic reads them
+# as octal: untrimmed, WAIT=010 waits 8 seconds while printing "010s", and
+# WAIT=08 is not a number at all -- this /bin/sh ends the run with "value too
+# great for base (error token is \"08\")". Both arrive the moment someone writes
+# a duration with a zero in front of it, so every digit string that is going to
+# be used as a number goes through here first. An all-zero string trims to "0"
+# rather than to nothing.
+DECIMAL=0
+
+decimal() {
+  DECIMAL=$1
+  while :; do
+    case $DECIMAL in
+      0[0-9]*) DECIMAL=${DECIMAL#0} ;;
+      *)       break ;;
+    esac
+  done
+}
+
 resolve_wait() {
   case $1 in
     ''|0|no|false|off) WAIT_SECONDS=0 ;;
@@ -129,7 +148,7 @@ resolve_wait() {
     *[!0-9]*)          die "WAIT=$1 is neither a number of seconds nor a yes/no." \
                            "  make sideload WAIT=1      look for up to ${WAIT_DEFAULT}s" \
                            "  make sideload WAIT=<n>    look for up to <n> seconds" ;;
-    *)                 WAIT_SECONDS=$1 ;;
+    *)                 decimal "$1"; WAIT_SECONDS=$DECIMAL ;;
   esac
 }
 
@@ -156,11 +175,16 @@ cmd_wait() {
   resolve_wait "$1"
   [ "$WAIT_SECONDS" -gt 0 ] || return 0
 
-  every=${2:-60}
-  case $every in
-    ''|0|*[!0-9]*) die "The polling interval must be a positive number of seconds," \
-                       "and EVERY=$every is not." ;;
+  # Trimmed the same way, and only then tested for zero: "00" is not the string
+  # "0", so a literal test lets it through, and "sleep 00" turns the loop below
+  # into a busy one that probes the USB bus thousands of times a minute.
+  given=${2:-60}
+  case $given in
+    *[!0-9]*) every=0 ;;
+    *)        decimal "$given"; every=$DECIMAL ;;
   esac
+  [ "$every" -gt 0 ] || die "The polling interval must be a positive number of seconds," \
+                            "and EVERY=$given is not."
 
   require_libmtp mtp-detect
 
