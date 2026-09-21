@@ -26,6 +26,8 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 * [Build, test, deploy](#build-test-deploy)
 * [Upstream bug reports](#upstream-bug-reports)
 
+What changed between releases is in [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Matrix time
 
 Matrix Time displays the current time as digits with [Digital Rain](https://en.wikipedia.org/wiki/Digital_rain) in the background.
