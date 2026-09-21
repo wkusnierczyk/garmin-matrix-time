@@ -262,6 +262,9 @@ make run
 # build for the connected watch and install the binary on it
 make sideload
 
+# ... and wait up to five minutes for a watch to be plugged in first
+make sideload WAIT=300
+
 # regenerate the launcher icons and their jungle mapping
 make icons
 
@@ -350,6 +353,26 @@ local file, and a short copy is deleted instead of being left to fail on the wri
 lean on exit statuses -- `mtp-sendfile` exits 0 whether it transferred the file or skipped it
 entirely -- so the script reads the tools' output instead, and the comments in it say where each of
 those quirks was measured.
+
+`make sideload` expects the watch to be plugged in already and stops on the first look if it is not,
+which is what you want when it is sitting on the desk on its cable. When you would rather start the
+command and then go and find the watch, ask it to wait:
+
+```bash
+make sideload WAIT=1        # look for a watch for up to five minutes
+make sideload WAIT=300      # the same thing, said in seconds
+make sideload WAIT=60       # give up after a minute
+```
+
+`WAIT=1` means "yes, wait" rather than "wait one second", since a one-second wait is no different
+from not waiting at all. The wait is always bounded -- there is no spelling of it that polls for
+ever -- and each look, plus the time spent so far, is reported, so a run left in a terminal says what
+it is doing. Once a watch answers, the run carries straight on into the detection and the transfer.
+
+The looking is deliberately unhurried, once a minute, because each probe opens a USB session; override
+that with `make sideload WAIT=300 WAIT_EVERY=10` if you want it checked more often. The probe itself
+is `mtp-detect`, which answers in about 0.2 s, rather than the four-second file listing the detection
+proper uses.
 
 For the manual route, or for sideloading from another platform, see
 [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
