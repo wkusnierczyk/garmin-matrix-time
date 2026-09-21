@@ -1,0 +1,143 @@
+# Stage 1 of #41: build verification. Every push to main and every pull request
+# compiles the face for one product per deviceFamily, and runs the consistency
+# checks that need no SDK at all.
+#
+# Why a container rather than a plain runner. The SDK is a public, unauthenticated
+# download -- developer.garmin.com/downloads/connect-iq/sdks/sdks.json lists every
+# build, and the Linux archive needs no licence click to fetch. The device
+# definitions monkeyc compiles against are a different matter: they are not in
+# that archive, and the SDK manager pulls them from monkeynet.garmin.com behind a
+# Garmin account sign-in, one product at a time. There is no headless fetch, so
+# the definitions have to arrive some other way. ghcr.io/matco/connectiq-tester
+# carries both: its 9.2.0 image was checked against manifest.xml and has a
+# definition for all 51 products this face supports.
+#
+# The image is pinned to a release tag, not to `latest`. An SDK bump is then a
+# visible one-line change with a green run behind it rather than something that
+# happens to this repository overnight. (The Makefile deliberately does NOT pin
+# the SDK -- it follows whatever the SDK manager has selected -- but a local
+# developer chooses that; CI does not.)
+#
+# No developer key is involved. A signed build proves nothing a throwaway key
+# does not, `monkeyc` accepts any key, and the real one is the identity every
+# published app is signed with: it does not belong in a public repository's
+# secrets, where every future workflow change could reach it. Stage 4, release
+# automation, is where a real key first earns its place.
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    name: consistency checks
+    runs-on: ubuntu-latest
+    steps:
+      # lfs: true, and not only for tidiness. Several binaries here are LFS
+      # objects -- the launcher icon fallback and both source typefaces among
+      # them -- and a checkout without it leaves a 129-byte pointer file where
+      # the .png should be. check-icons reads that file's dimensions out of its
+      # header and fails; monkeyc, worse, compiles the pointer as a drawable
+      # without a word. Found the first time this workflow ran.
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      # Both targets are pure Python and read only what is committed, so they run
+      # on a bare runner in seconds. check-icons cross-checks its mapping against
+      # the SDK's device definitions when they are present and reports a SKIP when
+      # they are not, which is the case here.
+      - name: Fonts
+        run: make check-fonts
+
+      - name: Launcher icons
+        run: make check-icons
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    container:
+      # Pinned by digest, not by tag. v2.10.0 is what this digest was published
+      # as, and the two agreed when it was verified -- but a registry tag is
+      # mutable, so a retag upstream would swap the whole build environment, and
+      # the code CI executes, without a diff here to show it. The digest cannot
+      # be moved. Bump both together, deliberately, and re-check that the image
+      # still defines every product in manifest.xml; #105 is where the wider
+      # question of depending on this image at all is being settled.
+      image: ghcr.io/matco/connectiq-tester@sha256:64958e8fd2925d0c4986d72a9aa9d8e2101297a881354aab0118be2f1dc22105  # v2.10.0
+    steps:
+      # The image is ubuntu:jammy plus the SDK, so it carries none of these as a
+      # matter of its own design. make is how the build is spelled everywhere
+      # else in this project -- calling monkeyc directly here would be a second
+      # copy of the build flags, free to drift from the Makefile's. git lets
+      # actions/checkout clone rather than fall back to a tarball download, and
+      # git-lfs is what makes its lfs: true below do anything: without it
+      # checkout fails outright with "Unable to locate executable file:
+      # git-lfs". The hosted runner the checks job uses carries all of them.
+      #
+      # python3 is named even though it is already there: it arrives as a
+      # transitive dependency of the simulator's GTK stack rather than because
+      # anyone chose it, so an upstream slimming of the image would take
+      # tools/ci-devices.py with it and the failure would look like a broken
+      # script. Naming it costs nothing and makes the dependency ours.
+      - name: Install make, git, git-lfs and python3
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends make git git-lfs python3
+
+      # lfs: true for the reason given in the checks job above.
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      # See the note at the top: a throwaway key, generated per run, never stored.
+      - name: Generate a throwaway signing key
+        run: |
+          openssl genrsa -out /tmp/ci_key.pem 4096
+          openssl pkcs8 -topk8 -inform PEM -outform DER \
+            -in /tmp/ci_key.pem -out /tmp/ci_key -nocrypt
+
+      # HOME, explicitly, because the image put the device definitions in root's
+      # home -- /root/.Garmin/ConnectIQ/Devices -- while a container job runs with
+      # HOME=/github/home. Both monkeyc and tools/ci-devices.py find the
+      # definitions by expanding ~, so without this neither looks in the one place
+      # they exist.
+      #
+      # The device set is resolved into a variable first, and the job's bash runs
+      # under -e, so a failure to resolve it stops the step. It used to be read
+      # straight into the loop from a process substitution, where the script's
+      # exit status is discarded: the step then read an empty list, built nothing,
+      # and reported success. Same shape of mistake as #23 -- a green result that
+      # means the check never ran is worse than a red one.
+      #
+      # Past that, every family is built even after one fails, so a run reports
+      # all the damage rather than the first of it. A `make` in an `if` condition
+      # is exempt from -e, which is what lets the status be accumulated.
+      - name: Build one product per device family
+        shell: bash
+        env:
+          HOME: /root
+        run: |
+          devices=$(python3 tools/ci-devices.py)
+          test -n "$devices" || { echo "::error::no device families resolved"; exit 1; }
+          echo "Building $(echo "$devices" | wc -l) families:"
+          echo "$devices"
+
+          mkdir -p bin
+          status=0
+          while read -r family device; do
+            echo "::group::$family -- $device"
+            if make build DEVICE="$device" \
+                          SDK_BIN=/connectiq/bin \
+                          DEV_KEY=/tmp/ci_key \
+                          OUTPUT="bin/$device.prg"; then
+              ls -l "bin/$device.prg"
+            else
+              echo "::error::build failed for $device ($family)"
+              status=1
+            fi
+            echo "::endgroup::"
+          done <<< "$devices"
+          exit $status
