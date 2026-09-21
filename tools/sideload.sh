@@ -73,10 +73,13 @@ cmd_detect() {
   # watch that maps cleanly onto a Connect IQ device id. Its object id is not
   # fixed, so it is looked up by name.
   #
-  # The names libmtp itself reports are not usable for this. On a fenix 7X Solar
-  # it announces "Garmin Euduro 2" from its own device table -- a typo, and the
-  # wrong product besides -- while the part number in this file, 006-B3907-00,
-  # resolves to fenix7x correctly.
+  # The names libmtp itself reports are not usable for this. They come from its own
+  # USB device table, which names a hardware family rather than a Connect IQ
+  # product, and nothing maps one to the other: a fenix 7X Solar is announced as
+  # "Garmin Euduro 2" -- Enduro 2 is a genuine sibling of that family, sharing both
+  # the USB product id and the fenix7x device definition, but the spelling is
+  # libmtp's own typo. The part number in this file, 006-B3907-00, resolves to
+  # fenix7x with no guessing at all.
   load_listing
   id=$(printf '%s\n' "$LISTING" | awk '
     /^File ID:/                                    { found = $3 }
