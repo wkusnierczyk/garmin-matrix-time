@@ -14,9 +14,11 @@ each change is recorded in full.
 Everything since the first release. The always-on screen was rewritten, the digits left the rain,
 the rain loop was rebuilt around the profiler, and the supported device list grew by half.
 
-There is no 0.2.0. A bundle carrying that version was uploaded to the store and withdrawn before
-release; the store keeps the number whether or not anything shipped under it, so the first version
-this work can reach anyone under is 0.2.1. The two are the same face.
+There is no properly published 0.2.0. Uploading to the store takes two steps -- the file and its
+version, then the description and the release notes -- and the first step alone was enough to move
+the listing to 0.2.0, with the release notes left reading "Initial release." from 0.1.0. The number
+cannot be uploaded a second time, so this release goes out as 0.2.1, carrying the notes 0.2.0 never
+received. The two are the same face.
 
 ### Added
 
