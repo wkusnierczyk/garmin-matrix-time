@@ -39,6 +39,19 @@ EVERY ?= 60
 # simulator is accepting connections, which is what monkeydo needs -- the app being
 # launched is not enough, since "open -a" returns long before the port is up.
 SIM_PORT ?= 1234
+
+# Container platform for "make graphics". The Connect IQ tester image the capture
+# runs in is built for amd64 only, so an arm64 machine has to ask for it explicitly
+# and accept emulation: PLATFORM=linux/amd64. Empty on an amd64 machine, where
+# Docker picks the right one by itself.
+PLATFORM ?=
+
+# The zone "make graphics" captures in, and so the time the captured face shows.
+# Named TZ_NAME rather than TZ because TZ is a real environment variable: make
+# exports what it inherits, so a target testing $(TZ) would follow the developer's
+# own clock setting rather than an explicit choice, and behave differently on two
+# machines for no visible reason.
+TZ_NAME ?=
 # =================================================
 
 # Commands
@@ -77,7 +90,7 @@ TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
 # profiler can say something useful, and the shipped bundle has no use for them.
 EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f monkey.jungle
 
-.PHONY: all build sim run test sideload export check-fonts icons check-icons clean
+.PHONY: all build sim run test sideload export check-fonts icons check-icons graphics clean
 
 all: build
 
@@ -271,6 +284,25 @@ icons:
 check-icons:
 	@echo "Checking launcher icon configuration consistency..."
 	@python3 tools/make-launcher-icons.py --check
+
+# Every image in resources/graphics/ regenerated from the current build (#125).
+# They used to be made by hand -- run the simulator, capture, resize, composite --
+# which is why #54 could change what the face draws and leave all seven showing the
+# old charset for months (#80). A capture is derived from the app but is not
+# generated output, so nothing reported them stale.
+#
+# The capture and the hero composition come from garmin-graphics-generator, shared
+# with the sibling faces; what is here is the names, the sizes and the reference
+# product. It captures through the containerised simulator rather than the desktop
+# one, so this needs Docker running and nothing else: no GUI, and no macOS
+# screen-recording permission.
+#
+# PLATFORM is passed through because the Connect IQ tester image is built for amd64
+# and an arm64 machine therefore needs to ask for it explicitly.
+graphics:
+	@echo "Regenerating resources/graphics..."
+	@python3 tools/make-graphics.py $(if $(PLATFORM),--platform $(PLATFORM),) \
+	                                $(if $(TZ_NAME),--timezone $(TZ_NAME),)
 
 clean:
 	@rm -Rf $(OUTPUT) test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
