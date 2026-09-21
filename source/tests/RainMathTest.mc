@@ -15,10 +15,19 @@ import Toybox.Lang;
 (:test)
 class RainMathTest {
 
-    // The four round radii the manifest ships -- 360x360, 390x390, 416x416, 454x454 --
-    // and the one rectangle, 320x360, whose shorter side is its width.
-    static const RADII = [180.0, 195.0, 208.0, 227.0, 160.0];
-    static const WIDTHS = [360, 390, 416, 454, 320];
+    // The five round radii the manifest ships: 360x360, 390x390, 416x416, 454x454 and
+    // 466x466, halved. Round only, and deliberately so -- these feed the cull tests,
+    // and DigitalRain._generateSpans short-circuits on `if (!round)`, so rowReach is
+    // never reached on a rectangular screen. A rectangle's half-width in this list
+    // would exercise the cull at a radius no shipped device has, which is why 160.0
+    // for the 320x360 screen has been dropped along with it. Rectangles are covered
+    // where they actually are: the grid test below, on both of their axes, and the
+    // jitter test, which runs on every shape.
+    static const RADII = [180.0, 195.0, 208.0, 227.0, 233.0];
+
+    // Every width the manifest ships, round and rectangular alike. The always-on
+    // jitter is measured off the width whatever the shape, so all seven belong here.
+    static const WIDTHS = [320, 360, 390, 416, 448, 454, 466];
 
     // The three channels of a packed 0xRRGGBB colour.
     static const SHIFTS = [RED_SHIFT, GREEN_SHIFT, BLUE_SHIFT];
@@ -123,7 +132,11 @@ class RainMathTest {
         // #10: the outermost cell has to cover the screen edge, and it has to be the
         // smallest number of steps that does -- one more would put a whole cell outside
         // the screen.
-        var halves = [160, 180, 195, 208, 227];
+        // Both axes of every shipped screen, not just the widths: the grid is stepped
+        // out from the centre in each direction independently, so 448x486 contributes
+        // 224 and 243, and 320x360 contributes 160 and 180. The round screens are
+        // square and contribute one value each.
+        var halves = [160, 180, 195, 208, 224, 227, 233, 243];
         for (var h = 0; h < halves.size(); ++h) {
             var half = halves[h] as Number;
             for (var pitch = 8; pitch <= 60; ++pitch) {

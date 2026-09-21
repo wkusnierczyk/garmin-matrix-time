@@ -37,8 +37,22 @@
         },
         {
             "resolution": [
+                466,
+                466
+            ],
+            "shape": "round"
+        },
+        {
+            "resolution": [
                 320,
                 360
+            ],
+            "shape": "rectangle"
+        },
+        {
+            "resolution": [
+                448,
+                486
             ],
             "shape": "rectangle"
         }

@@ -98,13 +98,19 @@ The table below lists all font sizes provided for the supported screen resolutio
 |  454 x 454 | round     | Matrix     | MatrixCodeNFI    |   29 |
 |  454 x 454 | round     | Time       | SUSEMono regular |   29 |
 |  454 x 454 | round     | Time large | SUSEMono regular |   59 |
+|  466 x 466 | round     | Matrix     | MatrixCodeNFI    |   30 |
+|  466 x 466 | round     | Time       | SUSEMono regular |   30 |
+|  466 x 466 | round     | Time large | SUSEMono regular |   60 |
+|  448 x 486 | rectangle | Matrix     | MatrixCodeNFI    |   29 |
+|  448 x 486 | rectangle | Time       | SUSEMono regular |   29 |
+|  448 x 486 | rectangle | Time large | SUSEMono regular |   58 |
 
 ## Launcher icon
 
 The launcher icon is the digital rain held still: glyphs from the same typeface, in the same green
 and from the same letters-only charset, that the watch face draws with.
 
-Garmin sets the launcher icon size per device. The 34 supported products ask for eight different
+Garmin sets the launcher icon size per device. The 51 supported products ask for eight different
 sizes, from 38 x 38 on the Instinct Crossover AMOLED to 70 x 70 on the Venu 3. The size does not
 follow the screen, and so cannot be served by the `deviceFamily` qualifier the fonts use: the
 `round-390x390` family alone spans 38 x 38, 54 x 54, 56 x 56, 60 x 60 and 70 x 70. Every device is
@@ -121,17 +127,28 @@ Each supported product is mapped to the icon its device asks for:
 
 | Product                 |    Icon |
 | :---------------------- | ------: |
+| approachs7047mm         | 70 x 70 |
+| d2airx10                | 70 x 70 |
 | venu2                   | 70 x 70 |
 | venu2plus               | 70 x 70 |
 | venu3                   | 70 x 70 |
 | venu3s                  | 70 x 70 |
+| d2mach2                 | 65 x 65 |
+| d2mach2pro              | 65 x 65 |
 | fenix847mm              | 65 x 65 |
 | fenix8pro47mm           | 65 x 65 |
+| fenix947mm              | 65 x 65 |
+| fenix9pro47mm           | 65 x 65 |
+| fenix9pro51mm           | 65 x 65 |
 | fr57047mm               | 65 x 65 |
 | fr965                   | 65 x 65 |
 | fr970                   | 65 x 65 |
 | venu445mm               | 65 x 65 |
+| venux1                  | 65 x 65 |
 | venu2s                  | 61 x 61 |
+| approachs7042mm         | 60 x 60 |
+| d2mach1                 | 60 x 60 |
+| descentg2               | 60 x 60 |
 | descentmk343mm          | 60 x 60 |
 | descentmk351mm          | 60 x 60 |
 | epix2                   | 60 x 60 |
@@ -139,6 +156,8 @@ Each supported product is mapped to the icon its device asks for:
 | epix2pro47mm            | 60 x 60 |
 | epix2pro51mm            | 60 x 60 |
 | fenix843mm              | 60 x 60 |
+| fenix943mm              | 60 x 60 |
+| fenix9pro43mm           | 60 x 60 |
 | fenixe                  | 60 x 60 |
 | fr265                   | 60 x 60 |
 | fr265s                  | 60 x 60 |
@@ -146,10 +165,14 @@ Each supported product is mapped to the icon its device asks for:
 | instinct3amoled50mm     | 60 x 60 |
 | marq2                   | 60 x 60 |
 | marq2aviator            | 60 x 60 |
+| approachs50             | 56 x 56 |
 | vivoactive5             | 56 x 56 |
 | fr165                   | 54 x 54 |
 | fr165m                  | 54 x 54 |
+| fr170                   | 54 x 54 |
+| fr170m                  | 54 x 54 |
 | fr57042mm               | 54 x 54 |
+| fr70                    | 54 x 54 |
 | venu441mm               | 54 x 54 |
 | vivoactive6             | 54 x 54 |
 | venusq2                 | 40 x 40 |
