@@ -222,8 +222,20 @@ git lfs install
 git clone https://github.com/wkusnierczyk/garmin-matrix-time.git
 ```
 
-For a clone already made without it, install `git-lfs` and run `git lfs pull` in the working tree;
-the pointer files are replaced in place.
+For a clone already made without it, install `git-lfs` and then run both of these in the working
+tree:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+`git lfs pull` on its own does replace the pointers that are in the tree now, so it is tempting to
+stop there. It is `git lfs install` that registers the clean and smudge filters in your Git
+configuration, and installing the package does not reliably do that for you. Without the filters the
+next `git checkout` writes the pointers straight back, and a commit touching one of these files
+stores the binary itself instead of a pointer: a filter that `.gitattributes` names but the
+configuration does not define is skipped rather than reported.
 
 **What a clone without it looks like is worth reading before the first build, because nothing
 announces it.** Each of the ten files is a three-line text pointer of about 130 bytes, beginning
