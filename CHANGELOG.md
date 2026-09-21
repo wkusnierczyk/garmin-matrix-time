@@ -82,8 +82,10 @@ came out of profiling rather than guesswork; the figures are per frame on an epi
 * Taking the arithmetic out of the inner loop -- one modulo per column instead of one per cell,
   precomputed coordinates, and every field read once: about 340 modulo operations and 320
   multiplications a frame. (#60, #75)
-* Holding the rain glyphs as strings from the start, so drawing a frame allocates nothing and the
-  garbage collector has no reason to run. (#57, #81)
+* Holding the rain glyphs as strings from the start, so the rain stopped creating some 160
+  short-lived strings a frame for the garbage collector to clean up afterwards. Drawing the clock
+  still builds a string of its own each frame, so a frame is not allocation-free; the rain is simply
+  no longer the bulk of it. (#57, #81)
 
 ### Fixed
 
