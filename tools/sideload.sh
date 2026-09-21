@@ -29,9 +29,17 @@ APPS=/GARMIN/Apps
 # own value in.
 CIQ_HOME=${CIQ_HOME:-$HOME/Library/Application Support/Garmin/ConnectIQ}
 
+# Exit 1 for "this went wrong", exit 2 for "no watch answered". The caller needs
+# to tell those apart: an explicit DEVICE is a usable answer to a watch that
+# cannot be identified, and no answer at all to a watch that is not there.
 die() {
   for line in "$@"; do printf '%s\n' "$line"; done >&2
   exit 1
+}
+
+die_no_watch() {
+  for line in "$@"; do printf '%s\n' "$line"; done >&2
+  exit 2
 }
 
 require_libmtp() {
@@ -61,9 +69,38 @@ load_listing() {
   LISTING=$(mtp-files 2>&1 | quiet)
   case $LISTING in
     *"File ID:"*) ;;
-    *) die "No watch found: libmtp lists no files on a device." \
-           "Connect the watch by USB and try again." ;;
+    *) die_no_watch "No watch found: libmtp lists no files on a device." \
+                    "Connect the watch by USB and try again." ;;
   esac
+}
+
+# Resolve a folder path to its object id. mtp-folders prints "<id>\t<indent><name>",
+# two spaces per level of nesting, so the path is rebuilt from the indent depth
+# rather than assumed. Needed because mtp-files reports a Parent ID but no folder
+# names, and scoping a delete to a folder is the whole point of having it.
+folder_id() {
+  mtp-folders 2>&1 | quiet | awk -F'\t' -v want="$1" '
+    NF < 2 { next }
+    {
+      name = $2
+      depth = match(name, /[^ ]/) - 1
+      sub(/^ +/, "", name)
+      path[depth] = name
+      full = ""
+      for (d = 0; d <= depth; d += 2) full = full "/" path[d]
+      if (full == want) { print $1; exit }
+    }'
+}
+
+# Object ids of the files named $2 directly inside folder id $1, newest last.
+# Filename is read off the rest of the line rather than as a field, so a name
+# containing spaces still matches; it precedes Parent ID in each record, so the
+# decision waits for the parent.
+ids_in_folder() {
+  printf '%s\n' "$LISTING" | awk -v parent="$1" -v want="$2" '
+    /^File ID:/ { id = $3; fname = "" }
+    $1 == "Filename:" { fname = $0; sub(/^[ \t]*Filename:[ \t]*/, "", fname) }
+    $1 == "Parent" && $2 == "ID:" && fname == want && $3 == parent { print id }'
 }
 
 cmd_detect() {
@@ -86,7 +123,8 @@ cmd_detect() {
     $1 == "Filename:" && $2 == "GarminDevice.xml"  { print found; exit }')
   [ -n "$id" ] || die \
     "GARMIN/GarminDevice.xml is not on the watch, so the device cannot be identified." \
-    "Build for it explicitly instead:  make sideload DEVICE=<device>"
+    "Name the device yourself and the detection is skipped:" \
+    "  make sideload DEVICE=<device>"
 
   tmp=$(mktemp -t sideload) || die "Could not create a temporary file."
   trap 'rm -f "$tmp"' EXIT
@@ -108,7 +146,8 @@ cmd_detect() {
     1) ;;
     0) die "The watch reports part number $part, which matches no device definition in" \
            "  $CIQ_HOME/Devices" \
-           "Download that device in the SDK manager, or name it yourself:" \
+           "Download that device in the SDK manager. Or name it yourself, which" \
+           "skips the detection entirely:" \
            "  make sideload DEVICE=<device>" ;;
     *) die "Part number $part matches more than one device definition:" "$matches" ;;
   esac
@@ -124,31 +163,50 @@ cmd_install() {
   base=$(basename "$prg")
   size=$(wc -c < "$prg" | tr -d ' ')
 
-  # Sending does not overwrite: the watch adds a second object under the same
-  # name and leaves the first in place, one more on every transfer, so the old
-  # copies go first. They are deleted by object id rather than by path, because
-  # deleting by path resolves the name to whichever handle the device lists
-  # first, and that one can be stale -- "Found a bad handle" -- while the file
-  # itself stays put. Deleting the oldest id removes the file and every alias of
-  # it at once, so the rest of the loop then fails harmlessly; failures are
-  # ignored for the same reason a first install has nothing to delete.
-  #
-  # Scoping by name alone is enough: the destination folder is fixed below, and
-  # what landed is checked by object id afterwards.
+  # The listing is loaded before anything else so that an absent watch is reported
+  # as an absent watch, rather than as the missing Apps folder it would otherwise
+  # look like a moment later.
   load_listing
-  printf '%s\n' "$LISTING" | awk -v want="$base" '
-    /^File ID:/                          { found = $3 }
-    $1 == "Filename:" && $2 == want      { print found }' |
-  while read -r old; do
-    mtp-delfile -n "$old" >/dev/null 2>&1 || true
-  done
+
+  # Everything below is scoped to this one folder. Resolving it first also turns a
+  # watch with no Apps folder into a refusal here, before anything is deleted or
+  # sent, rather than into the silent skip mtp-sendfile would answer with.
+  apps=$(folder_id "$APPS")
+  [ -n "$apps" ] || die \
+    "$APPS does not exist on the watch, so there is nowhere to install to." \
+    "Connect a watch that runs Connect IQ apps."
+
+  # Sending does not overwrite: the watch adds a second object under the same name
+  # and leaves the first in place, one more on every transfer, so the old copies go
+  # first. They are matched on folder as well as name -- deleting every object that
+  # merely shares the basename would reach unrelated files elsewhere on the watch,
+  # and a wrongly named build would then destroy one of them.
+  #
+  # They are deleted by object id rather than by path, because deleting by path
+  # resolves the name to whichever handle the device lists first, and that one can
+  # be stale -- "Found a bad handle" -- while the file itself stays put. Deleting
+  # the oldest id removes the file and every alias of it at once, which is why the
+  # rest of the loop is expected to fail and its failures are ignored. What is not
+  # ignored is the result: the folder is re-read afterwards, and anything still
+  # standing stops the run rather than being papered over with a duplicate.
+  old=$(ids_in_folder "$apps" "$base")
+  if [ -n "$old" ]; then
+    printf '%s\n' "$old" | while read -r id; do
+      mtp-delfile -n "$id" >/dev/null 2>&1 || true
+    done
+    load_listing
+    still=$(ids_in_folder "$apps" "$base")
+    [ -z "$still" ] || die \
+      "Could not remove the copy of $base already on the watch." \
+      "Sending now would leave two files of that name. Disconnect the watch," \
+      "reconnect it and try again."
+  fi
 
   # mtp-sendfile resolves its destination as an object that already exists, so a
   # full destination path is refused -- "Parent folder could not be found" -- for
   # a file that is not on the watch yet. Naming the folder works instead, and the
   # name on the watch is then the local basename. That refusal exits 0 like every
-  # other outcome, so the new object id is what says the transfer happened, and
-  # its absence is what says the folder was wrong.
+  # other outcome, so the new object id is what says the transfer happened.
   out=$(mtp-sendfile "$prg" "$APPS" 2>&1 | quiet)
   newid=$(printf '%s\n' "$out" | sed -n 's/^New file ID: \([0-9][0-9]*\)$/\1/p')
   if [ -z "$newid" ]; then

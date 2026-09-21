@@ -22,6 +22,7 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 * [Fonts](#fonts)
 * [Launcher icon](#launcher-icon)
 * [Build, test, deploy](#build-test-deploy)
+* [Upstream bug reports](#upstream-bug-reports)
 
 ## Matrix time
 
@@ -329,3 +330,45 @@ those quirks was measured.
 
 For the manual route, or for sideloading from another platform, see
 [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
+
+## Upstream bug reports
+
+Two defects found while building this face turned out to be in the tools rather than in it, and were
+reported where they belong. Both are worth knowing about if you are working on a Connect IQ project of
+your own, because in each case the symptom points somewhere other than the cause.
+
+### Connect IQ: `Properties.getValue` takes the app down when no property is declared
+
+[forums.garmin.com bug report](https://forums.garmin.com/developer/connect-iq/i/bug-reports/properties-getvalue-crashes-the-app-uncatchably-instead-of-throwing-invalidkeyexception-when-no-property-is-declared)
+· [#91](https://github.com/wkusnierczyk/garmin-matrix-time/issues/91),
+[#93](https://github.com/wkusnierczyk/garmin-matrix-time/issues/93)
+
+`Properties.getValue` is documented to raise `InvalidKeyException` for a key that is not declared. With
+no property table compiled into the app at all, it does something else: it fails a level below the
+language, with a system error that no `catch` clause sees, and the app goes down with it. A
+`try`/`catch` written against the documented behaviour is therefore not the guard it looks like, and
+neither is a `has` check.
+
+An empty `<properties>` element is not a fix. It is valid by Garmin's own `resources.xsd` and it
+crashes identically. What works is declaring at least one property, which is why
+`resources/properties/properties.xml` exists here and why `PropertyUtilsTest` guards it.
+
+Measured on SDK 9.2.0, `epix2pro47mm`.
+
+### libmtp: one Garmin USB id listed twice, under a misspelled name
+
+[libmtp#434](https://github.com/libmtp/libmtp/issues/434) ·
+[libmtp#435](https://github.com/libmtp/libmtp/pull/435)
+
+Found while building `make sideload`. `libmtp`'s device table carried two entries for Garmin product
+id `0x4f43` -- the only duplicated Garmin id in it -- so only the first was ever reached, and its name
+is a typo: `Euduro 2` for `Enduro 2`. The second entry named it `Fenix 7`, which is a different watch
+again.
+
+`0x4f43` is in fact the fenix 7X family: the fenix 7X, tactix 7, quatix 7X Solar and Enduro 2 share
+one hardware id, which Garmin's own SDK confirms by mapping them all to the device definition
+`fenix7x`. The patch collapses the two entries into one that names the family.
+
+This is why `tools/sideload.sh` identifies a watch by the part number in `GarminDevice.xml` rather than
+by the name `libmtp` reports. The part number comes from the device; the name comes from a table that
+can be wrong.

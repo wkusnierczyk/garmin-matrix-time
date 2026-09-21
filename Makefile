@@ -147,6 +147,14 @@ test: sim
 # face does not support is caught here too, against manifest.xml, rather than
 # left to surface as a compiler error about an unknown product.
 #
+# An explicit DEVICE is also the way out when detection cannot answer -- a watch
+# whose device definition is not downloaded, say. That is why the script separates
+# "no watch answered" (exit 2) from "something went wrong" (exit 1): the first is
+# fatal whatever DEVICE says, since there is nothing to install to, while the
+# second is exactly what naming the device is for. Without that split the advice
+# those errors print, to re-run with DEVICE set, could not be followed: detection
+# runs first and would fail again the same way.
+#
 # build is reached through a sub-make (SUBMAKE, see above) rather than named as a
 # prerequisite: the
 # device has to be known before the binary is compiled, and a prerequisite would
@@ -154,19 +162,27 @@ test: sim
 # binary is still always current, which is what that ordering is for.
 sideload:
 	$(require_sdk)
-	@watch=$$(CIQ_HOME="$(CIQ_HOME)" tools/sideload.sh detect) || exit 1; \
-	if [ "$(origin DEVICE)" != "file" ] && [ "$$watch" != "$(DEVICE)" ]; then \
-	  echo "DEVICE=$(DEVICE) was asked for, but the watch is a $$watch."; \
-	  echo "A .prg built for another product fails on the watch rather than at"; \
-	  echo "install time, so this is refused. Drop DEVICE to build for the watch."; \
+	@watch=$$(CIQ_HOME="$(CIQ_HOME)" tools/sideload.sh detect) && rc=0 || rc=$$?; \
+	if [ $$rc -eq 2 ]; then \
 	  exit 1; \
+	elif [ $$rc -ne 0 ]; then \
+	  test "$(origin DEVICE)" != "file" || exit 1; \
+	  watch=$(DEVICE); \
+	  echo "Building for DEVICE=$$watch as asked; the watch could not confirm it."; \
+	else \
+	  if [ "$(origin DEVICE)" != "file" ] && [ "$$watch" != "$(DEVICE)" ]; then \
+	    echo "DEVICE=$(DEVICE) was asked for, but the watch is a $$watch."; \
+	    echo "A .prg built for another product fails on the watch rather than at"; \
+	    echo "install time, so this is refused. Drop DEVICE to build for the watch."; \
+	    exit 1; \
+	  fi; \
+	  echo "Watch detected: $$watch"; \
 	fi; \
 	grep -q '<iq:product id="'"$$watch"'"/>' manifest.xml || { \
 	  echo "The watch is a $$watch, which this face does not support:"; \
 	  echo "manifest.xml lists no <iq:product> for it, so there is nothing to build."; \
 	  echo "Matrix Time is AMOLED-only; see \"Features\" in README.md."; \
 	  exit 1; }; \
-	echo "Watch detected: $$watch"; \
 	$(SUBMAKE) --no-print-directory build DEVICE=$$watch && \
 	tools/sideload.sh install $(OUTPUT)
 
