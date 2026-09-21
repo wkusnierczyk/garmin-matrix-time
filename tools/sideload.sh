@@ -159,7 +159,7 @@ cmd_wait() {
   every=${2:-60}
   case $every in
     ''|0|*[!0-9]*) die "The polling interval must be a positive number of seconds," \
-                       "and WAIT_EVERY=$every is not." ;;
+                       "and EVERY=$every is not." ;;
   esac
 
   require_libmtp mtp-detect

@@ -370,7 +370,7 @@ ever -- and each look, plus the time spent so far, is reported, so a run left in
 it is doing. Once a watch answers, the run carries straight on into the detection and the transfer.
 
 The looking is deliberately unhurried, once a minute, because each probe opens a USB session; override
-that with `make sideload WAIT=300 WAIT_EVERY=10` if you want it checked more often. The probe itself
+that with `make sideload WAIT=300 EVERY=10` if you want it checked more often. The probe itself
 is `mtp-detect`, which answers in about 0.2 s, rather than the four-second file listing the detection
 proper uses.
 

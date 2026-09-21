@@ -23,10 +23,11 @@ OUTPUT := MatrixTime.prg
 # the default -- is no looking at all: the first probe decides, which is the right
 # behaviour for a watch that is already plugged in. WAIT=1 turns the wait on with
 # the script's own budget, WAIT=<n> bounds it at n seconds; tools/sideload.sh
-# carries both. WAIT_EVERY is how long to leave between looks: each one opens a
-# USB session, so this is deliberately slow rather than a tight loop.
+# carries both. EVERY is the gap between one look and the next: a look is a single
+# mtp-detect that answers in well under a second, but it opens a USB session to do
+# it, so the loop is deliberately unhurried rather than tight.
 WAIT ?=
-WAIT_EVERY ?= 60
+EVERY ?= 60
 
 # TCP port the Connect IQ simulator listens on. Probing the port reports that the
 # simulator is accepting connections, which is what monkeydo needs -- the app being
@@ -177,7 +178,7 @@ test: sim
 # binary is still always current, which is what that ordering is for.
 sideload:
 	$(require_sdk)
-	@tools/sideload.sh wait "$(WAIT)" "$(WAIT_EVERY)" || exit 1
+	@tools/sideload.sh wait "$(WAIT)" "$(EVERY)" || exit 1
 	@watch=$$(CIQ_HOME="$(CIQ_HOME)" tools/sideload.sh detect) && rc=0 || rc=$$?; \
 	if [ $$rc -eq 2 ]; then \
 	  exit 1; \
