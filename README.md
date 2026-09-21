@@ -241,12 +241,14 @@ device you built last offered at the top. A launch configuration whose `device` 
 asks that same question on every run; replacing it with a product id, `"device": "epix2pro47mm"`, pins it.
 `.vscode/` is not committed, so the launch configuration and the key path are per clone, not per project.
 
-Every one of these has a `Makefile` equivalent, `Monkey C: Export Project` included: `make export`
-builds the same store bundle, and is described below.
+`Monkey C: Export Project` has a `Makefile` equivalent as of `make export`, described below, which
+builds the same store bundle. Two of these have none, and want none: `Monkey C: Edit Products` edits
+the product list in `manifest.xml`, and `Monkey C: Verify Installation` inspects the SDK installation
+rather than the project.
 
 ### From the command line
 
-The included `Makefile` covers everything except the export.
+The included `Makefile` covers every build the project does, the store bundle included.
 
 ```bash
 # build binaries from sources
