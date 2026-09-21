@@ -7,11 +7,13 @@
 # "Garmin EPIX Pro ... Device recognized as MTP". So the transfer goes through
 # libmtp rather than cp.
 #
-# Two subcommands, because the target has to know which device to build for
-# before it builds:
+# Three subcommands. The first two are split apart because the target has to know
+# which device to build for before it builds:
 #
-#   detect          print the Connect IQ device id of the attached watch
-#   install <prg>   replace <prg> in GARMIN/Apps, then verify what landed
+#   detect            print the Connect IQ device id of the attached watch
+#   install <prg>     replace <prg> in GARMIN/Apps, then verify what landed
+#   wait <spec> [n]   block until a watch is connected, at most <spec> seconds,
+#                     looking every n seconds (default 60)
 #
 # libmtp's exit statuses carry almost nothing here, so every check below reads
 # the output instead: mtp-sendfile exits 0 whether it transferred the file or
@@ -42,9 +44,13 @@ die_no_watch() {
   exit 2
 }
 
+# The tool to look for is an argument because the subcommands do not all use the
+# same one: the wait loop polls with mtp-detect. They ship in the same package, so
+# whichever is asked about answers for libmtp as a whole.
 require_libmtp() {
-  command -v mtp-files >/dev/null 2>&1 || die \
-    "libmtp not found: mtp-files is not on PATH." \
+  tool=${1:-mtp-files}
+  command -v "$tool" >/dev/null 2>&1 || die \
+    "libmtp not found: $tool is not on PATH." \
     "The watch is an MTP device and macOS does not mount it as a volume, so the" \
     "transfer needs a CLI MTP client:" \
     "  brew install libmtp"
@@ -101,6 +107,116 @@ ids_in_folder() {
     /^File ID:/ { id = $3; fname = "" }
     $1 == "Filename:" { fname = $0; sub(/^[ \t]*Filename:[ \t]*/, "", fname) }
     $1 == "Parent" && $2 == "ID:" && fname == want && $3 == parent { print id }'
+}
+
+# How long "WAIT=1" waits. A bare 1 is the plain "yes, please wait" spelling
+# rather than one second: a one-second wait is indistinguishable from no wait at
+# all, so the useful reading of the value is the one taken. Five minutes is long
+# enough to go and fetch the watch, and it is still bounded, which is the part
+# that matters -- an unbounded poll left in a terminal is a hung build.
+WAIT_DEFAULT=300
+
+# Seconds to keep looking for a watch, resolved from the WAIT spec. Held in a
+# variable rather than echoed out of a function for the same reason LISTING is:
+# resolving can refuse the value, and inside a command substitution "die" would
+# end only the subshell.
+WAIT_SECONDS=0
+
+# Trim the leading zeros off a digit string, because shell arithmetic reads them
+# as octal: untrimmed, WAIT=010 waits 8 seconds while printing "010s", and
+# WAIT=08 is not a number at all -- this /bin/sh ends the run with "value too
+# great for base (error token is "08")". Both arrive the moment someone writes a
+# duration with a zero in front of it, so every digit string that is going to be
+# used as a number goes through here first. An all-zero string trims to "0"
+# rather than to nothing.
+#
+# The argument must already be digits only: this trims, it does not validate, and
+# a non-digit string comes back unchanged to fail at whatever arithmetic uses it.
+# Both callers screen with a *[!0-9]* case first, and tell the user what to type
+# instead; a new one has to do the same.
+DECIMAL=0
+
+decimal() {
+  DECIMAL=$1
+  while :; do
+    case $DECIMAL in
+      0[0-9]*) DECIMAL=${DECIMAL#0} ;;
+      *)       break ;;
+    esac
+  done
+}
+
+resolve_wait() {
+  case $1 in
+    ''|0|no|false|off) WAIT_SECONDS=0 ;;
+    1|yes|true|on)     WAIT_SECONDS=$WAIT_DEFAULT ;;
+    *[!0-9]*)          die "WAIT=$1 is neither a number of seconds nor a yes/no." \
+                           "  make sideload WAIT=1      look for up to ${WAIT_DEFAULT}s" \
+                           "  make sideload WAIT=<n>    look for up to <n> seconds" ;;
+    *)                 decimal "$1"; WAIT_SECONDS=$DECIMAL ;;
+  esac
+}
+
+# Is there a watch on the bus? mtp-detect is the cheapest call that answers: it
+# reports "No raw devices found." in about 0.2 s, where the listing load_listing
+# uses takes some four seconds against the epix Pro, and the loop below can run
+# its probe many times over.
+#
+# That one phrase is the whole test, and anything else counts as a watch. A
+# libmtp that fails some other way therefore ends the wait immediately and is
+# reported by the detection that follows, rather than being polled at, silently,
+# for the whole budget.
+watch_present() {
+  case $(mtp-detect 2>&1) in
+    *"No raw devices found."*) return 1 ;;
+    *)                         return 0 ;;
+  esac
+}
+
+# Block until a watch answers, or until the budget runs out. Every look and the
+# time spent so far are printed, so a run left in a terminal says what it is
+# doing rather than sitting silent for minutes.
+cmd_wait() {
+  resolve_wait "$1"
+  [ "$WAIT_SECONDS" -gt 0 ] || return 0
+
+  # Trimmed the same way, and only then tested for zero: "00" is not the string
+  # "0", so a literal test lets it through, and "sleep 00" turns the loop below
+  # into a busy one that probes the USB bus thousands of times a minute.
+  given=${2:-60}
+  case $given in
+    *[!0-9]*) every=0 ;;
+    *)        decimal "$given"; every=$DECIMAL ;;
+  esac
+  [ "$every" -gt 0 ] || die "The polling interval must be a positive number of seconds," \
+                            "and EVERY=$given is not."
+
+  require_libmtp mtp-detect
+
+  start=$(date +%s)
+  deadline=$((start + WAIT_SECONDS))
+  echo "Waiting up to ${WAIT_SECONDS}s for a watch to be connected..."
+  while :; do
+    if watch_present; then
+      echo "Watch connected after $(($(date +%s) - start))s."
+      return 0
+    fi
+    now=$(date +%s)
+    [ "$now" -lt "$deadline" ] || break
+    # Nap what is left of the budget when that is less than a full interval, so
+    # the last look lands on the deadline rather than short of it.
+    nap=$every
+    [ $((now + nap)) -le "$deadline" ] || nap=$((deadline - now))
+    # Said before the nap rather than after it, so each line announces the wait
+    # it is about to sit through instead of reporting one that has just ended --
+    # which would put a "still waiting" immediately above "Watch connected".
+    echo "No watch yet after $((now - start))s of ${WAIT_SECONDS}s; looking again in ${nap}s."
+    sleep "$nap"
+  done
+
+  die_no_watch "No watch was connected within ${WAIT_SECONDS}s." \
+               "Connect the watch by USB and try again, or allow longer:" \
+               "  make sideload WAIT=<seconds>"
 }
 
 cmd_detect() {
@@ -233,5 +349,7 @@ cmd_install() {
 case ${1:-} in
   detect)  cmd_detect ;;
   install) [ $# -eq 2 ] || die "usage: $0 install <prg>"; cmd_install "$2" ;;
-  *)       die "usage: $0 detect | install <prg>" ;;
+  wait)    [ $# -ge 2 ] && [ $# -le 3 ] || die "usage: $0 wait <spec> [interval]"
+           cmd_wait "$2" "${3:-}" ;;
+  *)       die "usage: $0 detect | install <prg> | wait <spec> [interval]" ;;
 esac

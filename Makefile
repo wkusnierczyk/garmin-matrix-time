@@ -19,6 +19,16 @@ DEVICE ?= epix2pro47mm
 # Output filename
 OUTPUT := MatrixTime.prg
 
+# How long "make sideload" keeps looking for a watch before giving up. Empty --
+# the default -- is no looking at all: the first probe decides, which is the right
+# behaviour for a watch that is already plugged in. WAIT=1 turns the wait on with
+# the script's own budget, WAIT=<n> bounds it at n seconds; tools/sideload.sh
+# carries both. EVERY is the gap between one look and the next: a look is a single
+# mtp-detect that answers in well under a second, but it opens a USB session to do
+# it, so the loop is deliberately unhurried rather than tight.
+WAIT ?=
+EVERY ?= 60
+
 # TCP port the Connect IQ simulator listens on. Probing the port reports that the
 # simulator is accepting connections, which is what monkeydo needs -- the app being
 # launched is not enough, since "open -a" returns long before the port is up.
@@ -155,6 +165,12 @@ test: sim
 # those errors print, to re-run with DEVICE set, could not be followed: detection
 # runs first and would fail again the same way.
 #
+# The wait is a separate call ahead of all that, and unconditional: with WAIT
+# unset the script returns without looking at anything or printing anything, so
+# the ordinary run is the one it always was. Keeping the whole spelling of WAIT --
+# what counts as "yes", what the default budget is -- in one place there beats
+# splitting it between a make conditional and a shell case.
+#
 # build is reached through a sub-make (SUBMAKE, see above) rather than named as a
 # prerequisite: the
 # device has to be known before the binary is compiled, and a prerequisite would
@@ -162,6 +178,7 @@ test: sim
 # binary is still always current, which is what that ordering is for.
 sideload:
 	$(require_sdk)
+	@tools/sideload.sh wait "$(WAIT)" "$(EVERY)" || exit 1
 	@watch=$$(CIQ_HOME="$(CIQ_HOME)" tools/sideload.sh detect) && rc=0 || rc=$$?; \
 	if [ $$rc -eq 2 ]; then \
 	  exit 1; \
