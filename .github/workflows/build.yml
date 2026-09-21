@@ -1,6 +1,7 @@
-# Stage 1 of #41: build verification. Every push to main and every pull request
-# compiles the face for one product per deviceFamily, and runs the consistency
-# checks that need no SDK at all.
+# Stages 1 and 2 of #41: build and package verification. Every push to main and
+# every pull request runs the consistency checks that need no SDK at all, compiles
+# the face for one product per deviceFamily, and then exports the store bundle,
+# which builds every product manifest.xml names.
 #
 # Why a container rather than a plain runner. The SDK is a public, unauthenticated
 # download -- developer.garmin.com/downloads/connect-iq/sdks/sdks.json lists every
@@ -141,3 +142,27 @@ jobs:
             echo "::endgroup::"
           done <<< "$devices"
           exit $status
+
+      # Stage 2 of #41. This is a different check from the one above rather than a
+      # larger one: `monkeyc -e` builds EVERY product manifest.xml names, not one
+      # per family, and it fails if any single one of them lacks a device
+      # definition. Until now the only thing that ever built the whole list was a
+      # release being cut, which is precisely how #37 was found -- at the worst
+      # moment, on the last step before an upload.
+      #
+      # Driven through `make export`, like every other build here, so CI and a
+      # developer's own export are one command with one set of flags rather than
+      # two spellings free to drift apart. HOME for the device definitions, for the
+      # reason given on the step above.
+      #
+      # Deliberately no `if:` clause. A failure in the per-family build fails here
+      # too, on the same cause and with fifty products' worth of output after it,
+      # so the default -- skip once an earlier step has failed -- is the behaviour
+      # that reports the fault once.
+      - name: Export the store bundle
+        shell: bash
+        env:
+          HOME: /root
+        run: |
+          make export SDK_BIN=/connectiq/bin DEV_KEY=/tmp/ci_key
+          ls -l export/MatrixTime.iq
