@@ -222,6 +222,14 @@ had by transforming a flat render. The captures go to the model, the result is j
 put in place by hand. `make graphics` writes `MatrixTimeHero-draft.png` instead, so a capture run
 cannot overwrite an adopted hero.
 
+The prompt is [`tools/hero-prompt.txt`](tools/hero-prompt.txt), kept as plain text because it is meant
+to be pasted whole. It states what must not change -- five watches, the screens believable, and no
+Arabic numerals in the rain, which the model will otherwise put back -- alongside the limits on
+overlap, relative size and rotation, and it asks for 2:1 at the largest size the model can produce.
+Two steps are still yours afterwards: trim to an exact 2:1 if the output is not quite square to it, and
+resize to **exactly 1440 x 720**, which the store validates and rejects anything else for. The banner
+is the same image at 900 x 450 rather than a second composition.
+
 Two consequences worth stating plainly. The hero is **not reproducible from this repository**: the
 model is not deterministic and no target regenerates it. And it has to be **recomposed by hand
 whenever what the face draws changes**, which is the same debt the captures carry but one no `make`
