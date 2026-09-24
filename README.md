@@ -199,17 +199,46 @@ device asks for. It is a fallback only: it applies to a product added to `manife
 
 ## Store and README images
 
-`resources/graphics/` holds the eight images the Connect IQ store listing and this file are
-illustrated with. They are **generated output** of `make graphics`; do not edit them by hand.
+`resources/graphics/` holds the ten images the Connect IQ store listing and this file are illustrated
+with. Eight of them are **generated output** of `make graphics`; do not edit those by hand. The two
+that are not are the published hero and its banner, which are composed rather than captured, and which
+`make graphics` deliberately does not write.
 
-| file | what it is | where it is used |
-|:--|:--|:--|
-| `MatrixTimeCapture.png` | one raw device framebuffer, 416 x 416, nothing composited over it | reference capture |
-| `MatrixTime1.png` to `MatrixTime3.png` | captures set into the watch render, 200 px wide | store gallery |
-| `MatrixTime4.png` | the same | the [Features](#features) table above |
-| `MatrixTime5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table |
-| `MatrixTimeHero.png` | the five captures scattered across 1440 x 720 | store listing, social |
-| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file |
+| file | what it is | where it is used | made by |
+|:--|:--|:--|:--|
+| `MatrixTimeCapture.png` | one raw device framebuffer, 416 x 416, nothing composited over it | reference capture | `make graphics` |
+| `MatrixTime1.png` to `MatrixTime3.png` | captures set into the watch render, 200 px wide | store gallery | `make graphics` |
+| `MatrixTime4.png` | the same | the [Features](#features) table above | `make graphics` |
+| `MatrixTime5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table | `make graphics` |
+| `MatrixTimeHero.png` | the five captures recomposed at 1440 x 720, watches overlapping and seen from several viewpoints | store listing, social | composed by hand |
+| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file | composed by hand |
+| `MatrixTimeHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics` |
+| `MatrixTimeHero-draft-small.png` | the same composition at 900 x 450 | the same | `make graphics` |
+
+**The published hero is composed with an image model**, from the same five captures the gallery is cut
+from. A composition of face-on renders can only scatter them; the listing image wants watches that
+overlap, that are seen from more than one viewpoint, and that share a light, and none of that can be
+had by transforming a flat render. The captures go to the model, the result is judged by eye, and it is
+put in place by hand. `make graphics` writes `MatrixTimeHero-draft.png` instead, so a capture run
+cannot overwrite an adopted hero.
+
+The prompt is [`tools/hero-prompt.txt`](tools/hero-prompt.txt), kept as plain text because it is meant
+to be pasted whole. It states what must not change -- five watches, the screens believable, and no
+Arabic numerals in the rain, which the model will otherwise put back -- alongside the limits on
+overlap, relative size and rotation, and it asks for 2:1 at the largest size the model can produce.
+Two steps are still yours afterwards: trim to an exact 2:1 if the output is not quite square to it, and
+resize to **exactly 1440 x 720**, which the store validates and rejects anything else for. The banner
+is the same image at 900 x 450 rather than a second composition.
+
+Two consequences worth stating plainly. The hero is **not reproducible from this repository**: the
+model is not deterministic and no target regenerates it. And it has to be **recomposed by hand
+whenever what the face draws changes**, which is the same debt the captures carry but one no `make`
+target pays. The draft is regenerated on every capture run and is the honest fallback if a composed
+hero is ever out of date.
+
+Screens are pixel-exact in `MatrixTime1.png` to `MatrixTime5.png` and only faithful in the hero, where
+the watches are small. That is the reason the gallery is never composed this way: those are the images
+a prospective user inspects.
 
 `MatrixTime5.png` is captured from a build in which `onUpdate` takes the low-power branch on every
 frame, because the simulator will not enter always-on without a hand on its menus: Display Mode is a
@@ -240,7 +269,7 @@ definition it cuts frames against is taken out of that container, so the artwork
 onto is always the artwork that rendered it.
 
 ```bash
-# regenerate all eight
+# regenerate all eight it owns
 make graphics
 
 # on an arm64 machine, where the Connect IQ tester image runs emulated
@@ -250,7 +279,8 @@ make graphics PLATFORM=linux/amd64
 make graphics TZ_NAME=Asia/Tokyo
 ```
 
-**Rerun it whenever what the face draws changes**, in the same change. Nothing reports these stale the
+**Rerun it whenever what the face draws changes**, in the same change, and recompose the published
+hero with it. Nothing reports these stale the
 way `make check-fonts` reports a stale size table: a capture is derived from the app but is not
 generated output in the sense a build is, so it drifts silently. That is how #54 could drop `0-9`
 from the rain charset and leave every one of the images then in the directory showing numerals for
@@ -270,9 +300,9 @@ reference guide covers the extension in full; what follows is the part of it thi
 
 ### Git LFS
 
-Eleven binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
+Thirteen binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
 `resources/fonts/MatrixCodeNFI.ttf` and `resources/fonts/SUSEMono-Regular.ttf`; the launcher icon
-fallback, `resources/drawables/launcher_icon.png`; and the eight hero and screenshot graphics under
+fallback, `resources/drawables/launcher_icon.png`; and the ten hero and screenshot graphics under
 `resources/graphics/`. Everything else is stored normally, the generated bitmap fonts and the
 per-device launcher icons included -- they are build output of the two typefaces, small, and worth
 diffing.
@@ -400,7 +430,8 @@ make sideload WAIT=300
 # regenerate the launcher icons and their jungle mapping
 make icons
 
-# regenerate every image in resources/graphics from the current build
+# regenerate the eight generated images in resources/graphics; the composed hero
+# and its banner are left alone
 make graphics
 
 # ... on an arm64 machine, where the simulator container runs emulated
@@ -428,8 +459,9 @@ this is the only build that exercises the packaging step, so it is worth running
 even when nothing about the devices has changed. Uploading the bundle is still manual, through the
 store's web form.
 
-`make graphics` regenerates the eight images in `resources/graphics/` -- the store gallery, the store
-hero and the README banner -- from whatever the face currently draws. It needs Docker running and
+`make graphics` regenerates the eight images in `resources/graphics/` that it owns -- the store gallery
+and the draft hero -- from whatever the face currently draws. The published hero and banner are
+composed by hand and are left alone. It needs Docker running and
 [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer, and no SDK: the capture runs the Connect IQ simulator inside a container under a virtual display, so
 there is no GUI to drive and no macOS screen-recording permission to grant. See

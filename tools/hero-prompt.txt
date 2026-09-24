@@ -1,0 +1,80 @@
+ROLE
+You compose one product hero image from renders of smartwatches supplied to you.
+You are a photographer and retoucher arranging real objects, not an illustrator
+drawing new ones.
+
+INPUTS
+Five images. Each is a front-on render of the same watch model, differing only in
+what its screen shows. Treat each as a separate physical watch.
+The falling glyphs on every screen look like the ones in the supplied images, and
+like nothing else.
+
+OUTPUT
+A single image, exactly twice as wide as it is tall, at the largest resolution you
+can produce and no smaller than 2880x1440. A flat pure white background, no
+gradient, no vignette, no visible surface. No border, no frame, no caption.
+Leave a little clear white at the left and right edges, so the image can be trimmed
+to an exact 2:1 without touching a watch.
+
+INVARIANTS — these outrank every layout rule below
+1. Each screen must stay a believable screenshot of this watch face. Reproduce each
+   screen's layout, colours and content as closely as you can; you may re-render a
+   screen to suit its viewpoint, but never change what the face is showing:
+   No Arabic numerals (0 1 2 3 4 5 6 7 8 9) appear anywhere on any screen except in
+   the single time readout. The falling glyphs are Japanese halfwidth katakana; if
+   you are unsure whether a glyph is a numeral, use a katakana glyph instead. Green
+   glyphs falling down a pure black screen; exactly one time readout per screen,
+   green, of the form H:MM or HH:MM; nothing else on the glass — no date, no
+   seconds, no icons. One input shows only the time on an otherwise black screen:
+   that is the always-on state and must stay that way; do not add rain to it.
+   Never add UI, icons, complications, notifications, dates or text that is not in
+   the input.
+2. The hardware stays this watch model: case shape and depth, bezel markings, button
+   count and placement, strap type, material and colour.
+3. Exactly five watches. Never add, duplicate, merge or drop one. Each input appears
+   exactly once.
+4. Nothing else in the frame: no text, logos, captions, watermarks, hands, wrists,
+   packaging, studio props, or reflections of a photographer.
+
+LAYOUT
+5. Scatter them; do not line them up in a row, a grid, or an arc.
+6. OVERLAP — at most 25% of any watch may be hidden by another. Watches may touch
+   and slightly tuck behind one another. No screen is ever partly covered: every
+   screen is fully visible, whole, unobstructed.
+7. SIZE — the largest watch is at most 2x the linear size of the smallest. They read
+   as the same object at different distances, not as different products.
+8. ROTATION — each watch is turned independently, within these limits:
+   - roll (spin in the picture plane, 12 o'clock leaving vertical): up to ±15°
+   - pitch (top tipping away from or toward the viewer): up to ±25°
+   - yaw (left or right edge turning away): up to ±30°
+   At ±15° a watch is clearly tilted but still read head-on; at ±40° you see well
+   down its side wall and the case depth, lugs and crown come into view. Draw a
+   different combination for each watch; do not give them all the same attitude, and
+   do not leave them all square to the camera.
+9. Every watch lies fully inside the canvas with at least 40 px clear of each edge.
+   Straps may run off the edge; cases and screens may not.
+10. Fill the canvas evenly. No empty quadrant, no watches crowded into one band.
+
+REALISM
+11. One light source for the whole image, from above and slightly left, soft and
+    broad. Every highlight, shadow and reflection agrees with it, including on
+    watches turned away from the camera.
+12. A soft contact shadow under each watch, consistent with that light and with how
+    far the watch is from the surface. This is what makes them one photograph.
+13. Straps rest naturally with their own curve and thickness; they are not flat
+    cut-outs.
+
+BEFORE YOU RETURN THE IMAGE, CHECK
+- Count the watches. If the number is not five, remove the extras or add the missing
+  one before returning. This has gone wrong before.
+- Read every screen. If any glyph other than the time readout is an Arabic numeral,
+  replace it with a katakana glyph before returning. This has gone wrong before.
+- Each watch matches one input, each screen faithful to it.
+- No screen partly hidden. No watch hidden by more than 25%.
+- Largest/smallest ratio within 2x. Rotations within the stated limits.
+- All watches inside the canvas with the stated margin. No empty quadrant.
+- One consistent light. No added text or objects.
+
+IF CONSTRAINTS CONFLICT, in this order: screen fidelity > the count > no covered
+screen > overlap limit > margins > rotation limits > size limits > even fill.
+Never resolve a conflict by dropping or duplicating a watch.
