@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Regenerate every image in resources/graphics/ from the current build.
 
-The seven files here were made by hand: run the simulator, capture screenshots,
-resize and composite them, upload the result. #80 is what that cost -- #54 dropped
-`0-9` from the rain charset and all seven went on showing numerals for months,
+The files here were made by hand: run the simulator, capture screenshots, resize and
+composite them, upload the result. #80 is what that cost -- #54 dropped `0-9` from the
+rain charset and all seven of them went on showing numerals for months,
 because a capture is derived from the app but is not generated output, so nothing
 reports it stale.
 
@@ -21,8 +21,15 @@ which sizes, captured on which product.
   MatrixTimeCapture.png         one raw framebuffer, nothing composited over it
   MatrixTime1.png .. 3.png      watch renders at 200px, for the store gallery
   MatrixTime4.png               the same, for the README features table
-  MatrixTimeHero.png            those four scattered across 1440x720, the store hero
+  MatrixTime5.png               the always-on scene, for both (#128)
+  MatrixTimeHero.png            those five scattered across 1440x720, the store hero
   MatrixTimeHero-small.png      the same composition at 900x450, the README banner
+
+MatrixTime5.png is a second capture run rather than a fifth frame of the first. The
+simulator will not enter always-on headlessly -- Display Mode is a GUI menu and is not
+one of the keys it persists -- so that frame comes from a build in which onUpdate takes
+the low-power branch unconditionally, selected by layering graphics.jungle over
+monkey.jungle. Only the trigger is forced; see source/View.mc.
 
 The gallery images and the hero are flattened onto white, which is what the files
 they replace look like and what the store gallery expects. `--background none`
@@ -33,7 +40,7 @@ Usage:
   tools/make-graphics.py --background none keep the transparency instead of white
   tools/make-graphics.py --timezone ...    choose the clock the captured face shows
 
-Needs Docker running, and garmin-graphics-generator 0.5.0 or newer.
+Needs Docker running, and garmin-graphics-generator 0.5.1 or newer.
 """
 import argparse
 import os
@@ -50,8 +57,8 @@ GRAPHICS = os.path.join(PROJECT, "resources", "graphics")
 # 416x416; the file this replaces was 454x454, which was another product entirely.
 DEFAULT_DEVICE = "epix2pro47mm"
 
-# Four frames, and not a setting. The gallery is four files, because the store
-# listing names them MatrixTime1 to MatrixTime4, and the hero is those same four.
+# Four woken frames, and not a setting. The gallery is five files, because the store
+# listing names them MatrixTime1 to MatrixTime5, and the hero is those same five.
 # More is not better in the hero either: the composition places watches without
 # overlapping them beyond MAX_OVERLAP, so every extra one makes them all smaller to
 # fit. A --count that captured more than this used would either change the hero
@@ -59,6 +66,16 @@ DEFAULT_DEVICE = "epix2pro47mm"
 # worth a knob. The rain is seeded from the clock and from uptime, so frames spaced
 # a few seconds apart differ by more than one step of the animation.
 SHOT_COUNT = 4
+
+# The fifth image is the always-on scene, and it needs its own capture run: the
+# simulator resets Display Mode to High Power on every launch and persists no key for
+# it, so always-on is reached by compiling the forcing in rather than by asking the
+# simulator for it. graphics.jungle is one line layered over monkey.jungle; monkeyc -f
+# takes the list and lets the later file override the earlier one. One frame is enough
+# -- the scene is the time alone, shifted a step every minute, so a second frame taken
+# seconds later would be the same picture.
+ALWAYS_ON_JUNGLE = "monkey.jungle;graphics.jungle"
+ALWAYS_ON_COUNT = 1
 
 CAPTURE_NAME = "MatrixTimeCapture.png"
 GALLERY_NAME = "MatrixTime{index}.png"
@@ -75,14 +92,17 @@ SIZE_VARIATION = 5
 ORIENTATION_VARIATION = 20
 MAX_OVERLAP = 20
 
-# The first release carrying the shots command, and the hero that does not drop
-# inputs. Both are needed here: without the first there is nothing to capture with,
-# and without the second the hero silently arrives with fewer watches than it was
-# given, which looks like a bad capture rather than a stale tool.
+# 0.5.0 brought the shots command; 0.5.1 is what this needs, for two things the fifth
+# image depends on. Its hero retries the whole arrangement instead of abandoning an
+# image it could not place, which is what makes a five-watch composition reliable
+# rather than lucky -- at four, the same request landed two watches on one run and four
+# on the next. And its shots accepts a list of jungle files, which is how the always-on
+# capture selects the forced build: 0.5.0 checked the whole string as one filename and
+# rejected "monkey.jungle;graphics.jungle" before starting the container.
 GENERATOR = "garmin_graphics_generator"
-REQUIRED_VERSION = "0.5.0"
+REQUIRED_VERSION = "0.5.1"
 RELEASE_URL = (
-    "https://github.com/wkusnierczyk/garmin-graphics-generator/releases/tag/v0.5.0"
+    "https://github.com/wkusnierczyk/garmin-graphics-generator/releases/tag/v0.5.1"
 )
 
 INSTALL_HINT = f"""garmin-graphics-generator {REQUIRED_VERSION} or newer is needed, and {{problem}}.
@@ -136,7 +156,7 @@ def flatten(image, background):
 
 
 def write_gallery(shots, background, quiet):
-    """Writes the four 200px renders: three for the store gallery, one for the README."""
+    """Writes the five 200px renders, in the order the store listing names them."""
     from PIL import Image
 
     for index, shot in enumerate(shots, start=1):
@@ -183,7 +203,7 @@ def write_hero(generator_class, shots, background, quiet):
         .generate_hero_composition()
     )
     # generate_resized_files is deliberately not called: it would write one resized
-    # copy per input under the input's own name, and the gallery images are four
+    # copy per input under the input's own name, and the gallery images are five
     # chosen frames under this project's names.
     del generator
 
@@ -203,6 +223,33 @@ def report(path, quiet):
     """Says what was written, as a path relative to the project."""
     if not quiet:
         print(f"  {os.path.relpath(path, PROJECT)}")
+
+
+def capture(take_shots, shots_error, arguments, work, scene, count, jungle):
+    """
+    One capture run, in its own directories so neither run clears the other's.
+
+    `jungle` is None for the ordinary build and a jungle list for the forced one; it
+    is passed through to the shared tool, which hands it to `monkeyc -f` whole.
+    """
+    if not arguments.silent:
+        frames = "frame" if count == 1 else "frames"
+        print(f"Capturing {count} {scene} {frames} of {arguments.device}...")
+
+    settings = {} if jungle is None else {"jungle": jungle}
+    try:
+        return take_shots(
+            project=PROJECT,
+            product=arguments.device,
+            output_directory=os.path.join(work, f"shots-{scene}"),
+            work_directory=os.path.join(work, f"work-{scene}"),
+            count=count,
+            platform=arguments.platform,
+            timezone=arguments.timezone,
+            **settings,
+        )
+    except shots_error as error:
+        sys.exit(f"{scene} capture failed: {error}")
 
 
 def main():
@@ -236,26 +283,33 @@ def main():
 
     generator_class, take_shots, shots_error = load_generator()
 
-    if not arguments.silent:
-        print(f"Capturing {SHOT_COUNT} frames of {arguments.device}...")
-
     with tempfile.TemporaryDirectory(prefix="matrix-graphics-") as work:
-        try:
-            shots = take_shots(
-                project=PROJECT,
-                product=arguments.device,
-                output_directory=os.path.join(work, "shots"),
-                work_directory=work,
-                count=SHOT_COUNT,
-                platform=arguments.platform,
-                timezone=arguments.timezone,
-            )
-        except shots_error as error:
-            sys.exit(f"capture failed: {error}")
+        # Two runs, because they are two builds. Each one compiles the face, starts a
+        # container and lets the simulator settle, so this is roughly twice the wait
+        # the woken frames alone took.
+        woken = capture(
+            take_shots,
+            shots_error,
+            arguments,
+            work,
+            "woken",
+            SHOT_COUNT,
+            jungle=None,
+        )
+        always_on = capture(
+            take_shots,
+            shots_error,
+            arguments,
+            work,
+            "always-on",
+            ALWAYS_ON_COUNT,
+            jungle=ALWAYS_ON_JUNGLE,
+        )
+        shots = woken + always_on
 
         if not arguments.silent:
             print("Writing resources/graphics:")
-        write_capture(shots, arguments.silent)
+        write_capture(woken, arguments.silent)
         write_gallery(shots, arguments.background, arguments.silent)
         write_hero(generator_class, shots, arguments.background, arguments.silent)
 

@@ -1,0 +1,17 @@
+# The capture build for resources/graphics/MatrixTime5.png, and nothing else (#128).
+#
+# Layered over monkey.jungle rather than replacing it, so every project setting --
+# the manifest, the generated launcher icon mapping, sourcePath, the type check level
+# -- comes from the one file that defines them:
+#
+#   monkeyc -f "monkey.jungle;graphics.jungle" ...
+#
+# monkeyc -f takes a semicolon-separated list and later files override earlier ones,
+# so this reassignment replaces monkey.jungle's exclusion rather than adding to it.
+# tools/make-graphics.py passes both files for the always-on frame; the four woken
+# frames are captured from monkey.jungle alone.
+#
+# The effect is to compile View.inLowPower's forced definition, which makes onUpdate
+# take the drawLowPower branch on every frame. See the comment in source/View.mc for
+# why a forced frame is a truthful always-on frame, and monkey.jungle for the gate.
+base.excludeAnnotations = realLowPower

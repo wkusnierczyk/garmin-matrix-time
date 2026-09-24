@@ -52,12 +52,43 @@ class View extends WatchUi.WatchFace {
         dc.clear();
 
         var rain = _digitalRain.forTime(Time.now());
-        if (_lowPower) {
+        if (inLowPower()) {
             rain.drawLowPower(dc);
         } else {
             rain.draw(dc);
         }
 
+    }
+
+    // The low-power test, as a function rather than the field itself, so that a
+    // capture build can answer it differently (#128).
+    //
+    // resources/graphics/MatrixTime5.png is the always-on scene, and the simulator
+    // will not enter always-on headlessly: Display Mode is a GUI menu and is not one
+    // of the keys the simulator persists, so it resets to High Power on every launch.
+    // make graphics therefore takes that one frame from a build in which this
+    // function returns true unconditionally. Only the trigger is forced --
+    // drawLowPower reads _time and _width and nothing the system sets in always-on,
+    // so the captured pixels are the pixels of a genuine always-on frame.
+    //
+    // Exactly one of these two definitions is compiled. monkey.jungle excludes
+    // forceLowPower, so every ordinary build -- make build, run, test, sideload,
+    // export, and CI -- compiles the first and the second is not in the .prg at all,
+    // not merely unreached. graphics.jungle, layered over monkey.jungle for the
+    // capture and used by nothing else, excludes realLowPower instead.
+    //
+    // Deleting the exclusion does not ship the forcing: both definitions then compile
+    // and the build fails with "Redefinition of 'inLowPower' in '$.View'". That is why
+    // the gate is a pair of definitions rather than a flag -- there is nothing to
+    // remember to check.
+    (:realLowPower)
+    private function inLowPower() as Boolean {
+        return _lowPower;
+    }
+
+    (:forceLowPower)
+    private function inLowPower() as Boolean {
+        return true;
     }
 
     function onEnterSleep() as Void {

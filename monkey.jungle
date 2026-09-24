@@ -70,3 +70,18 @@ project.typecheck = 3
 # .dev/profiler-repro/source/*.mc -- scratch code, gitignored, compiled into every
 # shipped PRG. Name the directory explicitly.
 base.sourcePath = source
+
+# Keep the always-on forcing out of every build this file describes (#128).
+#
+# View.inLowPower has two definitions, annotated realLowPower and forceLowPower, and
+# exactly one of them is ever compiled. Excluding forceLowPower here means make build,
+# run, test, sideload and export -- and CI -- all compile "return _lowPower;", and the
+# forced "return true;" is not in the .prg at all rather than merely unreached.
+#
+# graphics.jungle is layered over this file for the always-on capture and excludes
+# realLowPower instead. Nothing else uses it.
+#
+# Do not delete this line to "simplify": both definitions then compile and the build
+# fails with a redefinition error. That is the point -- the gate cannot be dropped
+# quietly.
+base.excludeAnnotations = $(base.excludeAnnotations);forceLowPower
