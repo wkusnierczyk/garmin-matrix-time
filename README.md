@@ -603,6 +603,16 @@ environment and the code CI runs with no diff here to show it -- so an SDK bump 
 visible change with a green run behind it. The `Makefile`, by contrast, deliberately follows whatever
 SDK the SDK manager has selected.
 
+No workflow in this repository selects anything by a mutable name. The image is pinned by digest, and
+every action -- in `build.yml` and in [`release.yml`](#releases) alike -- by commit SHA, with the
+release it was published as in a trailing comment. A retargeted tag, through upstream compromise or a
+maintainer's mistake, would change the code a workflow runs with no diff here to show it. In
+`build.yml`, which holds no secret and is read-only, that costs a wrong CI result -- a red run turned
+green. In `release.yml` it costs more: that workflow has the signing key on its filesystem and a
+`contents: write` token in its environment, and an action step can change `PATH` and the workspace for
+the steps after it, so "it only checks out the code" bounds nothing. Bump a pin deliberately, and in
+every workflow that uses it.
+
 No developer key is involved in any of these three jobs. CI generates a throwaway one per run and
 discards it: `monkeyc` signs, it does not authenticate, so a build signed with a key made up on the
 spot proves everything one signed with the real key would -- and it lets a pull request from a fork
@@ -657,13 +667,6 @@ this gate exists to refuse.
 The tagged commit is not re-tested here. `build.yml` runs on every push to `main` and every pull
 request, so a tag placed on a commit that reached `main` the normal way has already been built,
 exported and tested; tagging something else is a deliberate act and is on you.
-
-Every action in this workflow is pinned to a commit SHA, where `build.yml` still names tags like `v7`.
-That asymmetry follows the key: a tag is a mutable pointer, and retargeting one substitutes new code
-into a job that -- here and not there -- has the signing key on its filesystem and a `contents: write`
-token in its environment. An action step can also change `PATH` and the workspace for the steps after
-it, so "it only checks out the code" bounds nothing. `build.yml` holds no secret and is read-only, so
-the same substitution there costs a wrong CI result rather than an identity.
 
 #### Setting up the key
 
