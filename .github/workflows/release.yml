@@ -31,6 +31,17 @@
 # .gitignore guards developer_key* as a second line of defence. It is not the
 # mechanism, here or anywhere else.
 #
+# Every action here is pinned to a commit SHA, where build.yml still names tags.
+# The asymmetry is deliberate and is the same one the key itself follows: a tag
+# like v7 is a mutable pointer, so retargeting it -- upstream compromise, or a
+# maintainer's mistake -- substitutes new code into a job that, in this workflow
+# and not in build.yml, has the signing key in its filesystem and a
+# contents: write token in its environment. An action step can also alter PATH
+# and the workspace for the steps after it, so "it only checks out the code" is
+# not a bound on what it could reach. build.yml holds no secret and is read-only,
+# so the same substitution there costs a wrong CI result rather than an identity;
+# pinning it too is worth doing and is not this issue's to do.
+#
 # Publishing to the Connect IQ store stays manual and deliberately out of scope.
 # Garmin's submission is a human review flow, and the upload's first step alone
 # moves the listing's version irreversibly -- 0.2.0 was lost that way. Automating
@@ -55,7 +66,7 @@ jobs:
       # No lfs: true here, unlike every job in build.yml. This job reads two text
       # files and compiles nothing, so the LFS objects would be fetched only to be
       # ignored. The jobs that do compile ask for them.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       # Before the container is even pulled. A tag is a name someone typed, and
       # nothing about `git tag` consults manifest.xml -- so the version on the
@@ -68,7 +79,7 @@ jobs:
       - name: Check the tag against manifest.xml and CHANGELOG.md
         run: tools/release-notes.py "$GITHUB_REF_NAME" -o notes.md
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: release-notes
           path: notes.md
@@ -103,7 +114,7 @@ jobs:
       # without it leaves a 129-byte pointer file where the font should be, which
       # monkeyc compiles without a word. A release bundle is the worst possible
       # place to find that out; build.yml found it the first time it ran (#102).
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           lfs: true
 
@@ -155,7 +166,7 @@ jobs:
         if: always()
         run: rm -f /tmp/developer_key
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: store-bundle
           path: export/MatrixTime-*.iq
@@ -171,7 +182,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
           path: artifacts
           merge-multiple: true
@@ -182,9 +193,17 @@ jobs:
       # that has already been published, which is not recoverable for anyone who
       # has already downloaded it. Deleting the draft is one click; deleting it
       # for the caller is not this job's decision.
+      # GH_REPO, because this job deliberately does not check the repository out --
+      # it attaches a file another job built -- and gh resolves the repository it
+      # acts on from --repo, then GH_REPO, then the git remote in the working
+      # directory. It does NOT read GITHUB_REPOSITORY, which is the one the runner
+      # sets: without this line every `gh release` call here dies with "failed to
+      # determine base repo". Found in review, before the first release rather
+      # than during it.
       - name: Create the draft release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "::error::a release already exists for $GITHUB_REF_NAME."

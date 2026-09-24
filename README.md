@@ -649,12 +649,21 @@ typed and nothing about `git tag` consults `manifest.xml`. The number inside the
 store shows, and the store will not take a version twice: the release page and the bundle disagreeing
 is the shape of mistake that cost 0.2.0. [`tools/release-notes.py`](tools/release-notes.py) refuses the
 release unless the tag is `v` plus the manifest's version, and unless `CHANGELOG.md` already carries a
-*dated* section for it -- which puts the release notes ahead of the irreversible step rather than
-behind it, the other half of what went wrong with 0.2.0.
+section for it headed with a real `YYYY-MM-DD` date -- which puts the release notes ahead of the
+irreversible step rather than behind it, the other half of what went wrong with 0.2.0. The date is
+matched as a date rather than as "some token" on purpose: `## 0.3.0 -- TBD` is precisely the heading
+this gate exists to refuse.
 
 The tagged commit is not re-tested here. `build.yml` runs on every push to `main` and every pull
 request, so a tag placed on a commit that reached `main` the normal way has already been built,
 exported and tested; tagging something else is a deliberate act and is on you.
+
+Every action in this workflow is pinned to a commit SHA, where `build.yml` still names tags like `v7`.
+That asymmetry follows the key: a tag is a mutable pointer, and retargeting one substitutes new code
+into a job that -- here and not there -- has the signing key on its filesystem and a `contents: write`
+token in its environment. An action step can also change `PATH` and the workspace for the steps after
+it, so "it only checks out the code" bounds nothing. `build.yml` holds no secret and is read-only, so
+the same substitution there costs a wrong CI result rather than an identity.
 
 #### Setting up the key
 

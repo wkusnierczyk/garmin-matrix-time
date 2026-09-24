@@ -46,10 +46,14 @@ CHANGELOG = 'CHANGELOG.md'
 # Anchored on iq:application so it can only match the one that ships.
 APP_VERSION = re.compile(r'<iq:application\b[^>]*\bversion="([^"]+)"')
 
-# "## 0.2.1 -- 2026-09-21". The date is required: a section still being written
-# is the state this check exists to catch, and a dateless heading is what that
-# looks like in practice.
-SECTION = re.compile(r'^##\s+(\S+)\s+--\s+(\S+)\s*$')
+# "## 0.2.1 -- 2026-09-21". The date is spelled out as YYYY-MM-DD rather than
+# matched as "some token", because a section still being written is the state
+# this check exists to catch and "## 0.3.0 -- TBD" is exactly what that looks
+# like. Anything looser lets the placeholder through and the gate passes on a
+# heading that was put there to say it is not ready. The shape is checked, not
+# the calendar: a typo'd but well-formed date is a different mistake, and one no
+# amount of parsing here would catch.
+SECTION = re.compile(r'^##\s+(\S+)\s+--\s+(\d{4}-\d{2}-\d{2})\s*$')
 
 
 def fail(message):
@@ -86,8 +90,8 @@ def changelog_section(version):
         if match.group(1) == version:
             start = index + 1
     if start is None:
-        fail(f'{CHANGELOG} has no dated section for {version}; write the release '
-             f'notes before tagging')
+        fail(f'{CHANGELOG} has no section for {version} dated YYYY-MM-DD; write '
+             f'the release notes, and date the heading, before tagging')
     return lines[start:]
 
 
