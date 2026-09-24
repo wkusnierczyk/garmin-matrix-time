@@ -658,26 +658,48 @@ exported and tested; tagging something else is a deliberate act and is on you.
 
 #### Setting up the key
 
-Once, before the first tagged release. The key is stored as an **environment** secret rather than a
-repository one:
+Done once, before the first tagged release, and recorded here because a key that has to be set up
+again -- on a fork, or after a repository move -- is set up wrongly by default. The key is an
+**environment** secret, not a repository one:
 
-1. `Settings > Environments > New environment`, named `release`.
-2. Under `Deployment branches and tags`, choose `Selected branches and tags` and add the tag rule
-   `v*`.
-3. Add an environment secret `DEVELOPER_KEY`, holding the base64 of the DER key:
+```bash
+# 1. the environment, with custom deployment policies turned on
+gh api -X PUT repos/wkusnierczyk/garmin-matrix-time/environments/release --input - <<'JSON'
+{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}
+JSON
 
-   ```bash
-   base64 < ../garmin-keys/developer_key | gh secret set DEVELOPER_KEY --env release
-   ```
+# 2. the only policy it gets: the v* tag rule
+gh api -X POST repos/wkusnierczyk/garmin-matrix-time/environments/release/deployment-branch-policies \
+  --input - <<'JSON'
+{"name": "v*", "type": "tag"}
+JSON
 
-   The DER file, `developer_key`, not the PEM -- see [A developer key](#a-developer-key). The workflow
-   checks which one it got and says so, because `monkeyc` given the wrong one fails with a stack trace
-   that mentions neither.
+# 3. the key itself, base64 because a GitHub secret is text and the DER key is binary
+base64 < ../garmin-keys/developer_key | gh secret set DEVELOPER_KEY --env release
+```
+
+Three calls, not one. The `PUT` only turns custom policies *on*; the policies themselves are separate
+resources, and an environment left at step 1 admits nothing at all. In the web UI the same thing is
+one form -- `Settings > Environments > New environment`, then `Deployment branches and tags` >
+`Selected branches and tags` > add the tag rule `v*`, then the secret.
+
+Two things to get right. `gh api -f` sends every value as a string, and these endpoints type-check,
+so `-f 'deployment_branch_policy[protected_branches]=false'` is rejected with *`"false"` is not of
+type `boolean`*; raw JSON on `--input -` sidesteps the question. And step 3 wants the DER file,
+`developer_key`, not the PEM -- see [A developer key](#a-developer-key). The workflow checks which one
+it got and says so, because `monkeyc` given the wrong one fails with a stack trace that mentions
+neither.
+
+Verify with `gh secret list --env release`, which should name `DEVELOPER_KEY`, and `gh secret list`,
+which should stay **empty**: a repository-level secret of the same name would defeat the whole
+arrangement.
 
 The environment is the point of the exercise. `on: push: tags` already keeps pull requests away from
 the secret, but that is a property of one file: a workflow added later could reference `DEVELOPER_KEY`
 on any ref. A deployment rule of `v*` makes GitHub itself refuse the secret to any job that is not
-running on a release tag, whatever that job's author intended.
+running on a release tag, whatever that job's author intended. Note that the tag rule is the *only*
+policy -- there is deliberately no branch policy beside it, so no branch ref qualifies at all. Adding
+one later, for whatever convenience, widens the gate.
 
 Which leaves **who can push a `v*` tag**, since that is now exactly who can sign a release as us.
 `wkusnierczyk` is the only account with write access to this repository, so today that is one person,
