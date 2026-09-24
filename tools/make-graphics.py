@@ -19,8 +19,9 @@ What is here is what is specific to this face: which files, under which names, a
 which sizes, captured on which product.
 
   MatrixTimeCapture.png         one raw framebuffer, nothing composited over it
-  MatrixTime1.png .. 4.png      four watch renders, resized for the README
-  MatrixTimeHero.png            the 1440x720 store hero
+  MatrixTime1.png .. 3.png      watch renders at 200px, for the store gallery
+  MatrixTime4.png               the same, for the README features table
+  MatrixTimeHero.png            those four scattered across 1440x720, the store hero
   MatrixTimeHero-small.png      the same composition at 900x450, the README banner
 
 The gallery images and the hero are flattened onto white, which is what the files
@@ -49,13 +50,15 @@ GRAPHICS = os.path.join(PROJECT, "resources", "graphics")
 # 416x416; the file this replaces was 454x454, which was another product entirely.
 DEFAULT_DEVICE = "epix2pro47mm"
 
-# Four frames: the gallery wants four, and so does the hero. More is not better
-# there -- the composition places watches without overlapping them beyond
-# MAX_OVERLAP, and at six it gives up on half of them and says so. The rain is
-# seeded from the clock and from uptime, so frames spaced a few seconds apart differ
-# by more than one step of the animation.
-DEFAULT_COUNT = 4
-GALLERY_COUNT = 4
+# Four frames, and not a setting. The gallery is four files, because the store
+# listing names them MatrixTime1 to MatrixTime4, and the hero is those same four.
+# More is not better in the hero either: the composition places watches without
+# overlapping them beyond MAX_OVERLAP, so every extra one makes them all smaller to
+# fit. A --count that captured more than this used would either change the hero
+# behind the option's back or quietly throw the extra frames away, and neither is
+# worth a knob. The rain is seeded from the clock and from uptime, so frames spaced
+# a few seconds apart differ by more than one step of the animation.
+SHOT_COUNT = 4
 
 CAPTURE_NAME = "MatrixTimeCapture.png"
 GALLERY_NAME = "MatrixTime{index}.png"
@@ -133,10 +136,10 @@ def flatten(image, background):
 
 
 def write_gallery(shots, background, quiet):
-    """Writes the four README and store gallery images."""
+    """Writes the four 200px renders: three for the store gallery, one for the README."""
     from PIL import Image
 
-    for index, shot in enumerate(shots[:GALLERY_COUNT], start=1):
+    for index, shot in enumerate(shots, start=1):
         with Image.open(shot.watch_path) as watch:
             height = round(GALLERY_WIDTH * watch.height / watch.width)
             resized = watch.convert("RGBA").resize(
@@ -213,13 +216,6 @@ def main():
         help=f"Product to capture on (default: {DEFAULT_DEVICE})",
     )
     parser.add_argument(
-        "-n",
-        "--count",
-        type=int,
-        default=DEFAULT_COUNT,
-        help=f"How many frames to capture (default: {DEFAULT_COUNT})",
-    )
-    parser.add_argument(
         "--background",
         default="white",
         help="Background for the gallery and hero images, or 'none' to keep them "
@@ -238,13 +234,10 @@ def main():
     )
     arguments = parser.parse_args()
 
-    if arguments.count < GALLERY_COUNT:
-        parser.error(f"--count must be at least {GALLERY_COUNT}, for the gallery")
-
     generator_class, take_shots, shots_error = load_generator()
 
     if not arguments.silent:
-        print(f"Capturing {arguments.count} frames of {arguments.device}...")
+        print(f"Capturing {SHOT_COUNT} frames of {arguments.device}...")
 
     with tempfile.TemporaryDirectory(prefix="matrix-graphics-") as work:
         try:
@@ -253,7 +246,7 @@ def main():
                 product=arguments.device,
                 output_directory=os.path.join(work, "shots"),
                 work_directory=work,
-                count=arguments.count,
+                count=SHOT_COUNT,
                 platform=arguments.platform,
                 timezone=arguments.timezone,
             )
