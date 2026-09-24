@@ -23,6 +23,7 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 * [Features](#features)
 * [Fonts](#fonts)
 * [Launcher icon](#launcher-icon)
+* [Store and README images](#store-and-readme-images)
 * [Build, test, deploy](#build-test-deploy)
 * [Upstream bug reports](#upstream-bug-reports)
 
@@ -195,6 +196,50 @@ matches the size the SDK declares for that device.
 device asks for. It is a fallback only: it applies to a product added to `manifest.xml` before
 `make icons` has been rerun.
 
+## Store and README images
+
+`resources/graphics/` holds the seven images the Connect IQ store listing and this file are
+illustrated with. They are **generated output** of `make graphics`; do not edit them by hand.
+
+| file | what it is | where it is used |
+|:--|:--|:--|
+| `MatrixTimeCapture.png` | one raw device framebuffer, 416 x 416, nothing composited over it | reference capture |
+| `MatrixTime1.png` to `MatrixTime3.png` | captures set into the watch render, 200 px wide | store gallery |
+| `MatrixTime4.png` | the same | the [Features](#features) table above |
+| `MatrixTimeHero.png` | the four captures scattered across 1440 x 720 | store listing, social |
+| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file |
+
+`make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
+and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.0 or
+newer:
+
+```bash
+pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.5.0'
+```
+
+0.5.0 is the first release carrying the `shots` command, and the first whose `hero` does not silently
+drop inputs; `tools/make-graphics.py` checks the installed version and says so rather than failing
+later in a way that looks like a bad capture. It needs no Connect IQ SDK and no simulator on the
+desktop: the capture runs the simulator inside a container under a virtual display, and the device
+definition it cuts frames against is taken out of that container, so the artwork a frame is composed
+onto is always the artwork that rendered it.
+
+```bash
+# regenerate all seven
+make graphics
+
+# on an arm64 machine, where the Connect IQ tester image runs emulated
+make graphics PLATFORM=linux/amd64
+
+# fix the clock the captured face shows
+make graphics TZ_NAME=Asia/Tokyo
+```
+
+**Rerun it whenever what the face draws changes**, in the same change. Nothing reports these stale the
+way `make check-fonts` reports a stale size table: a capture is derived from the app but is not
+generated output in the sense a build is, so it drifts silently. That is how #54 could drop `0-9`
+from the rain charset and leave every one of the seven showing numerals for months (#80).
+
 ## Build, test, deploy
 
 To modify and build the sources, you need to have installed:
@@ -339,6 +384,12 @@ make sideload WAIT=300
 # regenerate the launcher icons and their jungle mapping
 make icons
 
+# regenerate every image in resources/graphics from the current build
+make graphics
+
+# ... on an arm64 machine, where the simulator container runs emulated
+make graphics PLATFORM=linux/amd64
+
 # check that the font and launcher icon configurations are consistent
 make check-fonts
 make check-icons
@@ -360,6 +411,13 @@ under more than one part, and `venu2` under four. The whole set builds in well u
 this is the only build that exercises the packaging step, so it is worth running before a release
 even when nothing about the devices has changed. Uploading the bundle is still manual, through the
 store's web form.
+
+`make graphics` regenerates the seven images in `resources/graphics/` -- the store gallery, the store
+hero and the README banner -- from whatever the face currently draws. It needs Docker running and
+[`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.0 or
+newer, and no SDK: the capture runs the Connect IQ simulator inside a container under a virtual display, so
+there is no GUI to drive and no macOS screen-recording permission to grant. See
+[Store and README images](#store-and-readme-images).
 
 `make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no SDK.
 `check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one another
