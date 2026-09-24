@@ -43,7 +43,16 @@ jobs:
       # the .png should be. check-icons reads that file's dimensions out of its
       # header and fails; monkeyc, worse, compiles the pointer as a drawable
       # without a word. Found the first time this workflow ran.
-      - uses: actions/checkout@v7
+      #
+      # Pinned to a commit SHA, with the release it was published as trailing,
+      # for the reason the container image below is pinned by digest: a tag like
+      # v7 is a mutable pointer, and a retarget upstream would change the code CI
+      # runs with no diff here to show it. Nothing secret is reachable from this
+      # workflow, so the cost would be a wrong CI result rather than a stolen
+      # identity -- but a red run turned green is the failure this project guards
+      # against most carefully (#23). release.yml pins the same SHA; bump the two
+      # together.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           lfs: true
 
@@ -89,8 +98,8 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends make git git-lfs python3
 
-      # lfs: true for the reason given in the checks job above.
-      - uses: actions/checkout@v7
+      # lfs: true, and the SHA pin, for the reasons given in the checks job above.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           lfs: true
 
@@ -210,9 +219,10 @@ jobs:
           apt-get install -y --no-install-recommends \
             make git git-lfs netcat-openbsd xvfb xauth
 
-      # lfs: true for the reason given in the checks job above. The typefaces are
-      # LFS objects, and the test build compiles the same resources the app does.
-      - uses: actions/checkout@v7
+      # lfs: true, and the SHA pin, for the reasons given in the checks job above.
+      # The typefaces are LFS objects, and the test build compiles the same
+      # resources the app does.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           lfs: true
 

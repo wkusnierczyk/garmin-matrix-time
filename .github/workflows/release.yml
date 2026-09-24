@@ -31,16 +31,14 @@
 # .gitignore guards developer_key* as a second line of defence. It is not the
 # mechanism, here or anywhere else.
 #
-# Every action here is pinned to a commit SHA, where build.yml still names tags.
-# The asymmetry is deliberate and is the same one the key itself follows: a tag
-# like v7 is a mutable pointer, so retargeting it -- upstream compromise, or a
-# maintainer's mistake -- substitutes new code into a job that, in this workflow
-# and not in build.yml, has the signing key in its filesystem and a
-# contents: write token in its environment. An action step can also alter PATH
-# and the workspace for the steps after it, so "it only checks out the code" is
-# not a bound on what it could reach. build.yml holds no secret and is read-only,
-# so the same substitution there costs a wrong CI result rather than an identity;
-# pinning it too is worth doing and is not this issue's to do.
+# Every action here is pinned to a commit SHA, as in build.yml. A tag like v7 is
+# a mutable pointer, so retargeting it -- upstream compromise, or a maintainer's
+# mistake -- substitutes new code into a job that, in this workflow and not in
+# build.yml, has the signing key in its filesystem and a contents: write token
+# in its environment. An action step can also alter PATH and the workspace for
+# the steps after it, so "it only checks out the code" is not a bound on what it
+# could reach. build.yml pins actions/checkout to the same SHA; bump the two
+# together.
 #
 # Publishing to the Connect IQ store stays manual and deliberately out of scope.
 # Garmin's submission is a human review flow, and the upload's first step alone
