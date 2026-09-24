@@ -32,12 +32,14 @@ Usage:
   tools/make-graphics.py --background none keep the transparency instead of white
   tools/make-graphics.py --timezone ...    choose the clock the captured face shows
 
-Needs Docker running, and garmin-graphics-generator installed.
+Needs Docker running, and garmin-graphics-generator 0.5.0 or newer.
 """
 import argparse
 import os
 import sys
 import tempfile
+from importlib.metadata import PackageNotFoundError, version
+from itertools import takewhile
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRAPHICS = os.path.join(PROJECT, "resources", "graphics")
@@ -70,23 +72,52 @@ SIZE_VARIATION = 5
 ORIENTATION_VARIATION = 20
 MAX_OVERLAP = 20
 
-INSTALL_HINT = """garmin-graphics-generator is not installed.
+# The first release carrying the shots command, and the hero that does not drop
+# inputs. Both are needed here: without the first there is nothing to capture with,
+# and without the second the hero silently arrives with fewer watches than it was
+# given, which looks like a bad capture rather than a stale tool.
+GENERATOR = "garmin_graphics_generator"
+REQUIRED_VERSION = "0.5.0"
+RELEASE_URL = (
+    "https://github.com/wkusnierczyk/garmin-graphics-generator/releases/tag/v0.5.0"
+)
 
-    pip install git+https://github.com/wkusnierczyk/garmin-graphics-generator
+INSTALL_HINT = f"""garmin-graphics-generator {REQUIRED_VERSION} or newer is needed, and {{problem}}.
+
+    pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v{REQUIRED_VERSION}'
 
 It carries the simulator capture and the hero composition, which are shared with the
-other watch faces rather than kept here."""
+other watch faces rather than kept here. Release notes: {RELEASE_URL}"""
+
+
+def as_numbers(version):
+    """A version as a tuple of integers, for comparing one release against another."""
+    numbers = []
+    for part in version.split("."):
+        digits = "".join(takewhile(str.isdigit, part))
+        if not digits:
+            break
+        numbers.append(int(digits))
+    return tuple(numbers)
 
 
 def load_generator():
-    """Imports the shared generator, or explains how to get it."""
+    """Imports the shared generator, or explains what is wrong with what is there."""
+    try:
+        installed = version(GENERATOR)
+    except PackageNotFoundError:
+        sys.exit(INSTALL_HINT.format(problem="it is not installed"))
+
+    if as_numbers(installed) < as_numbers(REQUIRED_VERSION):
+        sys.exit(INSTALL_HINT.format(problem=f"{installed} is installed"))
+
     try:
         from garmin_graphics_generator.core import (  # noqa: F401
             WatchHeroGenerator,
         )
         from garmin_graphics_generator.shots import ShotsError, take_shots
-    except ImportError:
-        sys.exit(INSTALL_HINT)
+    except ImportError as error:
+        sys.exit(INSTALL_HINT.format(problem=f"importing it failed: {error}"))
     return WatchHeroGenerator, take_shots, ShotsError
 
 

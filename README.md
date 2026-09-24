@@ -210,10 +210,19 @@ illustrated with. They are **generated output** of `make graphics`; do not edit 
 | `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file |
 
 `make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
-and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator)
-installed. It needs no Connect IQ SDK and no simulator on the desktop: the capture runs the simulator
-inside a container under a virtual display, and the device definition it cuts frames against is taken
-out of that container, so the artwork a frame is composed onto is always the artwork that rendered it.
+and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.0 or
+newer:
+
+```bash
+pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.5.0'
+```
+
+0.5.0 is the first release carrying the `shots` command, and the first whose `hero` does not silently
+drop inputs; `tools/make-graphics.py` checks the installed version and says so rather than failing
+later in a way that looks like a bad capture. It needs no Connect IQ SDK and no simulator on the
+desktop: the capture runs the simulator inside a container under a virtual display, and the device
+definition it cuts frames against is taken out of that container, so the artwork a frame is composed
+onto is always the artwork that rendered it.
 
 ```bash
 # regenerate all seven
@@ -405,8 +414,8 @@ store's web form.
 
 `make graphics` regenerates the seven images in `resources/graphics/` -- the store gallery, the store
 hero and the README banner -- from whatever the face currently draws. It needs Docker running and
-[`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) installed,
-and no SDK: the capture runs the Connect IQ simulator inside a container under a virtual display, so
+[`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.0 or
+newer, and no SDK: the capture runs the Connect IQ simulator inside a container under a virtual display, so
 there is no GUI to drive and no macOS screen-recording permission to grant. See
 [Store and README images](#store-and-readme-images).
 
