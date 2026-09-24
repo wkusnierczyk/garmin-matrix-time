@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate every image in resources/graphics/ from the current build.
+"""Regenerate the generated images in resources/graphics/ from the current build.
 
 The files here were made by hand: run the simulator, capture screenshots, resize and
 composite them, upload the result. #80 is what that cost -- #54 dropped `0-9` from the
@@ -48,7 +48,7 @@ they replace look like and what the store gallery expects. `--background none`
 keeps them transparent instead.
 
 Usage:
-  tools/make-graphics.py                   regenerate everything
+  tools/make-graphics.py                   regenerate the eight it owns
   tools/make-graphics.py --background none keep the transparency instead of white
   tools/make-graphics.py --timezone ...    choose the clock the captured face shows
 
@@ -270,7 +270,8 @@ def capture(take_shots, shots_error, arguments, work, scene, count, jungle):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Regenerate resources/graphics from the simulator."
+        description="Regenerate the generated images in resources/graphics from the "
+        "simulator. The composed hero and its banner are left alone."
     )
     parser.add_argument(
         "-d",

@@ -430,7 +430,8 @@ make sideload WAIT=300
 # regenerate the launcher icons and their jungle mapping
 make icons
 
-# regenerate every image in resources/graphics from the current build
+# regenerate the eight generated images in resources/graphics; the composed hero
+# and its banner are left alone
 make graphics
 
 # ... on an arm64 machine, where the simulator container runs emulated
