@@ -456,8 +456,9 @@ that the simulator and the profiler have something to say. `monkeyc` counts part
 products as it works, so it reports more devices than the manifest lists -- several products ship
 under more than one part, and `venu2` under four. The whole set builds in well under a minute, and
 this is the only build that exercises the packaging step, so it is worth running before a release
-even when nothing about the devices has changed. Uploading the bundle is still manual, through the
-store's web form.
+even when nothing about the devices has changed. A `v*` tag runs the same target in CI and attaches
+its output to a draft release (see [Releases](#releases)); uploading the bundle to the store is manual
+either way, through the store's web form.
 
 `make graphics` regenerates the eight images in `resources/graphics/` that it owns -- the store gallery
 and the draft hero -- from whatever the face currently draws. The published hero and banner are
@@ -602,10 +603,11 @@ environment and the code CI runs with no diff here to show it -- so an SDK bump 
 visible change with a green run behind it. The `Makefile`, by contrast, deliberately follows whatever
 SDK the SDK manager has selected.
 
-No developer key is involved. CI generates a throwaway one per run and discards it: a signed build
-proves nothing an unsigned-in-practice one does not, and the real key -- the identity every published
-app is signed with -- does not belong in a public repository's secrets. That changes if and when
-release automation is added, which is the point at which a real key first earns its place.
+No developer key is involved in any of these three jobs. CI generates a throwaway one per run and
+discards it: `monkeyc` signs, it does not authenticate, so a build signed with a key made up on the
+spot proves everything one signed with the real key would -- and it lets a pull request from a fork
+build, which a secret never could. The real key, the identity every published app is signed with,
+appears only in the release workflow; see [Releases](#releases).
 
 Every job checks out with Git LFS fetched. Several binaries here are LFS objects -- the launcher icon
 fallback and both source typefaces among them -- and a checkout without it leaves a pointer file where
@@ -623,8 +625,101 @@ connections rather than sleeping a fixed interval, which is why the job installs
 suite's verdict is still read off the anchored `PASSED (` line rather than `monkeydo`'s exit status,
 which is `1` whether every test passed or one failed (#23).
 
-Release automation -- tagging, and publishing the bundle the export step already builds -- is the
-stage that remains.
+### Releases
+
+Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
+the store bundle, signs it with the real developer key, and attaches it to a **draft** GitHub release
+carrying that version's `CHANGELOG.md` section as its notes. Publishing the draft, and uploading the
+bundle to the Connect IQ store afterwards, both stay manual.
+
+```bash
+# the version in manifest.xml and a dated CHANGELOG.md section come first
+git tag v0.3.0
+git push origin v0.3.0
+```
+
+| Job | What it proves |
+| :-- | :------------- |
+| `version check` | the tag, `manifest.xml` and `CHANGELOG.md` all name the same version. Pure Python, no SDK, seconds. |
+| `signed bundle` | `make export` produces the `.iq`, signed with the real key. |
+| `draft release` | the bundle and the notes are attached to a draft release for that tag. |
+
+The version check runs first, and before the container is even pulled, because a tag is a name someone
+typed and nothing about `git tag` consults `manifest.xml`. The number inside the bundle is the one the
+store shows, and the store will not take a version twice: the release page and the bundle disagreeing
+is the shape of mistake that cost 0.2.0. [`tools/release-notes.py`](tools/release-notes.py) refuses the
+release unless the tag is `v` plus the manifest's version, and unless `CHANGELOG.md` already carries a
+section for it headed with a real `YYYY-MM-DD` date -- which puts the release notes ahead of the
+irreversible step rather than behind it, the other half of what went wrong with 0.2.0. The date is
+matched as a date rather than as "some token" on purpose: `## 0.3.0 -- TBD` is precisely the heading
+this gate exists to refuse.
+
+The tagged commit is not re-tested here. `build.yml` runs on every push to `main` and every pull
+request, so a tag placed on a commit that reached `main` the normal way has already been built,
+exported and tested; tagging something else is a deliberate act and is on you.
+
+Every action in this workflow is pinned to a commit SHA, where `build.yml` still names tags like `v7`.
+That asymmetry follows the key: a tag is a mutable pointer, and retargeting one substitutes new code
+into a job that -- here and not there -- has the signing key on its filesystem and a `contents: write`
+token in its environment. An action step can also change `PATH` and the workspace for the steps after
+it, so "it only checks out the code" bounds nothing. `build.yml` holds no secret and is read-only, so
+the same substitution there costs a wrong CI result rather than an identity.
+
+#### Setting up the key
+
+Done once, before the first tagged release, and recorded here because a key that has to be set up
+again -- on a fork, or after a repository move -- is set up wrongly by default. The key is an
+**environment** secret, not a repository one:
+
+```bash
+# 1. the environment, with custom deployment policies turned on
+gh api -X PUT repos/wkusnierczyk/garmin-matrix-time/environments/release --input - <<'JSON'
+{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}
+JSON
+
+# 2. the only policy it gets: the v* tag rule
+gh api -X POST repos/wkusnierczyk/garmin-matrix-time/environments/release/deployment-branch-policies \
+  --input - <<'JSON'
+{"name": "v*", "type": "tag"}
+JSON
+
+# 3. the key itself, base64 because a GitHub secret is text and the DER key is binary
+base64 < ../garmin-keys/developer_key | gh secret set DEVELOPER_KEY --env release
+```
+
+Three calls, not one. The `PUT` only turns custom policies *on*; the policies themselves are separate
+resources, and an environment left at step 1 admits nothing at all. In the web UI the same thing is
+one form -- `Settings > Environments > New environment`, then `Deployment branches and tags` >
+`Selected branches and tags` > add the tag rule `v*`, then the secret.
+
+Two things to get right. `gh api -f` sends every value as a string, and these endpoints type-check,
+so `-f 'deployment_branch_policy[protected_branches]=false'` is rejected with *`"false"` is not of
+type `boolean`*; raw JSON on `--input -` sidesteps the question. And step 3 wants the DER file,
+`developer_key`, not the PEM -- see [A developer key](#a-developer-key). The workflow checks which one
+it got and says so, because `monkeyc` given the wrong one fails with a stack trace that mentions
+neither.
+
+Verify with `gh secret list --env release`, which should name `DEVELOPER_KEY`, and `gh secret list`,
+which should stay **empty**: a repository-level secret of the same name would defeat the whole
+arrangement.
+
+The environment is the point of the exercise. `on: push: tags` already keeps pull requests away from
+the secret, but that is a property of one file: a workflow added later could reference `DEVELOPER_KEY`
+on any ref. A deployment rule of `v*` makes GitHub itself refuse the secret to any job that is not
+running on a release tag, whatever that job's author intended. Note that the tag rule is the *only*
+policy -- there is deliberately no branch policy beside it, so no branch ref qualifies at all. Adding
+one later, for whatever convenience, widens the gate.
+
+Which leaves **who can push a `v*` tag**, since that is now exactly who can sign a release as us.
+`wkusnierczyk` is the only account with write access to this repository, so today that is one person,
+and a fork cannot push a tag here at all. Before adding a collaborator, add a tag ruleset restricting
+`v*` -- `.gitignore` guarding `developer_key*` is a second line of defence, not the mechanism, here or
+anywhere else.
+
+Publishing to the store is deliberately out of scope. Garmin's submission is a human review flow, and
+the upload's first step alone moves the listing's version irreversibly. Automating as far as a
+downloadable, correctly versioned, signed bundle is the useful part; the draft keeps the last outward
+step a decision.
 
 ## Upstream bug reports
 
