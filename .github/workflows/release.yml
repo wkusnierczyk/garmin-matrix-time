@@ -137,7 +137,9 @@ jobs:
             echo "::error::Store base64 of developer_key, not developer_key.pem."; exit 1; }
 
       # The same `make export` a developer runs before an upload, with the same
-      # flags: one signed .iq covering every product manifest.xml names. HOME is
+      # flags: one signed .iq covering every product manifest.xml names. Lite only:
+      # EDITION is left at its default on purpose. Releasing Premium -- its signing,
+      # its tag scheme, its store listing -- is a decision of its own (#135). HOME is
       # set explicitly because the image put the device definitions in root's home
       # while a container job runs with HOME=/github/home, and monkeyc finds them
       # by expanding ~.

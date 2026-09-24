@@ -21,6 +21,7 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 
 * [Matrix time](#matrix-time)
 * [Features](#features)
+* [Editions](#editions)
 * [Fonts](#fonts)
 * [Launcher icon](#launcher-icon)
 * [Store and README images](#store-and-readme-images)
@@ -61,6 +62,24 @@ The Matrix Time watch face supports the following features:
 |![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, at twice its woken size, dimmed, and moved to a different corner of a small square every minute. See **Always-on display** above for why the rain cannot stay.
 
 In the initial version, there are no customisation settings. The watch face does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
+
+## Editions
+
+Matrix Time comes in two editions, built from this one source tree:
+
+* **Lite** is the free edition, the one in the Connect IQ store today. It is **frozen** as of
+  2026-09-24: it gets defect fixes only, and new features go to Premium.
+* **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
+  separate app, with an application id of its own, so it installs alongside Lite rather than over it.
+  It carries no feature of its own yet and is not published; until the first Premium feature lands it
+  is Lite under the name `MatrixTime Premium`.
+
+Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
+has goes in `premium/`: code in `premium/source/`, resources for every product in
+`premium/resources-base/`, and per-resolution resources, such as fonts, in `premium/resources-<family>/`.
+Each edition has a jungle and a manifest of its own, `lite.jungle` with `manifest.xml` and
+`premium.jungle` with `manifest-premium.xml`; see [Editions in the build](#editions-in-the-build) for how
+to build each, and for what keeps Premium out of Lite.
 
 ## Fonts
 
@@ -251,6 +270,10 @@ therefore takes the branch from `onEnterSleep` as before, and the forced definit
 width and on nothing the system sets in always-on, so the captured frame is a real always-on frame with
 only its trigger forced.
 
+The capture build is `monkey.jungle;graphics.jungle;lite.jungle`: `lite.jungle` still comes last, as it
+does in every Lite build; see [Editions in the build](#editions-in-the-build) for why the order matters.
+The store images are Lite's, so `make graphics` captures Lite and refuses `EDITION=premium`.
+
 `make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
 and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer:
@@ -396,18 +419,33 @@ device you built last offered at the top. A launch configuration whose `device` 
 asks that same question on every run; replacing it with a product id, `"device": "epix2pro47mm"`, pins it.
 `.vscode/` is not committed, so the launch configuration and the key path are per clone, not per project.
 
+**Pick an edition before the first build.** The extension builds from `monkey.jungle` by default, and
+that file names no manifest, so on its own it fails with "A valid 'project.manifest' property was not
+defined within a jungle file". Set `monkeyC.jungleFiles` in `.vscode/settings.json` to the pair for the
+edition you want, shared jungle first:
+
+```json
+{ "monkeyC.jungleFiles": "monkey.jungle;lite.jungle" }
+```
+
+`monkey.jungle;premium.jungle` builds Premium. The setting is per clone, like the rest of `.vscode/`.
+
 `Monkey C: Export Project` has a `Makefile` equivalent as of `make export`, described below, which
 builds the same store bundle. Two of these have none, and want none: `Monkey C: Edit Products` edits
 the product list in `manifest.xml`, and `Monkey C: Verify Installation` inspects the SDK installation
-rather than the project.
+rather than the project. `Edit Products` edits one edition's manifest; copy the change into the other,
+or `make check-manifests` fails (see [Editions in the build](#editions-in-the-build)).
 
 ### From the command line
 
 The included `Makefile` covers every build the project does, the store bundle included.
 
 ```bash
-# build binaries from sources
+# build binaries from sources -- Lite, unless EDITION says otherwise
 make build
+
+# ... the Premium edition; every compiling target takes EDITION
+make build EDITION=premium
 
 # start the simulator if it is not already running
 make sim
@@ -441,6 +479,10 @@ make graphics PLATFORM=linux/amd64
 make check-fonts
 make check-icons
 
+# check that the two edition manifests agree, and that Premium leaves Lite alone
+make check-manifests
+make check-lite
+
 # clean up the project directory
 make clean
 ```
@@ -448,6 +490,11 @@ make clean
 Every target that compiles builds for `DEVICE`, which defaults to `epix2pro47mm`, the reference device;
 override it with `make build DEVICE=venu3` for any other product listed in `manifest.xml`. `make build`
 needs no arguments at all.
+
+Every target that compiles also builds one edition, `EDITION`, which defaults to `lite`. With
+`EDITION=premium` the same targets build Premium instead -- `build`, `run`, `test`, `sideload` and
+`export` alike -- and write `MatrixTimePremium.prg` and `export/MatrixTimePremium.iq`, so neither
+edition's output overwrites the other's. Any other value is refused before anything runs.
 
 `make export` is the exception, and the only compiling target that ignores `DEVICE`: it packages
 every product `manifest.xml` names into one signed `.iq` under `export/`, which is the file the
@@ -486,6 +533,56 @@ app session to relay the app's console output to your terminal, so the command s
 foreground while the watch face runs; press Ctrl-C when you are done. `make test` also uses
 `monkeydo`, but captures its output and does return.
 
+### Editions in the build
+
+Each edition is `monkey.jungle`, which holds every setting the two share, followed by the edition's own
+jungle, which names its manifest and adds what is its alone:
+
+| Edition | `monkeyc -f` | Manifest | Output |
+| :------ | :----------- | :------- | :----- |
+| Lite | `monkey.jungle;lite.jungle` | `manifest.xml` | `MatrixTime.prg`, `export/MatrixTime.iq` |
+| Premium | `monkey.jungle;premium.jungle` | `manifest-premium.xml` | `MatrixTimePremium.prg`, `export/MatrixTimePremium.iq` |
+
+The split is forced by `monkeyc`, which will not set `project.manifest` twice in one build: every other
+jungle property is simply overridden by a later file, but a second manifest is an error. So the shared
+jungle names none, and building it alone fails loudly instead of building one edition by default.
+
+**The edition jungle always comes last.** Each edition keeps the other's code out by *appending* an
+annotation to the exclusion list: `lite.jungle` excludes `(:premium)`, `premium.jungle` excludes
+`(:lite)`. A jungle layered after it that *replaced* the list would drop that exclusion without a word
+-- `graphics.jungle` replaces the list, which is why the always-on capture builds
+`monkey.jungle;graphics.jungle;lite.jungle` and never puts `lite.jungle` before it.
+
+Premium-only code goes in `premium/source/`, which is on Premium's source path and on no other. Small
+differences inside a shared file take a `(:premium)` or `(:lite)` annotation instead. A whole
+Premium-only file belongs in `premium/` rather than in `source/` under an annotation, because a file on
+Lite's path costs Lite bytes even when every declaration in it is excluded.
+
+`premium/resources/` is deliberately on no resource path. It is where the configuration for
+`garmin-font-scaler` goes once Premium has fonts of its own -- run the scaler with
+`--project-dir premium`, which writes to `premium/resources-<family>/` and leaves Lite's font directories
+alone -- and its `fonts.xml` declares the same `jsonData` ids Lite's does, so compiling it would collide.
+
+Three checks keep the editions honest:
+
+* `make check-manifests` fails if `manifest-premium.xml` differs from `manifest.xml` in anything but
+  the application id, which must differ, and the version. The product list lives in both, and a product
+  added to one alone would ship one edition to a watch the other does not support. It is a check rather
+  than a generator: the copy is small, and a check in CI cannot be forgotten before a commit. Pure
+  Python, no SDK.
+* `make check-lite` builds Lite twice per product, once from the tree and once from a copy with every
+  Premium-only file deleted (`premium/`, `premium.jungle`, `manifest-premium.xml`), and fails unless the
+  two PRGs are byte for byte identical. They are **release** builds: a debug build embeds the absolute
+  build path and line numbers, so it would differ whatever the copy contained. It builds `DEVICE`, or
+  the list in `DEVICES`; CI passes one product per device family.
+* `source/tests/EditionTest.mc` holds one `(:lite)` test and one `(:premium)` test, each asserting its
+  own edition's name. Compiled into the other edition -- because an exclusion was dropped -- either one
+  fails there. `premium/source/tests/EditionTest.mc` does the same for `premium/source/`, and is the
+  proof that the directory compiles at all before any Premium feature has put code in it.
+
+`make check-lite` cannot see a `(:premium)` declaration leaking out of a shared file, since the copy
+has the same file and the same `lite.jungle`; that is the unit tests' job.
+
 ### Unit tests
 
 `make test` compiles a unit-test binary, loads it into the simulator and reports the result. The suite
@@ -499,6 +596,9 @@ and against the properties they are supposed to hold. `DigitalRainTest` covers w
 to numbers -- the head and shade indices inside the drawing loop -- by drawing enough frames into a
 scratch bitmap for every index the ring can produce.
 
+`EditionTest`, in `source/tests/` and `premium/source/tests/`, checks that each edition carries its own
+name and none of the other's code; see [Editions in the build](#editions-in-the-build).
+
 `PropertyUtilsTest` covers `source/utils/PropertyUtils.mc`, whose one function nothing calls yet. What
 it really checks is the resource: `resources/properties/properties.xml` declares one property, and that
 declaration is what lets `Properties.getValue` fall back to the default on an unknown key instead of
@@ -506,7 +606,8 @@ taking the app down with an error no `catch` clause sees (#91, #93). Remove the 
 out, and both tests report an error rather than a failure.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
-three test classes carry the annotation themselves, which drops their bodies too and leaves 240 bytes
+edition tests are module-level functions rather than classes and leave nothing behind in a release
+build; `make check-lite` depends on that. The three test classes carry the annotation themselves, which drops their bodies too and leaves 240 bytes
 of class shell in the `.prg` -- 0.22% of it, and nothing at all in the memory budget, since none of the
 three is ever instantiated.
 
@@ -572,9 +673,13 @@ Every push to `main` and every pull request runs
 
 | Job | What it proves |
 | :-- | :------------- |
-| `consistency checks` | `make check-fonts` and `make check-icons` pass. Pure Python, no SDK, seconds. |
-| `build` | the face compiles, for one product per `deviceFamily`, and `make export` produces the store bundle. |
-| `unit tests` | `make test` passes: the Run No Evil suite, in the simulator, under a virtual display. |
+| `consistency checks` | `make check-fonts`, `make check-icons` and `make check-manifests` pass. Pure Python, no SDK, seconds. |
+| `build (lite)`, `build (premium)` | the edition compiles, for one product per `deviceFamily`, and `make export` produces its store bundle. The Lite leg also runs `make check-lite` on the same products. |
+| `unit tests (lite)`, `unit tests (premium)` | `make test` passes for the edition: the Run No Evil suite, in the simulator, under a virtual display. |
+
+Both editions go through the same steps, as a matrix over `EDITION`. Each test leg gets a simulator of
+its own because a second `monkeydo` session against a simulator the first still holds hangs rather than
+fails.
 
 Building one product per family rather than all fifty-one is the cheapest set that still compiles
 every resolution and shape the face ships: resource qualifiers resolve per family, so within a family
@@ -636,6 +741,9 @@ suite's verdict is still read off the anchored `PASSED (` line rather than `monk
 which is `1` whether every test passed or one failed (#23).
 
 ### Releases
+
+Releases are Lite only. How Premium is signed, tagged and listed in the store is a decision of its own,
+not yet made; until it is, `release.yml` exports the default edition and nothing else.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 the store bundle, signs it with the real developer key, and attaches it to a **draft** GitHub release

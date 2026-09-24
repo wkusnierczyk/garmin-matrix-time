@@ -16,14 +16,44 @@ DEV_KEY ?= ../garmin-keys/developer_key
 # The device to simulate (must match one in manifest.xml)
 DEVICE ?= epix2pro47mm
 
+# Which edition to build: lite, the free one, or premium, the paid one (#135). One
+# source tree builds both. The edition picks the jungle list, the manifest -- and so
+# the application id -- and the output names, so the two never overwrite each other.
+#
+# The edition jungle comes LAST in the list, always. It appends its exclusion to
+# base.excludeAnnotations; a jungle layered after it that replaced the list, as
+# graphics.jungle does, would silently drop it. See monkey.jungle.
+EDITION ?= lite
+ifeq ($(EDITION),lite)
+  MANIFEST := manifest.xml
+  APP := MatrixTime
+else ifeq ($(EDITION),premium)
+  MANIFEST := manifest-premium.xml
+  APP := MatrixTimePremium
+else
+  $(error EDITION must be lite or premium, not "$(EDITION)")
+endif
+JUNGLES := monkey.jungle;$(EDITION).jungle
+
 # Output filename
-OUTPUT := MatrixTime.prg
+OUTPUT := $(APP).prg
+
+# RELEASE=1 builds the .prg the way "make export" builds the bundle: -r, no debug
+# information. Only a release build can be compared byte for byte -- a debug build
+# embeds the absolute build path and line numbers -- which is what "make check-lite"
+# does with it (#35, finding 4). Empty, the default, keeps the debug symbols the
+# simulator and the profiler use.
+RELEASE ?=
 
 # The store bundle "make export" produces: one signed package covering every
-# product in manifest.xml, not one device's binary. Written under export/, which
-# "make clean" already removes -- it is an upload artefact, not a build tree.
+# product in the edition's manifest, not one device's binary. Written under export/,
+# which "make clean" already removes -- it is an upload artefact, not a build tree.
 EXPORT_DIR := export
-EXPORT := $(EXPORT_DIR)/MatrixTime.iq
+EXPORT := $(EXPORT_DIR)/$(APP).iq
+
+# The products "make check-lite" compares Lite on. One is enough to catch a Premium
+# file on Lite's path; CI passes one product per device family.
+DEVICES ?= $(DEVICE)
 
 # How long "make sideload" keeps looking for a watch before giving up. Empty --
 # the default -- is no looking at all: the first probe decides, which is the right
@@ -82,21 +112,22 @@ endef
 
 # Flags
 # -w: warn, -y: private key, -d: device, -f: jungle file, -o: output
-BUILD_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle
-TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f monkey.jungle --unit-test
+BUILD_FLAGS := $(if $(RELEASE),-r,) -w -y "$(DEV_KEY)" -d $(DEVICE) -f "$(JUNGLES)"
+TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f "$(JUNGLES)" --unit-test
 # -e: package the app, -r: strip debug information. No -d: the package covers every
-# product manifest.xml names, which is the whole point of it. -r is the difference
+# product the edition's manifest names, which is the whole point of it. -r is the difference
 # between this and build: the .prg keeps its debug symbols so the simulator and the
 # profiler can say something useful, and the shipped bundle has no use for them.
-EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f monkey.jungle
+EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f "$(JUNGLES)"
 
-.PHONY: all build sim run test sideload export check-fonts icons check-icons graphics clean
+.PHONY: all build sim run test sideload export check-fonts check-manifests check-lite \
+        icons check-icons graphics clean
 
 all: build
 
 build:
 	$(require_sdk)
-	@echo "Building for $(DEVICE)..."
+	@echo "Building $(EDITION) for $(DEVICE)..."
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
 	@echo "Build complete: $(OUTPUT)"
 
@@ -178,7 +209,7 @@ test: sim
 # DEVICE -- on the command line or in the environment, which "origin" separates
 # from this file's own default -- is honoured but checked against the watch, so a
 # mismatch is reported rather than silently overridden either way. A watch this
-# face does not support is caught here too, against manifest.xml, rather than
+# face does not support is caught here too, against the manifest, rather than
 # left to surface as a compiler error about an unknown product.
 #
 # An explicit DEVICE is also the way out when detection cannot answer -- a watch
@@ -219,9 +250,9 @@ sideload:
 	  fi; \
 	  echo "Watch detected: $$watch"; \
 	fi; \
-	grep -q '<iq:product id="'"$$watch"'"/>' manifest.xml || { \
+	grep -q '<iq:product id="'"$$watch"'"/>' $(MANIFEST) || { \
 	  echo "The watch is a $$watch, which this face does not support:"; \
-	  echo "manifest.xml lists no <iq:product> for it, so there is nothing to build."; \
+	  echo "$(MANIFEST) lists no <iq:product> for it, so there is nothing to build."; \
 	  echo "Matrix Time is AMOLED-only; see \"Features\" in README.md."; \
 	  exit 1; }; \
 	$(SUBMAKE) --no-print-directory build DEVICE=$$watch && \
@@ -259,7 +290,7 @@ EXPORT_STATUS := __monkeyc_status__:
 
 export:
 	$(require_sdk)
-	@echo "Exporting $(EXPORT) for every product in manifest.xml..."
+	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
 	@mkdir -p $(EXPORT_DIR)
 	@{ $(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT); echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
 	  index($$0, s) == 1 { status = substr($$0, length(s) + 1); next } \
@@ -272,6 +303,23 @@ export:
 check-fonts:
 	@echo "Checking font configuration consistency..."
 	@python3 tools/check-font-config.py
+
+# manifest-premium.xml duplicates manifest.xml's product list, and everything else
+# in it but the application id, name and version. Checked rather than generated:
+# the duplicate is small, a generator would be one more step to forget before a
+# commit, and a check in CI cannot be forgotten (#135). Pure Python, no SDK.
+check-manifests:
+	@echo "Checking the edition manifests against each other..."
+	@python3 tools/check-manifests.py
+
+# The Lite invariant (#135): a change that touches only Premium files -- premium/,
+# premium.jungle, manifest-premium.xml -- must leave the Lite release build byte for
+# byte what it was. The script builds Lite twice per product, here and in a copy of
+# the tree with the Premium files deleted, and compares the release PRGs. Release,
+# not debug, because a debug build embeds the build path (#35, finding 4).
+check-lite:
+	$(require_sdk)
+	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" tools/check-lite-invariant.sh $(DEVICES)
 
 # The launcher icon size is a per-device property, not a per-resolution one, so the
 # icons and the per-product jungle mapping that serves them are generated from the
@@ -308,14 +356,20 @@ check-icons:
 #
 # Two capture runs, not one: MatrixTime5.png is the always-on scene, which the
 # simulator will not enter headlessly, so it is captured from a second build whose
-# low-power branch is forced -- monkey.jungle plus graphics.jungle (#128). Expect
-# roughly twice the wait of a woken-only capture, since each run compiles the face
-# and starts a container of its own.
+# low-power branch is forced -- graphics.jungle layered between monkey.jungle and
+# lite.jungle (#128, #135). Expect roughly twice the wait of a woken-only capture,
+# since each run compiles the face and starts a container of its own.
+#
+# Lite only. The store images are Lite's, and a Premium set would need a listing of
+# its own to go on; tools/make-graphics.py names the Lite jungles itself, so
+# EDITION=premium is refused rather than quietly capturing Lite.
 graphics:
+	@test "$(EDITION)" = lite || { \
+	  echo "make graphics captures Lite only; drop EDITION=$(EDITION)."; exit 1; }
 	@echo "Regenerating resources/graphics..."
 	@python3 tools/make-graphics.py $(if $(PLATFORM),--platform $(PLATFORM),) \
 	                                $(if $(TZ_NAME),--timezone $(TZ_NAME),)
 
 clean:
-	@rm -Rf $(OUTPUT) test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
+	@rm -Rf MatrixTime.prg MatrixTimePremium.prg test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
 	@echo "Clean complete."

@@ -43,6 +43,9 @@ one of the keys it persists -- so that frame comes from a build in which onUpdat
 the low-power branch unconditionally, selected by layering graphics.jungle over
 monkey.jungle. Only the trigger is forced; see source/View.mc.
 
+Both runs build Lite. The store images are Lite's, and the Makefile refuses
+EDITION=premium for this target rather than let it pass unnoticed.
+
 The gallery images and the hero are flattened onto white, which is what the files
 they replace look like and what the store gallery expects. `--background none`
 keeps them transparent instead.
@@ -86,7 +89,14 @@ SHOT_COUNT = 4
 # takes the list and lets the later file override the earlier one. One frame is enough
 # -- the scene is the time alone, shifted a step every minute, so a second frame taken
 # seconds later would be the same picture.
-ALWAYS_ON_JUNGLE = "monkey.jungle;graphics.jungle"
+#
+# The edition jungle comes last in both lists, never before graphics.jungle (#135).
+# graphics.jungle replaces base.excludeAnnotations, so layered after lite.jungle it
+# would drop Lite's (:premium) exclusion and could capture Premium code as Lite. Named
+# for the woken run too: monkey.jungle names no manifest, so the shared tool's
+# default of monkey.jungle alone no longer builds.
+WOKEN_JUNGLE = "monkey.jungle;lite.jungle"
+ALWAYS_ON_JUNGLE = "monkey.jungle;graphics.jungle;lite.jungle"
 ALWAYS_ON_COUNT = 1
 
 CAPTURE_NAME = "MatrixTimeCapture.png"
@@ -245,14 +255,13 @@ def capture(take_shots, shots_error, arguments, work, scene, count, jungle):
     """
     One capture run, in its own directories so neither run clears the other's.
 
-    `jungle` is None for the ordinary build and a jungle list for the forced one; it
-    is passed through to the shared tool, which hands it to `monkeyc -f` whole.
+    `jungle` is a jungle list, passed through to the shared tool, which hands it to
+    `monkeyc -f` whole.
     """
     if not arguments.silent:
         frames = "frame" if count == 1 else "frames"
         print(f"Capturing {count} {scene} {frames} of {arguments.device}...")
 
-    settings = {} if jungle is None else {"jungle": jungle}
     try:
         return take_shots(
             project=PROJECT,
@@ -262,7 +271,7 @@ def capture(take_shots, shots_error, arguments, work, scene, count, jungle):
             count=count,
             platform=arguments.platform,
             timezone=arguments.timezone,
-            **settings,
+            jungle=jungle,
         )
     except shots_error as error:
         sys.exit(f"{scene} capture failed: {error}")
@@ -311,7 +320,7 @@ def main():
             work,
             "woken",
             SHOT_COUNT,
-            jungle=None,
+            jungle=WOKEN_JUNGLE,
         )
         always_on = capture(
             take_shots,

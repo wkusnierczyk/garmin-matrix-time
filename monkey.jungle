@@ -1,4 +1,17 @@
-project.manifest = manifest.xml
+# Every setting the two editions share, and nothing that tells them apart (#135).
+#
+# This file names no manifest, so it does not build on its own: an edition jungle
+# always follows it, and is always the LAST file in the list --
+#
+#   monkeyc -f "monkey.jungle;lite.jungle"                    Lite
+#   monkeyc -f "monkey.jungle;premium.jungle"                 Premium
+#   monkeyc -f "monkey.jungle;graphics.jungle;lite.jungle"    Lite, always-on capture
+#
+# The manifest cannot live here and be overridden per edition: monkeyc refuses to
+# set project.manifest twice in one build ("Attempting to reset project property
+# 'manifest'"), where every other property is simply overridden by the later file.
+# Built alone, this file fails loudly ("no manifest") rather than building one
+# edition by default. The Makefile's EDITION variable picks the edition jungle.
 
 # BEGIN generated launcher icon mapping -- tools/make-launcher-icons.py
 # Launcher icon size is per device, not per device family (#42).
