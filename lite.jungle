@@ -1,0 +1,18 @@
+# Lite, the free edition. Layered over monkey.jungle, and always last (#135):
+#
+#   monkeyc -f "monkey.jungle;lite.jungle" ...
+#
+# Lite is frozen and gets defect fixes only; everything here exists to keep Premium
+# out of it.
+
+project.manifest = manifest.xml
+
+# APPEND the edition's exclusion, never replace the list. A replacing jungle layered
+# after this one would drop it without a word -- graphics.jungle replaces the list,
+# which is why an edition jungle always comes last. With a lone (:premium) member in
+# a shared file, a dropped exclusion compiles Premium code into Lite and nothing
+# fails to say so.
+#
+# premium/source is not on Lite's sourcePath at all, so this line only has to cover
+# (:premium) declarations in shared files.
+base.excludeAnnotations = $(base.excludeAnnotations);premium

@@ -4,6 +4,12 @@
 # which builds every product manifest.xml names -- and runs the unit test suite in
 # the simulator under a virtual display.
 #
+# All of it for both editions, Lite and Premium (#135): the build and test jobs run
+# once per edition, selected by the Makefile's EDITION, so the matrix is the only
+# place the two are told apart. The Lite leg of the build also proves the Lite
+# invariant -- that the Premium-only files leave the Lite release build byte for
+# byte what it was. release.yml stays Lite-only until a Premium release is wanted.
+#
 # Why a container rather than a plain runner. The SDK is a public, unauthenticated
 # download -- developer.garmin.com/downloads/connect-iq/sdks/sdks.json lists every
 # build, and the Linux archive needs no licence click to fetch. The device
@@ -66,9 +72,20 @@ jobs:
       - name: Launcher icons
         run: make check-icons
 
+      # manifest-premium.xml duplicates manifest.xml's product list; this fails the
+      # moment the two drift (#135).
+      - name: Edition manifests
+        run: make check-manifests
+
   build:
-    name: build
+    name: build (${{ matrix.edition }})
     runs-on: ubuntu-latest
+    # fail-fast off, so a Premium failure does not cancel the Lite leg -- which is
+    # the one carrying the Lite invariant -- and the reverse.
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [lite, premium]
     container:
       # Pinned by digest, not by tag. v2.10.0 is what this digest was published
       # as, and the two agreed when it was verified -- but a registry tag is
@@ -140,7 +157,8 @@ jobs:
           status=0
           while read -r family device; do
             echo "::group::$family -- $device"
-            if make build DEVICE="$device" \
+            if make build EDITION=${{ matrix.edition }} \
+                          DEVICE="$device" \
                           SDK_BIN=/connectiq/bin \
                           DEV_KEY=/tmp/ci_key \
                           OUTPUT="bin/$device.prg"; then
@@ -174,12 +192,39 @@ jobs:
         env:
           HOME: /root
         run: |
-          make export SDK_BIN=/connectiq/bin DEV_KEY=/tmp/ci_key
-          ls -l export/MatrixTime.iq
+          make export EDITION=${{ matrix.edition }} SDK_BIN=/connectiq/bin DEV_KEY=/tmp/ci_key
+          ls -l export/*.iq
+
+      # The Lite invariant (#135). Lite is frozen, and Premium is built from the same
+      # tree, so the one thing a Premium change must never do is alter Lite. This
+      # builds Lite as a release PRG for one product per family, once from the
+      # checkout and once from a copy with every Premium-only file deleted, and
+      # fails if any pair differs. Release builds, because a debug build embeds the
+      # build path and would differ regardless (#35).
+      #
+      # On the Lite leg only: it is a statement about Lite, and running it twice
+      # would prove the same thing twice. HOME for the device definitions, as above.
+      - name: Check the Lite invariant
+        if: matrix.edition == 'lite'
+        shell: bash
+        env:
+          HOME: /root
+        run: |
+          devices=$(python3 tools/ci-devices.py | cut -d' ' -f2 | tr '\n' ' ')
+          test -n "$devices" || { echo "::error::no device families resolved"; exit 1; }
+          make check-lite DEVICES="$devices" SDK_BIN=/connectiq/bin DEV_KEY=/tmp/ci_key
 
   test:
-    name: unit tests
+    name: unit tests (${{ matrix.edition }})
     runs-on: ubuntu-latest
+    # One job per edition rather than two runs in one job: a second monkeydo session
+    # against a simulator the first still holds hangs (see timeout-minutes below), so
+    # each suite gets a simulator and a virtual display of its own. The edition tests
+    # in source/tests/EditionTest.mc fail if either build carries the other's code.
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [lite, premium]
     # Stage 3 of #41. #41 called the simulator "the real wall": monkeydo pushes a
     # .prg into a *running* simulator, and the simulator is a GUI application. The
     # container had already climbed most of it -- the image carries xvfb because
@@ -254,6 +299,7 @@ jobs:
         env:
           HOME: /root
         run: |
-          xvfb-run -a make test DEVICE=epix2pro47mm \
+          xvfb-run -a make test EDITION=${{ matrix.edition }} \
+                                DEVICE=epix2pro47mm \
                                 SDK_BIN=/connectiq/bin \
                                 DEV_KEY=/tmp/ci_key

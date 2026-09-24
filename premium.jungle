@@ -1,0 +1,39 @@
+# Premium, the paid edition. Layered over monkey.jungle, and always last (#135):
+#
+#   monkeyc -f "monkey.jungle;premium.jungle" ...
+#
+# Premium is Lite plus what lives under premium/. Nothing here may change what the
+# Lite build compiles: tools/check-lite-invariant.sh builds Lite with and without
+# the Premium files and requires the release PRGs to be identical.
+
+project.manifest = manifest-premium.xml
+
+# Premium-only code. A file on Lite's sourcePath costs Lite bytes even when every
+# declaration in it is excluded, so Premium-only files go here rather than into
+# source/ under a (:premium) annotation. (:premium) in a shared file is for the
+# member-sized differences.
+base.sourcePath = $(base.sourcePath);premium/source
+
+# Appended, and this jungle last, for the reason lite.jungle gives.
+base.excludeAnnotations = $(base.excludeAnnotations);lite
+
+# Premium's own resources: its application name, and anything else that differs
+# from Lite in every product. Later directories override earlier ones.
+#
+# Not premium/resources: that directory holds garmin-font-scaler's configuration for
+# the Premium fonts, and its fonts.xml declares the same jsonData ids Lite's base
+# fonts.xml does, so it stays off every resource path.
+base.resourcePath = $(base.resourcePath);premium/resources-base
+
+# Premium's per-resolution resources: the fonts garmin-font-scaler generates with
+# --project-dir premium, one directory per family resources/fonts/resolutions.json
+# lists. There is deliberately no unqualified copy, so a product outside these
+# families fails to compile a Premium font rather than falling back to one scaled
+# for another screen.
+round-360x360.resourcePath = $(round-360x360.resourcePath);premium/resources-round-360x360
+round-390x390.resourcePath = $(round-390x390.resourcePath);premium/resources-round-390x390
+round-416x416.resourcePath = $(round-416x416.resourcePath);premium/resources-round-416x416
+round-454x454.resourcePath = $(round-454x454.resourcePath);premium/resources-round-454x454
+round-466x466.resourcePath = $(round-466x466.resourcePath);premium/resources-round-466x466
+rectangle-320x360.resourcePath = $(rectangle-320x360.resourcePath);premium/resources-rectangle-320x360
+rectangle-448x486.resourcePath = $(rectangle-448x486.resourcePath);premium/resources-rectangle-448x486

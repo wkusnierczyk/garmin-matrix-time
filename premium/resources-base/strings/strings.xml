@@ -1,0 +1,7 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+    <!-- Overrides resources/strings/strings.xml in the Premium build only (#135). -->
+    <string id="AppName">MatrixTime Premium</string>
+
+</resources>
