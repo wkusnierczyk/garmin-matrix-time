@@ -22,8 +22,20 @@ which sizes, captured on which product.
   MatrixTime1.png .. 3.png      watch renders at 200px, for the store gallery
   MatrixTime4.png               the same, for the README features table
   MatrixTime5.png               the always-on scene, for both (#128)
-  MatrixTimeHero.png            those five scattered across 1440x720, the store hero
-  MatrixTimeHero-small.png      the same composition at 900x450, the README banner
+  MatrixTimeHero-draft.png      those five scattered across 1440x720
+  MatrixTimeHero-draft-small.png  the same composition at 900x450
+
+The hero this writes is a draft, and not what the store serves (#130). The published
+pair, MatrixTimeHero.png and MatrixTimeHero-small.png, is composed by hand with an
+image model from these same captures: watches larger, overlapping, seen from several
+viewpoints under one light, which a 2D composition of face-on renders cannot be. This
+target does not write those two files, so a capture run cannot overwrite them. The
+draft is what a composed candidate is compared against, and the fallback when there is
+no composed hero.
+
+Recomposing the published hero is therefore a manual step, and it is owed whenever
+what the face draws changes -- the same debt as every image here, but one no target
+can pay.
 
 MatrixTime5.png is a second capture run rather than a fifth frame of the first. The
 simulator will not enter always-on headlessly -- Display Mode is a GUI menu and is not
@@ -79,8 +91,12 @@ ALWAYS_ON_COUNT = 1
 
 CAPTURE_NAME = "MatrixTimeCapture.png"
 GALLERY_NAME = "MatrixTime{index}.png"
-HERO_NAME = "MatrixTimeHero.png"
-HERO_SMALL_NAME = "MatrixTimeHero-small.png"
+
+# Deliberately not MatrixTimeHero.png. That name belongs to the composed hero the
+# store serves, which is not generated output and which this target must not touch
+# (#130). Renaming these back would silently overwrite it on the next capture run.
+HERO_NAME = "MatrixTimeHero-draft.png"
+HERO_SMALL_NAME = "MatrixTimeHero-draft-small.png"
 
 GALLERY_WIDTH = 200
 HERO_SIZE = (1440, 720)
@@ -182,7 +198,7 @@ def write_capture(shots, quiet):
 
 def write_hero(generator_class, shots, background, quiet):
     """
-    Writes the store hero, and the README banner as the same composition scaled.
+    Writes the draft hero, and its banner as the same composition scaled.
 
     Scaled rather than composed a second time: the placement is random, so a second
     run would put the watches somewhere else, and the banner is meant to be the

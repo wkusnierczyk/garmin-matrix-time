@@ -12,3 +12,5 @@ resources/fonts/SUSEMono-Regular.ttf filter=lfs diff=lfs merge=lfs -text
 resources/fonts/SUSEMono-Regular-30.png filter=lfs diff=lfs merge=lfs -text
 resources/graphics/MatrixTime2.png filter=lfs diff=lfs merge=lfs -text
 resources/graphics/MatrixTime3.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTimeHero-draft.png filter=lfs diff=lfs merge=lfs -text
+resources/graphics/MatrixTimeHero-draft-small.png filter=lfs diff=lfs merge=lfs -text

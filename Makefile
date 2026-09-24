@@ -285,11 +285,17 @@ check-icons:
 	@echo "Checking launcher icon configuration consistency..."
 	@python3 tools/make-launcher-icons.py --check
 
-# Every image in resources/graphics/ regenerated from the current build (#125).
-# They used to be made by hand -- run the simulator, capture, resize, composite --
-# which is why #54 could change what the face draws and leave all seven showing the
-# old charset for months (#80). A capture is derived from the app but is not
-# generated output, so nothing reported them stale.
+# Every image in resources/graphics/ that is generated, regenerated from the current
+# build (#125). They used to be made by hand -- run the simulator, capture, resize,
+# composite -- which is why #54 could change what the face draws and leave all seven
+# showing the old charset for months (#80). A capture is derived from the app but is
+# not generated output, so nothing reported them stale.
+#
+# The exceptions are MatrixTimeHero.png and MatrixTimeHero-small.png, which are
+# composed by hand with an image model and are what the store serves (#130). This
+# target writes MatrixTimeHero-draft.png and its banner instead, and never those two,
+# so a capture run cannot overwrite an adopted hero. Recomposing it is manual and is
+# owed whenever what the face draws changes.
 #
 # The capture and the hero composition come from garmin-graphics-generator, shared
 # with the sibling faces; what is here is the names, the sizes and the reference
