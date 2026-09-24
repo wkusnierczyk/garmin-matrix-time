@@ -33,9 +33,15 @@
 # automation, is where a real key first earns its place.
 name: build
 
+# premium-dev is the integration branch for Premium features until the first Premium
+# release (#137). Feature PRs into it are covered by pull_request; the push trigger is
+# for the syncs, which reach it as a merge of main pushed directly rather than through
+# a PR -- a squash-merged sync would not record main as merged. Without it, a sync that
+# broke Premium would go unchecked until the next feature PR. Drop it when the branch
+# is retired.
 on:
   push:
-    branches: [main]
+    branches: [main, premium-dev]
   pull_request:
 
 jobs:
