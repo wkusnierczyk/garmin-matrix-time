@@ -32,3 +32,5 @@ Thumbs.db
 
 # Developer Key (CRITICAL: Never commit this)
 developer_key*
+# Python bytecode
+__pycache__/
