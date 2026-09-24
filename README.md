@@ -58,6 +58,7 @@ The Matrix Time watch face supports the following features:
 |Screenshot|Description|
 |-|:-|
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
+|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, at twice its woken size, dimmed, and moved to a different corner of a small square every minute. See **Always-on display** above for why the rain cannot stay.
 
 In the initial version, there are no customisation settings. The watch face does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
@@ -198,7 +199,7 @@ device asks for. It is a fallback only: it applies to a product added to `manife
 
 ## Store and README images
 
-`resources/graphics/` holds the seven images the Connect IQ store listing and this file are
+`resources/graphics/` holds the eight images the Connect IQ store listing and this file are
 illustrated with. They are **generated output** of `make graphics`; do not edit them by hand.
 
 | file | what it is | where it is used |
@@ -206,26 +207,40 @@ illustrated with. They are **generated output** of `make graphics`; do not edit 
 | `MatrixTimeCapture.png` | one raw device framebuffer, 416 x 416, nothing composited over it | reference capture |
 | `MatrixTime1.png` to `MatrixTime3.png` | captures set into the watch render, 200 px wide | store gallery |
 | `MatrixTime4.png` | the same | the [Features](#features) table above |
-| `MatrixTimeHero.png` | the four captures scattered across 1440 x 720 | store listing, social |
+| `MatrixTime5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table |
+| `MatrixTimeHero.png` | the five captures scattered across 1440 x 720 | store listing, social |
 | `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file |
 
+`MatrixTime5.png` is captured from a build in which `onUpdate` takes the low-power branch on every
+frame, because the simulator will not enter always-on without a hand on its menus: Display Mode is a
+GUI-only setting and is not one of the keys the simulator persists, so it resets to High Power on every
+launch. The forcing is two annotated definitions of one function in `source/View.mc`, of which exactly
+one is ever compiled -- `monkey.jungle` excludes the forced one, and `graphics.jungle`, layered over it
+for this capture alone, excludes the real one instead. Every build the store or a watch ever sees
+therefore takes the branch from `onEnterSleep` as before, and the forced definition is absent from the
+`.prg` rather than merely unreached. What `drawLowPower` paints depends on the clock and the screen
+width and on nothing the system sets in always-on, so the captured frame is a real always-on frame with
+only its trigger forced.
+
 `make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
-and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.0 or
+and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer:
 
 ```bash
-pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.5.0'
+pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.5.1'
 ```
 
-0.5.0 is the first release carrying the `shots` command, and the first whose `hero` does not silently
-drop inputs; `tools/make-graphics.py` checks the installed version and says so rather than failing
-later in a way that looks like a bad capture. It needs no Connect IQ SDK and no simulator on the
+0.5.0 is the first release carrying the `shots` command; 0.5.1 is the first whose `hero` retries an
+arrangement it cannot place rather than dropping a watch from it, which is what a five-watch
+composition needs, and the first whose `shots` takes a list of jungle files, which is how the
+always-on capture selects its build. `tools/make-graphics.py` checks the installed version and says so
+rather than failing later in a way that looks like a bad capture. It needs no Connect IQ SDK and no simulator on the
 desktop: the capture runs the simulator inside a container under a virtual display, and the device
 definition it cuts frames against is taken out of that container, so the artwork a frame is composed
 onto is always the artwork that rendered it.
 
 ```bash
-# regenerate all seven
+# regenerate all eight
 make graphics
 
 # on an arm64 machine, where the Connect IQ tester image runs emulated
@@ -238,7 +253,8 @@ make graphics TZ_NAME=Asia/Tokyo
 **Rerun it whenever what the face draws changes**, in the same change. Nothing reports these stale the
 way `make check-fonts` reports a stale size table: a capture is derived from the app but is not
 generated output in the sense a build is, so it drifts silently. That is how #54 could drop `0-9`
-from the rain charset and leave every one of the seven showing numerals for months (#80).
+from the rain charset and leave every one of the images then in the directory showing numerals for
+months (#80).
 
 ## Build, test, deploy
 
@@ -254,9 +270,9 @@ reference guide covers the extension in full; what follows is the part of it thi
 
 ### Git LFS
 
-Ten binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
+Eleven binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
 `resources/fonts/MatrixCodeNFI.ttf` and `resources/fonts/SUSEMono-Regular.ttf`; the launcher icon
-fallback, `resources/drawables/launcher_icon.png`; and the seven hero and screenshot graphics under
+fallback, `resources/drawables/launcher_icon.png`; and the eight hero and screenshot graphics under
 `resources/graphics/`. Everything else is stored normally, the generated bitmap fonts and the
 per-device launcher icons included -- they are build output of the two typefaces, small, and worth
 diffing.
@@ -412,9 +428,9 @@ this is the only build that exercises the packaging step, so it is worth running
 even when nothing about the devices has changed. Uploading the bundle is still manual, through the
 store's web form.
 
-`make graphics` regenerates the seven images in `resources/graphics/` -- the store gallery, the store
+`make graphics` regenerates the eight images in `resources/graphics/` -- the store gallery, the store
 hero and the README banner -- from whatever the face currently draws. It needs Docker running and
-[`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.0 or
+[`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer, and no SDK: the capture runs the Connect IQ simulator inside a container under a virtual display, so
 there is no GUI to drive and no macOS screen-recording permission to grant. See
 [Store and README images](#store-and-readme-images).

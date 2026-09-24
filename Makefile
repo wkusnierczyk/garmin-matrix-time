@@ -299,6 +299,12 @@ check-icons:
 #
 # PLATFORM is passed through because the Connect IQ tester image is built for amd64
 # and an arm64 machine therefore needs to ask for it explicitly.
+#
+# Two capture runs, not one: MatrixTime5.png is the always-on scene, which the
+# simulator will not enter headlessly, so it is captured from a second build whose
+# low-power branch is forced -- monkey.jungle plus graphics.jungle (#128). Expect
+# roughly twice the wait of a woken-only capture, since each run compiles the face
+# and starts a container of its own.
 graphics:
 	@echo "Regenerating resources/graphics..."
 	@python3 tools/make-graphics.py $(if $(PLATFORM),--platform $(PLATFORM),) \
