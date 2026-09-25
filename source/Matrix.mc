@@ -134,6 +134,20 @@ class DigitalRain {
     }
 
 
+    // Premium's time size setting (#32). initialize has loaded Time, Lite's size, and this
+    // swaps in the selected one: at start-up and whenever the settings change. Only the
+    // time font moves -- the grid is derived from the Matrix font alone (#50), so nothing
+    // needs re-initialising.
+    //
+    // The outgoing font is dropped before the new one is loaded, by pointing the field at
+    // a system font for the moment in between, so the two bitmaps are never held at once.
+    (:premium)
+    function reloadTimeFont() as Void {
+        _timeFont = Graphics.FONT_XTINY;
+        _timeFont = TimeSize.load(TimeSize.selected(), _timeLargeFont);
+    }
+
+
     // The one caller, View.onUpdate, always has a Moment in hand, so the parameter is
     // not nullable and there is no "now" default to fall back to. Deciding what time it
     // is belongs to the caller that is already asking the clock, not to a defaulting

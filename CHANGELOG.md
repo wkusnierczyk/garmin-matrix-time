@@ -9,6 +9,15 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
+## Unreleased
+
+### Added
+
+* **Premium: a choice of time size.** Premium's settings, in Connect IQ and on the watch, offer
+  Small, Medium, Large and Extra large for the time on the woken screen. Small is Lite's size and the
+  default; Extra large is two and a half times it. The always-on screen keeps its own size, and the
+  rain is unaffected. (#32)
+
 ## 0.2.1 -- 2026-09-21
 
 Everything since the first release. The always-on screen was rewritten, the digits left the rain,

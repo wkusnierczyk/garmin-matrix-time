@@ -91,6 +91,12 @@ class View extends WatchUi.WatchFace {
         return true;
     }
 
+    // Premium's settings, applied at start-up and on every change (#32).
+    (:premium)
+    function applySettings() as Void {
+        _digitalRain.reloadTimeFont();
+    }
+
     function onEnterSleep() as Void {
         _lowPower = true;
         WatchUi.requestUpdate();
