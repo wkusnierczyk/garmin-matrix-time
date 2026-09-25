@@ -1,8 +1,8 @@
 # Stages 1 to 3 of #41: build, package and test verification. Every push to main
-# and every pull request runs the consistency checks that need no SDK at all,
-# compiles the face for one product per deviceFamily, exports the store bundle --
-# which builds every product manifest.xml names -- and runs the unit test suite in
-# the simulator under a virtual display.
+# or to premium-dev, and every pull request, runs the consistency checks that need
+# no SDK at all, compiles the face for one product per deviceFamily, exports the
+# store bundle -- which builds every product manifest.xml names -- and runs the
+# unit test suite in the simulator under a virtual display.
 #
 # All of it for both editions, Lite and Premium (#135): the build and test jobs run
 # once per edition, selected by the Makefile's EDITION, so the matrix is the only
@@ -33,9 +33,15 @@
 # automation, is where a real key first earns its place.
 name: build
 
+# premium-dev is the integration branch for Premium features until the first Premium
+# release (#137). Feature PRs into it are covered by pull_request; the push trigger is
+# for the syncs, which reach it as a merge of main pushed directly rather than through
+# a PR -- a squash-merged sync would not record main as merged. Without it, a sync that
+# broke Premium would go unchecked until the next feature PR. Drop it when the branch
+# is retired.
 on:
   push:
-    branches: [main]
+    branches: [main, premium-dev]
   pull_request:
 
 jobs:
