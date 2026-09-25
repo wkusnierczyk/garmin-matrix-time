@@ -1,8 +1,8 @@
 # Stages 1 to 3 of #41: build, package and test verification. Every push to main
-# and every pull request runs the consistency checks that need no SDK at all,
-# compiles the face for one product per deviceFamily, exports the store bundle --
-# which builds every product manifest.xml names -- and runs the unit test suite in
-# the simulator under a virtual display.
+# or to premium-dev, and every pull request, runs the consistency checks that need
+# no SDK at all, compiles the face for one product per deviceFamily, exports the
+# store bundle -- which builds every product manifest.xml names -- and runs the
+# unit test suite in the simulator under a virtual display.
 #
 # All of it for both editions, Lite and Premium (#135): the build and test jobs run
 # once per edition, selected by the Makefile's EDITION, so the matrix is the only
