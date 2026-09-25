@@ -11,4 +11,10 @@
     <string id="TimeSizeLarge">Large</string>
     <string id="TimeSizeExtraLarge">Extra large</string>
 
+    <!-- The trail length setting (#53). -->
+    <string id="TrailLengthTitle">Trail length</string>
+    <string id="TrailLength25">25% of the screen</string>
+    <string id="TrailLength50">50% of the screen</string>
+    <string id="TrailLength75">75% of the screen</string>
+
 </resources>

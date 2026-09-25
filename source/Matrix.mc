@@ -147,6 +147,30 @@ class DigitalRain {
         _timeFont = TimeSize.load(TimeSize.selected(), _timeLargeFont);
     }
 
+    // Premium's trail length setting (#53), as a percentage of the screen height. Held
+    // here rather than applied at once, because the ramp is built from _rowCount and that
+    // is not known until the first Dc: applySettings runs before it at start-up, and
+    // _initialize then builds the ramp from whatever this holds. 50 is Lite's half screen.
+    (:premium)
+    private var _trailPercent as Number = 50;
+
+    // Called at start-up and whenever the settings change. Only the ramp moves -- the grid,
+    // the glyphs and the heads are untouched -- so a change takes effect on the next frame
+    // without restarting the rain.
+    (:premium)
+    function applyTrailLength() as Void {
+        _trailPercent = TrailLength.selected();
+        if (_initialized) {
+            _generateShades();
+        }
+    }
+
+    // For TrailLengthTest only; (:debug) for the reason timeFont gives.
+    (:debug :premium)
+    function shades() as Array<Graphics.ColorType> {
+        return _shades;
+    }
+
     // For TimeSizeTest only, which checks that a settings change reaches the font drawn.
     // (:debug), not (:test): the runner calls every (:test) member as a test. Release
     // builds strip (:debug), so this is not in the shipped .prg.
@@ -338,7 +362,7 @@ class DigitalRain {
     //
     // The grid is walked outside-in by distance from the head rather than column by
     // column. A cell's shade is fixed by that distance alone, so one band is one colour:
-    // `setColor` runs `_rowCount / 2` times a frame -- 8 on `epix2pro47mm` -- where
+    // `setColor` runs once per lit band -- 8 on `epix2pro47mm` at Lite's half screen -- where
     // column-major order called it once per drawn glyph, 160 times, 152 of them setting
     // a colour that was already current (#58). The `drawText` calls are the same calls
     // in a different order, and since glyphs do not overlap the frame is identical --
@@ -364,9 +388,10 @@ class DigitalRain {
 
             var shade = shades[d];
             if (shade == 0) {
-                // The ramp fades to black over half a screen, so the far half of every
-                // trail is 0x000000. Drawing that on a black background paints nothing --
-                // skip the whole band rather than pay for setColor + drawText.
+                // The ramp fades to black part way round the ring -- half of it in Lite,
+                // the trail length setting in Premium (#53) -- so the rest of every trail
+                // is 0x000000. Drawing that on a black background paints nothing -- skip
+                // the whole band rather than pay for setColor + drawText.
                 continue;
             }
             dc.setColor(shade, transparent);
@@ -423,8 +448,16 @@ class DigitalRain {
     }
 
 
+    // Lite fades over half the screen, always.
+    (:lite)
     private function _generateShades() as Void {
-        _shades = RainMath.shades(_rowCount, _matrixColor);
+        _shades = RainMath.shades(_rowCount, _rowCount / 2, _matrixColor);
+    }
+
+    // Premium fades over the length the setting chose (#53).
+    (:premium)
+    private function _generateShades() as Void {
+        _shades = RainMath.shades(_rowCount, TrailLength.steps(_trailPercent, _rowCount), _matrixColor);
     }
 
 }

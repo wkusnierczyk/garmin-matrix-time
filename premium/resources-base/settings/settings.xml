@@ -11,4 +11,13 @@
         </settingConfig>
     </setting>
 
+    <!-- The values are percentages of the screen height, used as they are (#53). -->
+    <setting propertyKey="@Properties.trailLength" title="@Strings.TrailLengthTitle">
+        <settingConfig type="list">
+            <listEntry value="25">@Strings.TrailLength25</listEntry>
+            <listEntry value="50">@Strings.TrailLength50</listEntry>
+            <listEntry value="75">@Strings.TrailLength75</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

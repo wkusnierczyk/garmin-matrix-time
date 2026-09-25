@@ -39,7 +39,7 @@ class RainMathTest {
 
     (:test)
     static function theHeadOfTheRampIsTheUndimmedColour(logger as Test.Logger) as Boolean {
-        var ramp = RainMath.shades(17, MATRIX_COLOR);
+        var ramp = RainMath.shades(17, 8, MATRIX_COLOR);
         Test.assertEqualMessage(ramp[0], MATRIX_COLOR, "the head of the trail is drawn at full brightness");
         return true;
     }
@@ -47,9 +47,9 @@ class RainMathTest {
 
     (:test)
     static function theRampIsTheExpectedSequence(logger as Test.Logger) as Boolean {
-        // rowCount 5 gives steps 2: full colour, half of it, then black for the rest of
+        // Steps 2 over a 5-row ring: full colour, half of it, then black for the rest of
         // the ring. 255 / 2 is 127 and 43 / 2 is 21, both truncating.
-        var ramp = RainMath.shades(5, 0x00FF2B);
+        var ramp = RainMath.shades(5, 2, 0x00FF2B);
         var expected = [0x00FF2B, 0x007F15, 0x000000, 0x000000, 0x000000];
         for (var i = 0; i < expected.size(); ++i) {
             Test.assertEqualMessage(ramp[i], expected[i], "ramp[" + i + "] of a 5-row ring");
@@ -64,7 +64,7 @@ class RainMathTest {
         // clamp it replaced happened to give the same answer, but only by a 32-bit
         // sign-propagation argument that no colour change should have to rest on. A
         // colour with all three channels lit is what tells the two apart by inspection.
-        var ramp = RainMath.shades(5, 0xFF8040);
+        var ramp = RainMath.shades(5, 2, 0xFF8040);
         Test.assertEqualMessage(ramp[0], 0xFF8040, "the head keeps all three channels");
         Test.assertEqualMessage(ramp[1], 0x7F4020, "each channel halves independently");
         Test.assertEqualMessage(ramp[2], 0x000000, "the ramp reaches black at `steps`");
@@ -74,25 +74,30 @@ class RainMathTest {
 
     (:test)
     static function theRampFadesAndThenStaysBlack(logger as Test.Logger) as Boolean {
-        // #8: the ramp fades to black over half a ring, and _drawTrails skips the black
+        // #8: the ramp fades to black over `steps` rows, and _drawTrails skips the black
         // tail rather than drawing it. Checked per channel, because the packed values
-        // are only monotonic if each channel is.
-        var rowCounts = [17, 21, 27, 31];
+        // are only monotonic if each channel is. The fractions are Premium's trail
+        // lengths, a quarter, half and three quarters of the ring (#53); half is Lite's.
+        var rowCounts = [17, 19, 21, 27, 31];
+        var percents = [25, 50, 75];
         for (var n = 0; n < rowCounts.size(); ++n) {
             var rowCount = rowCounts[n] as Number;
-            var steps = rowCount / 2;
-            var ramp = RainMath.shades(rowCount, MATRIX_COLOR);
-            Test.assertEqualMessage(ramp.size(), rowCount, "one shade per row of a " + rowCount + "-row ring");
-            for (var i = 1; i < rowCount; ++i) {
-                for (var c = 0; c < SHIFTS.size(); ++c) {
-                    var shift = SHIFTS[c] as Number;
-                    var here = (ramp[i] >> shift) & MASK;
-                    var before = (ramp[i - 1] >> shift) & MASK;
-                    Test.assertMessage(here <= before, "channel at shift " + shift + " never brightens: ramp[" + i + "]");
+            for (var p = 0; p < percents.size(); ++p) {
+                var steps = rowCount * (percents[p] as Number) / 100;
+                var ramp = RainMath.shades(rowCount, steps, MATRIX_COLOR);
+                Test.assertEqualMessage(ramp.size(), rowCount, "one shade per row of a " + rowCount + "-row ring");
+                for (var i = 1; i < rowCount; ++i) {
+                    for (var c = 0; c < SHIFTS.size(); ++c) {
+                        var shift = SHIFTS[c] as Number;
+                        var here = (ramp[i] >> shift) & MASK;
+                        var before = (ramp[i - 1] >> shift) & MASK;
+                        Test.assertMessage(here <= before, "channel at shift " + shift + " never brightens: ramp[" + i + "]");
+                    }
                 }
-            }
-            for (var i = steps; i < rowCount; ++i) {
-                Test.assertEqualMessage(ramp[i], 0x000000, "ramp[" + i + "] is black from `steps` on");
+                Test.assertMessage(ramp[steps - 1] != 0x000000, "ramp[" + (steps - 1) + "] is still lit, " + steps + " steps");
+                for (var i = steps; i < rowCount; ++i) {
+                    Test.assertEqualMessage(ramp[i], 0x000000, "ramp[" + i + "] is black from `steps` on");
+                }
             }
         }
         return true;
@@ -103,7 +108,7 @@ class RainMathTest {
     static function noShadeIsEverNegative(logger as Test.Logger) as Boolean {
         // #9 again, from the other side: a negative packed colour is what the old clamp
         // was detecting, and nothing downstream would survive one.
-        var ramp = RainMath.shades(27, MATRIX_COLOR);
+        var ramp = RainMath.shades(27, 13, MATRIX_COLOR);
         for (var i = 0; i < ramp.size(); ++i) {
             Test.assertMessage(ramp[i] >= 0, "ramp[" + i + "] is a colour, not a negative");
         }
@@ -113,10 +118,10 @@ class RainMathTest {
 
     (:test)
     static function aOneRowRingStillHasAStepToDivideBy(logger as Test.Logger) as Boolean {
-        // #28: `steps` is rowCount / 2, which is 0 for a one-row ring. No supported screen
-        // produces one -- the smallest ring is 17 rows -- so this guards the arithmetic
-        // rather than a known input.
-        var ramp = RainMath.shades(1, MATRIX_COLOR);
+        // #28: Lite's `steps` is rowCount / 2, which is 0 for a one-row ring. No supported
+        // screen produces one -- the smallest ring is 17 rows -- so this guards the
+        // arithmetic rather than a known input.
+        var ramp = RainMath.shades(1, 0, MATRIX_COLOR);
         Test.assertEqualMessage(ramp.size(), 1, "a one-row ring has one shade");
         Test.assertEqualMessage(ramp[0], MATRIX_COLOR, "and that shade is the head, not a division by zero");
         return true;
