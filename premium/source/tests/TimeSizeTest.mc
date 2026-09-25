@@ -55,6 +55,41 @@ class TimeSizeTest {
     }
 
 
+    (:test)
+    static function aValueOfTheWrongTypeFallsBackToSmall(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(TimeSize.sizeOf(null), TimeSize.SMALL, "null falls back to S");
+        Test.assertEqualMessage(TimeSize.sizeOf("2"), TimeSize.SMALL, "a String falls back to S");
+        Test.assertEqualMessage(TimeSize.sizeOf(2.0f), TimeSize.SMALL, "a Float falls back to S");
+        Test.assertEqualMessage(TimeSize.sizeOf(true), TimeSize.SMALL, "a Boolean falls back to S");
+        Test.assertEqualMessage(TimeSize.sizeOf(2), TimeSize.LARGE, "the Number 2 is L");
+        return true;
+    }
+
+
+    // The whole path a change in Connect IQ takes: App.onSettingsChanged, View.applySettings,
+    // DigitalRain.reloadTimeFont. Without it a size change would do nothing until the face
+    // restarted, and every other test here would still pass.
+    (:test)
+    static function aSettingsChangeReachesTheFontDrawn(logger as Test.Logger) as Boolean {
+        var app = Application.getApp() as App;
+        var view = (app.getInitialView() as Array)[0] as View;
+        var saved = Properties.getValue(TimeSize.PROPERTY);
+
+        Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
+        app.onSettingsChanged();
+        var small = Graphics.getFontHeight(view.digitalRain().timeFont());
+
+        Properties.setValue(TimeSize.PROPERTY, TimeSize.EXTRA_LARGE);
+        app.onSettingsChanged();
+        var extraLarge = Graphics.getFontHeight(view.digitalRain().timeFont());
+
+        Properties.setValue(TimeSize.PROPERTY, saved as Number);
+        logger.debug("S " + small + " px, XL " + extraLarge + " px");
+        Test.assertMessage(extraLarge > small, "changing the setting to XL makes the drawn time taller");
+        return true;
+    }
+
+
     // L is the always-on font the caller already holds, not a second copy of it.
     (:test)
     static function largeReusesTheFontItIsHanded(logger as Test.Logger) as Boolean {

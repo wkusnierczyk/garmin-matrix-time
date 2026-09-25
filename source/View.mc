@@ -97,6 +97,12 @@ class View extends WatchUi.WatchFace {
         _digitalRain.reloadTimeFont();
     }
 
+    // For TimeSizeTest only; (:debug) for the reason DigitalRain.timeFont gives.
+    (:debug :premium)
+    function digitalRain() as DigitalRain {
+        return _digitalRain;
+    }
+
     function onEnterSleep() as Void {
         _lowPower = true;
         WatchUi.requestUpdate();

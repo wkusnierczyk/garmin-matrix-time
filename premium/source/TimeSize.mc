@@ -1,4 +1,5 @@
 using Toybox.Application;
+using Toybox.Application.Properties;
 using Toybox.Graphics;
 
 import Toybox.Lang;
@@ -23,10 +24,15 @@ module TimeSize {
         LARGE = 2,
         EXTRA_LARGE = 3;
 
-    // The stored index, clamped: anything that is not one of the four -- a missing
-    // property, a value of the wrong type, one out of range -- is S, Lite's size.
+    // The stored index, clamped by sizeOf.
     function selected() as Number {
-        var value = PropertyUtils.getPropertyElseDefault(PROPERTY, SMALL);
+        return sizeOf(PropertyUtils.getPropertyElseDefault(PROPERTY, SMALL));
+    }
+
+    // Anything that is not one of the four -- a missing property, a value of the wrong
+    // type, one out of range -- is S, Lite's size. Separate from selected so that every
+    // such value can be tested directly, without first getting it into the property table.
+    function sizeOf(value as Properties.ValueType or Null) as Number {
         if (value instanceof Number && value >= SMALL && value <= EXTRA_LARGE) {
             return value;
         }

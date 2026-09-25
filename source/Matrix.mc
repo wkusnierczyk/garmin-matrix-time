@@ -147,6 +147,14 @@ class DigitalRain {
         _timeFont = TimeSize.load(TimeSize.selected(), _timeLargeFont);
     }
 
+    // For TimeSizeTest only, which checks that a settings change reaches the font drawn.
+    // (:debug), not (:test): the runner calls every (:test) member as a test. Release
+    // builds strip (:debug), so this is not in the shipped .prg.
+    (:debug :premium)
+    function timeFont() as Graphics.FontType {
+        return _timeFont;
+    }
+
 
     // The one caller, View.onUpdate, always has a Moment in hand, so the parameter is
     // not nullable and there is no "now" default to fall back to. Deciding what time it

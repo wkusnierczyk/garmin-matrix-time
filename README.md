@@ -661,14 +661,14 @@ out, and both tests report an error rather than a failure.
 
 `TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
 property joins Lite's table instead of replacing it, that each of the four sizes is kept and anything
-else falls back to Small, that Large reuses the always-on font instead of loading it twice, and that
+else, of any type, falls back to Small, that a settings change reaches the font the face draws, that Large reuses the always-on font instead of loading it twice, and that
 the four fonts really do grow in height on the product under test.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
-build; `make check-lite` depends on that. The three test classes carry the annotation themselves, which drops their bodies too and leaves 240 bytes
-of class shell in the `.prg` -- 0.22% of it, and nothing at all in the memory budget, since none of the
-three is ever instantiated.
+build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
+leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
+since none of them is ever instantiated. Premium adds a fourth, `TimeSizeTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
