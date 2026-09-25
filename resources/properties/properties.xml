@@ -5,7 +5,8 @@
          it exists so that the property table exists at all. With no declared property,
          Properties.getValue does not raise the documented InvalidKeyException; it fails
          with an uncatchable system error that takes the app down, and an empty properties
-         element is not enough either (#91, #93). Pro's real settings will join it.
+         element is not enough either (#91, #93). Premium's settings join it, from
+         premium/resources-base/properties (#32).
 
          A property with no matching entry in a settings.xml is storage, not a settings
          screen, so this stays invisible to users.

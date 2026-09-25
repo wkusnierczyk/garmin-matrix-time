@@ -371,5 +371,5 @@ graphics:
 	                                $(if $(TZ_NAME),--timezone $(TZ_NAME),)
 
 clean:
-	@rm -Rf MatrixTime.prg MatrixTimePremium.prg test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
+	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
 	@echo "Clean complete."

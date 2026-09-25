@@ -91,6 +91,18 @@ class View extends WatchUi.WatchFace {
         return true;
     }
 
+    // Premium's settings, applied at start-up and on every change (#32).
+    (:premium)
+    function applySettings() as Void {
+        _digitalRain.reloadTimeFont();
+    }
+
+    // For TimeSizeTest only; (:debug) for the reason DigitalRain.timeFont gives.
+    (:debug :premium)
+    function digitalRain() as DigitalRain {
+        return _digitalRain;
+    }
+
     function onEnterSleep() as Void {
         _lowPower = true;
         WatchUi.requestUpdate();

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+    <fonts>
+        <font id="TimeMedium" filename="SUSEMono-Regular-40.fnt" antialias="true" />
+        <font id="TimeExtraLarge" filename="SUSEMono-Regular-68.fnt" antialias="true" />
+    </fonts>
+</resources>

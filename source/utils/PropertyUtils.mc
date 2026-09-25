@@ -8,7 +8,7 @@ module PropertyUtils {
     // Typed with Properties.ValueType, which is what Properties.getValue returns and
     // therefore the widest thing this can honestly hand back -- it is wider than
     // Application.PropertyValueType, which does not admit Array<Properties.ValueType>.
-    // Scaffolding for the settings work in #32 and #33, kept rather than deleted (#16).
+    // Kept rather than deleted (#16); Premium's TimeSize is its first caller (#32).
     function getPropertyElseDefault(
         propertyName as String,
         defaultValue as Properties.ValueType

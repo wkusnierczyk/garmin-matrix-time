@@ -1,0 +1,13 @@
+<properties xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+    <!-- Premium's settings, joining the settingsSchema marker in resources/properties
+         rather than replacing it (#91, #93). The two files merge: this one is on
+         Premium's resource path only, so Lite's property table is unchanged.
+
+         timeSize is the time font on the woken screen, as an index into the S, M, L, XL
+         ladder in TimeSize (#32). 0, S, is Lite's size, so Premium looks like Lite until
+         the setting is changed. -->
+    <property id="timeSize" type="number">0</property>
+
+</properties>

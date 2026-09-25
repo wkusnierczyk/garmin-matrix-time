@@ -19,6 +19,8 @@ test_build-settings.json
 # Build artifacts
 *.prg
 *.prg.*
+# monkeyc writes one beside the .prg once an app has settings (Premium, #32)
+MatrixTime*-settings.json
 
 # IDE/Editor settings
 .settings/

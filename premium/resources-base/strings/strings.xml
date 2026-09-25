@@ -4,4 +4,11 @@
     <!-- Overrides resources/strings/strings.xml in the Premium build only (#135). -->
     <string id="AppName">MatrixTime Premium</string>
 
+    <!-- The time size setting (#32). -->
+    <string id="TimeSizeTitle">Time size</string>
+    <string id="TimeSizeSmall">Small</string>
+    <string id="TimeSizeMedium">Medium</string>
+    <string id="TimeSizeLarge">Large</string>
+    <string id="TimeSizeExtraLarge">Extra large</string>
+
 </resources>

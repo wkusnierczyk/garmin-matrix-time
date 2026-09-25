@@ -10,6 +10,9 @@ resources/fonts/charsets.json is a source of truth of its own: it decides which
 glyphs each generated font contains. The code that draws with those fonts carries
 its own copy of the charset, so the copies are compared here too.
 
+Premium's fonts have a configuration of their own, in premium/resources/fonts, and are
+checked the same way against premium/resources-<family>/ and premium/fonts.md (#32).
+
 The README is descriptive, not prescriptive: this script derives expected values
 from the config and asserts the derived artifacts conform, never the reverse.
 """
@@ -72,8 +75,8 @@ def k(w, h):
     return min(w / rw, h / rh)
 
 
-def expected(fid, w, h):
-    stem, sz = refsize[fid]
+def expected(fid, w, h, sizes=None):
+    stem, sz = (sizes or refsize)[fid]
     return stem, round(sz * k(w, h))
 
 
@@ -227,12 +230,13 @@ def table_rows(text, heading):
     return out
 
 
-def check_table(rows, label):
+def check_table(rows, label, sizes=None):
     """A table is correct only if it matches values derived from the config."""
+    sizes = sizes or refsize
     if not rows:
         ok(False, f"{label}: no size rows parsed"); return
-    want = {(w, h, shape, humanize(fid)): expected(fid, w, h)[1]
-            for (w, h, shape) in targets for fid in refsize}
+    want = {(w, h, shape, humanize(fid)): expected(fid, w, h, sizes)[1]
+            for (w, h, shape) in targets for fid in sizes}
     got = {(w, h, shape, fid): size for (w, h, shape, fid, size) in rows}
     missing = sorted(set(want) - set(got))
     extra = sorted(set(got) - set(want))
@@ -266,6 +270,105 @@ ok(bool(prose) and any(re.search(rf'\b{rw}\s*x\s*{rh}\b', b) for b in prose),
    f"README prose names the reference resolution {rw}x{rh} where it discusses the reference")
 ok(bool(prose) and any('resolutions.json' in b for b in prose),
    "README prose cites resolutions.json as the source of truth")
+
+# ----------------------------------------------------------------------- Premium
+# Premium's fonts have a configuration of their own, in premium/resources/fonts, which
+# garmin-font-scaler reads with --project-dir premium and turns into
+# premium/resources-<family>/fonts (#135, #32). It is on no resource path -- its
+# fonts.xml repeats the jsonData ids Lite's declares -- so nothing but this script
+# ever compares it with Lite's, and every way it can drift is silent: a resolutions.json
+# that differs scales Premium's fonts for screens it does not ship on, and a family
+# premium.jungle does not name compiles without the Premium fonts until it fails on an
+# undefined symbol, or, where a monkeyc resource path is mistyped, not at all.
+print("\nPREMIUM")
+PDIR = 'premium/resources/fonts'
+PREMIUM_FONT_IDS = {'TimeMedium', 'TimeExtraLarge'}
+
+ok(open(f'{PDIR}/resolutions.json').read() == open('resources/fonts/resolutions.json').read(),
+   f"{PDIR}/resolutions.json is identical to Lite's")
+
+pfonts = dict(FONT_RE.findall(open(f'{PDIR}/fonts.xml').read()))
+psize = {}
+for fid, fn in pfonts.items():
+    m = re.match(r'(.+)-(\d+)\.fnt$', fn)
+    if not m:
+        ok(False, f"premium fonts.xml {fid}: filename {fn!r} is not <name>-<size>.fnt")
+        continue
+    psize[fid] = (m.group(1), int(m.group(2)))
+    print(f"  fonts.xml         {fid:14} -> {fn}  (reference size {m.group(2)})")
+
+ok(set(psize) == PREMIUM_FONT_IDS,
+   f"premium fonts.xml declares exactly {sorted(PREMIUM_FONT_IDS)} (found {sorted(psize)})")
+ok(not set(psize) & set(refsize),
+   "no Premium font id repeats a Lite one (the two would collide in the Premium build)")
+
+# The typeface is a symlink to Lite's, so there is one LFS object, not two.
+ttfs = {stem for stem, _ in psize.values()}
+for stem in sorted(ttfs):
+    ok(os.path.exists(f'{PDIR}/{stem}.ttf'), f"{PDIR}/{stem}.ttf resolves")
+
+# The time size ladder, S M L XL, is Time, TimeMedium, TimeLarge, TimeExtraLarge: one
+# typeface, strictly growing at the reference. The scaler rounds per target, so the
+# order is checked at every target too -- two adjacent sizes rounding to the same
+# point size would make one step of the setting do nothing.
+LADDER = ['Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge']
+allsize = {**refsize, **psize}
+if set(LADDER) <= set(allsize):
+    ok(len({allsize[f][0] for f in LADDER}) == 1,
+       f"the time size ladder {LADDER} is one typeface")
+    ref_ladder = [allsize[f][1] for f in LADDER]
+    ok(all(a < b for a, b in zip(ref_ladder, ref_ladder[1:])),
+       f"the time size ladder grows at the reference {ref_ladder}")
+    flat = [(w, h, shape, [expected(f, w, h, allsize)[1] for f in LADDER])
+            for w, h, shape in targets]
+    flat = [t for t in flat if not all(a < b for a, b in zip(t[3], t[3][1:]))]
+    ok(not flat, f"the time size ladder grows at every target"
+       + (f" (not at {flat[:3]})" if flat else ""))
+
+pcharsets = {c['fontId']: c['fontCharset'] for c in json.load(open(f'{PDIR}/charsets.json'))}
+ok(set(pcharsets) == set(psize),
+   f"premium charsets.json covers exactly the fonts premium fonts.xml declares "
+   f"(charsets {sorted(pcharsets)}, fonts {sorted(psize)})")
+ok(all(c == charsets.get('Time') for c in pcharsets.values()),
+   "every Premium time font has Lite's Time charset, so each size can draw the same string")
+
+pjungle = open('premium.jungle').read()
+bad = 0
+for w, h, shape in targets:
+    fam = f"{shape}-{w}x{h}"
+    d = f"premium/resources-{fam}"
+    line = f"{fam}.resourcePath = $({fam}.resourcePath);{d}"
+    if line not in pjungle:
+        ok(False, f"premium.jungle appends {d} to {fam}"); bad += 1
+    xml = f'{d}/fonts/fonts.xml'
+    if not os.path.exists(xml):
+        ok(False, f"{xml} missing for target in resolutions.json"); bad += 1
+        continue
+    got = dict(FONT_RE.findall(open(xml).read()))
+    if set(got) != set(psize):
+        ok(False, f"{d}: declares fonts {sorted(got)}, premium config declares {sorted(psize)}"); bad += 1
+    for fid, fn in sorted(got.items()):
+        if fid not in psize:
+            continue
+        stem, sz = expected(fid, w, h, psize)
+        if fn != f"{stem}-{sz}.fnt":
+            ok(False, f"{d} {fid}: declares {fn}, expected {stem}-{sz}.fnt"); bad += 1
+        elif not all(os.path.exists(f'{d}/fonts/{stem}-{sz}.{e}') for e in ('fnt', 'png')):
+            ok(False, f"{d} {fid}: {fn} declared but .fnt/.png missing"); bad += 1
+if not bad:
+    ok(True, f"all {len(targets)} Premium targets: named in premium.jungle, "
+             "declared size == round(ref x k), ids match, files present")
+
+# Premium's size table is generated like Lite's -- garmin-font-scaler --project-dir
+# premium --table fonts.md writes premium/fonts.md -- and the README copies it.
+pfonts_md = open('premium/fonts.md').read()
+check_table(table_rows(pfonts_md, '# Font sizes by resolution'), 'premium/fonts.md table', psize)
+check_table(table_rows(rd, 'The Premium time sizes'), 'README Premium table', psize)
+pm_lines = [l for l in pfonts_md.split('# Font sizes by resolution', 1)[1].splitlines()
+            if l.startswith('|')]
+m = re.search(r'The Premium time sizes.*?(\| Resolution \|.*?)(?=\n\n)', rd, re.S)
+ok(m is not None and [l for l in m.group(1).splitlines() if l.startswith('|')] == pm_lines,
+   "README Premium size table is byte-identical to generated premium/fonts.md")
 
 print(f"\n{'ALL CONSISTENT' if not fail else f'{len(fail)} PROBLEM(S)'}\n")
 sys.exit(1 if fail else 0)
