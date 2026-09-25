@@ -91,13 +91,15 @@ class View extends WatchUi.WatchFace {
         return true;
     }
 
-    // Premium's settings, applied at start-up and on every change (#32).
+    // Premium's settings, applied at start-up and on every change (#32, #53).
     (:premium)
     function applySettings() as Void {
         _digitalRain.reloadTimeFont();
+        _digitalRain.applyTrailLength();
     }
 
-    // For TimeSizeTest only; (:debug) for the reason DigitalRain.timeFont gives.
+    // For TimeSizeTest and TrailLengthTest only; (:debug) for the reason
+    // DigitalRain.timeFont gives.
     (:debug :premium)
     function digitalRain() as DigitalRain {
         return _digitalRain;

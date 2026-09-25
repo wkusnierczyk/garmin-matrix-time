@@ -17,6 +17,9 @@ each change is recorded in full.
   Small, Medium, Large and Extra large for the time on the woken screen. Small is Lite's size and the
   default; Extra large is two and a half times it. The always-on screen keeps its own size, and the
   rain is unaffected. (#32)
+* **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
+  screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
+  saves battery; a longer one fades more smoothly. (#53)
 
 ## 0.2.1 -- 2026-09-21
 

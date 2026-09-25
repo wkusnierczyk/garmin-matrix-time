@@ -35,8 +35,12 @@ const
 module RainMath {
 
     // The trail's colour ramp: index 0 is the head, at full brightness, and each step
-    // back along the trail is one step dimmer until the ramp reaches black half a screen
-    // later. `_drawTrails` skips the black tail rather than drawing it (#8).
+    // back along the trail is one step dimmer until the ramp reaches black `steps` rows
+    // later. `_drawTrails` skips the black tail rather than drawing it (#8), so `steps` is
+    // both the trail length and the number of bands drawn a frame.
+    //
+    // Lite passes `rowCount / 2`, half a screen. Premium's trail length setting passes a
+    // chosen fraction of the screen instead (#53); the caller decides, not the ramp.
     //
     // The clamp is on `scale`, before it reaches a channel, so with `scale` in
     // [0, steps] and each channel in [0, 255] every term is in range by construction.
@@ -48,14 +52,13 @@ module RainMath {
     // negative whenever any channel is. Correct, and far too subtle to leave a colour
     // change resting on (#9).
     //
-    // The ramp needs at least one step to divide by. `rowCount` is `2 * centerRow + 1`
-    // and `centerRow` is at least 1 on every supported screen -- the smallest is 360x360
-    // with a 22 px row, giving `rowCount` 17 -- so the guard cannot bite today. It guards
-    // the arithmetic rather than a known input: a future device with a row height past
-    // half the screen would make `steps` 0 and divide by it three times a row (#28).
-    function shades(rowCount as Number, color as Number) as Array<Graphics.ColorType> {
+    // The ramp needs at least one step to divide by. Lite's `rowCount / 2` is at least 8
+    // on every supported screen -- the smallest ring is 17 rows -- so the guard cannot
+    // bite there. It guards the arithmetic rather than a known input: a future device
+    // with a row height past half the screen would make `steps` 0 and divide by it three
+    // times a row (#28).
+    function shades(rowCount as Number, steps as Number, color as Number) as Array<Graphics.ColorType> {
 
-        var steps = rowCount / 2;
         if (steps < 1) {
             steps = 1;
         }

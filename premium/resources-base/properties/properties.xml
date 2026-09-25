@@ -10,4 +10,10 @@
          the setting is changed. -->
     <property id="timeSize" type="number">0</property>
 
+    <!-- trailLength is how far down the screen the rain fades to black, as a percentage
+         of the screen height, read by TrailLength (#53). It stores the percentage itself,
+         not an index, so a new length is one more listEntry in settings.xml. 50 is
+         Lite's half screen. -->
+    <property id="trailLength" type="number">50</property>
+
 </properties>
