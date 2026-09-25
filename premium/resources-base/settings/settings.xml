@@ -1,0 +1,14 @@
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+    <!-- The values are the indices TimeSize maps to fonts (#32). -->
+    <setting propertyKey="@Properties.timeSize" title="@Strings.TimeSizeTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.TimeSizeSmall</listEntry>
+            <listEntry value="1">@Strings.TimeSizeMedium</listEntry>
+            <listEntry value="2">@Strings.TimeSizeLarge</listEntry>
+            <listEntry value="3">@Strings.TimeSizeExtraLarge</listEntry>
+        </settingConfig>
+    </setting>
+
+</settings>

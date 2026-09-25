@@ -4,8 +4,9 @@ using Toybox.Test;
 import Toybox.Lang;
 
 
-// The helper is scaffolding for the settings work in #32 and #33, and nothing calls it yet
-// (#16). It is covered all the same, because its documented contract is exactly what #91
+// The helper is scaffolding for the settings work, kept rather than deleted (#16). Lite
+// never calls it; Premium's TimeSize is its first caller (#32). It is covered here all the
+// same, because its documented contract is exactly what #91
 // found it could not honour: with no property table compiled in, Properties.getValue does
 // not raise the InvalidKeyException the try/catch is written for -- it fails a level lower
 // down, with a system error no catch clause sees, and the app goes down with it.

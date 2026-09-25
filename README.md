@@ -61,7 +61,18 @@ The Matrix Time watch face supports the following features:
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
 |![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, at twice its woken size, dimmed, and moved to a different corner of a small square every minute. See **Always-on display** above for why the rain cannot stay.
 
-In the initial version, there are no customisation settings. The watch face does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
+Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
+
+### Premium settings
+
+Premium adds a settings screen, in Connect IQ and on the watch, with one setting:
+
+* **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
+  Small is the size Lite draws, and is the default, so Premium looks like Lite until the setting is
+  changed. At the 416x416 reference the four are 27, 40, 54 and 68; see
+  [Fonts](#fonts) for every resolution. The always-on screen is not affected: it stays at its own
+  size, 54 at the reference, the one its burn-in protection was measured at. A change applies at once,
+  and reloads the time font only -- the rain is sized from its own font and does not move.
 
 ## Editions
 
@@ -71,8 +82,8 @@ Matrix Time comes in two editions, built from this one source tree:
   2026-09-24: it gets defect fixes only, and new features go to Premium.
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
-  It carries no feature of its own yet and is not published; until the first Premium feature lands it
-  is Lite under the name `MatrixTime Premium`.
+  It is not published yet. Its one feature so far is a choice of time size; see
+  [Premium settings](#premium-settings).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
 has goes in `premium/`: code in `premium/source/`, resources for every product in
@@ -129,6 +140,40 @@ The table below lists all font sizes provided for the supported screen resolutio
 |  448 x 486 | rectangle | Matrix     | MatrixCodeNFI    |   29 |
 |  448 x 486 | rectangle | Time       | SUSEMono regular |   29 |
 |  448 x 486 | rectangle | Time large | SUSEMono regular |   58 |
+
+The Premium time sizes add two fonts to these. Small and Large, of the
+[time size setting](#premium-settings), are Lite's Time and Time large; Medium and Extra large are
+Premium's own, configured in `premium/resources/fonts/` and generated into `premium/resources-<family>/`
+by `garmin-font-scaler --project-dir premium`, from the same reference resolution. The table is a copy of
+[`premium/fonts.md`](premium/fonts.md), which the scaler writes.
+
+| Resolution |   Shape   |     Element      |       Font       | Size |
+| ---------: | :-------- | :--------------- | :--------------- | ---: |
+|  320 x 360 | rectangle | Time extra large | SUSEMono regular |   52 |
+|  320 x 360 | rectangle | Time medium      | SUSEMono regular |   31 |
+|  360 x 360 | round     | Time extra large | SUSEMono regular |   59 |
+|  360 x 360 | round     | Time medium      | SUSEMono regular |   35 |
+|  390 x 390 | round     | Time extra large | SUSEMono regular |   64 |
+|  390 x 390 | round     | Time medium      | SUSEMono regular |   38 |
+|  416 x 416 | round     | Time extra large | SUSEMono regular |   68 |
+|  416 x 416 | round     | Time medium      | SUSEMono regular |   40 |
+|  454 x 454 | round     | Time extra large | SUSEMono regular |   74 |
+|  454 x 454 | round     | Time medium      | SUSEMono regular |   44 |
+|  466 x 466 | round     | Time extra large | SUSEMono regular |   76 |
+|  466 x 466 | round     | Time medium      | SUSEMono regular |   45 |
+|  448 x 486 | rectangle | Time extra large | SUSEMono regular |   73 |
+|  448 x 486 | rectangle | Time medium      | SUSEMono regular |   43 |
+
+To regenerate them, from the repository root:
+
+```bash
+garmin-font-scaler --project-dir premium
+garmin-font-scaler --project-dir premium --table fonts.md    # writes premium/fonts.md
+```
+
+The scaler writes under `--project-dir` whatever `--resources-dir` says, which is why Premium's fonts are
+generated with `--project-dir premium` and not by pointing the scaler at Premium's configuration from the
+root: that overwrites Lite's generated `fonts.xml` in every family directory.
 
 ## Launcher icon
 
@@ -520,7 +565,9 @@ there is no GUI to drive and no macOS screen-recording permission to grant. See
 and with the bitmaps on disk, that the rain charset is the same string in `source/Matrix.mc`,
 `resources/fonts/charsets.json` and `tools/make-launcher-icons.py`, that the base fonts are byte-identical
 to the generated reference-resolution ones, and that the size tables in this file and in `fonts.md` are
-what the scaler produced. `check-icons` does the same for the launcher icons and their per-product mapping
+what the scaler produced. It checks Premium's fonts the same way, against `premium/resources/fonts/`
+and `premium/fonts.md`, and also that Premium's `resolutions.json` is Lite's, that `premium.jungle` adds
+the Premium font directory for every family, and that the four time sizes grow at every resolution. `check-icons` does the same for the launcher icons and their per-product mapping
 in `monkey.jungle`; see [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
@@ -558,10 +605,17 @@ differences inside a shared file take a `(:premium)` or `(:lite)` annotation ins
 Premium-only file belongs in `premium/` rather than in `source/` under an annotation, because a file on
 Lite's path costs Lite bytes even when every declaration in it is excluded.
 
-`premium/resources/` is deliberately on no resource path. It is where the configuration for
-`garmin-font-scaler` goes once Premium has fonts of its own -- run the scaler with
+`premium/resources/` is deliberately on no resource path. It holds the configuration for
+`garmin-font-scaler` that Premium's fonts are generated from -- the scaler is run with
 `--project-dir premium`, which writes to `premium/resources-<family>/` and leaves Lite's font directories
 alone -- and its `fonts.xml` declares the same `jsonData` ids Lite's does, so compiling it would collide.
+Its typeface is a symlink to Lite's, so there is one copy in LFS, not two.
+
+Premium's settings are resources in `premium/resources-base/`: `settings/settings.xml`, and a
+`properties/properties.xml` that joins Lite's property table rather than replacing it, so the schema
+marker Lite depends on is still there. Code that reads a setting is Premium-only and lives in
+`premium/source/`; what a shared file needs to react to it is annotated `(:premium)`, with a `(:lite)`
+twin where Lite must keep its own version, as `App.getInitialView` does.
 
 Three checks keep the editions honest:
 
@@ -599,17 +653,22 @@ scratch bitmap for every index the ring can produce.
 `EditionTest`, in `source/tests/` and `premium/source/tests/`, checks that each edition carries its own
 name and none of the other's code; see [Editions in the build](#editions-in-the-build).
 
-`PropertyUtilsTest` covers `source/utils/PropertyUtils.mc`, whose one function nothing calls yet. What
+`PropertyUtilsTest` covers `source/utils/PropertyUtils.mc`, whose one function Lite never calls. What
 it really checks is the resource: `resources/properties/properties.xml` declares one property, and that
 declaration is what lets `Properties.getValue` fall back to the default on an unknown key instead of
 taking the app down with an error no `catch` clause sees (#91, #93). Remove the resource, or empty it
 out, and both tests report an error rather than a failure.
 
+`TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
+property joins Lite's table instead of replacing it, that each of the four sizes is kept and anything
+else, of any type, falls back to Small, that a settings change reaches the font the face draws, that Large reuses the always-on font instead of loading it twice, and that
+the four fonts really do grow in height on the product under test.
+
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
-build; `make check-lite` depends on that. The three test classes carry the annotation themselves, which drops their bodies too and leaves 240 bytes
-of class shell in the `.prg` -- 0.22% of it, and nothing at all in the memory budget, since none of the
-three is ever instantiated.
+build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
+leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
+since none of them is ever instantiated. Premium adds a fourth, `TimeSizeTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
