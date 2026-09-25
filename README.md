@@ -65,7 +65,7 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds a settings screen, in Connect IQ and on the watch, with one setting:
+Premium adds a settings screen, in Connect IQ and on the watch, with two settings:
 
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
   Small is the size Lite draws, and is the default, so Premium looks like Lite until the setting is
@@ -73,6 +73,12 @@ Premium adds a settings screen, in Connect IQ and on the watch, with one setting
   [Fonts](#fonts) for every resolution. The always-on screen is not affected: it stays at its own
   size, 54 at the reference, the one its burn-in protection was measured at. A change applies at once,
   and reloads the time font only -- the rain is sized from its own font and does not move.
+* **Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
+  fades to black. 50% is the length Lite draws, and is the default. Being a share of the screen height
+  rather than a count of glyphs, a setting looks the same on every resolution. It is also a battery
+  control: the face only draws the lit part of each trail, so 25% draws about half the glyphs of 50%
+  each frame, and 75% about half again as many. A change applies from the next frame without
+  restarting the rain.
 
 ## Editions
 
@@ -689,11 +695,17 @@ property joins Lite's table instead of replacing it, that each of the four sizes
 else, of any type, falls back to Small, that a settings change reaches the font the face draws, that Large reuses the always-on font instead of loading it twice, and that
 the four fonts really do grow in height on the product under test.
 
+`TrailLengthTest`, also in `premium/source/tests/`, covers the trail length setting: that the property
+is declared, that each offered length is kept and anything that is not a percentage strictly between 0
+and 100 falls back to 50%, that 50% is exactly Lite's half screen on every ring, that a trail always
+keeps at least one lit row and, on any ring of two rows or more, one black one, and that a settings
+change reaches the ramp a falling rain draws.
+
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds a fourth, `TimeSizeTest`.
+since none of them is ever instantiated. Premium adds two, `TimeSizeTest` and `TrailLengthTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
