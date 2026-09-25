@@ -129,15 +129,21 @@ class TrailLengthTest {
         Test.assertMessage(bitmap != null, "the simulator would not allocate a scratch bitmap");
         rain.forTime(Time.now()).draw((bitmap as Graphics.BufferedBitmap).getDc());
 
+        // Restored in finally, so a throw part way round cannot leave a length behind in
+        // the simulator's settings file.
         var counts = [0, 0, 0];
         var offered = [25, 50, 75];
-        for (var i = 0; i < offered.size(); ++i) {
-            Properties.setValue(TrailLength.PROPERTY, offered[i] as Number);
+        try {
+            for (var i = 0; i < offered.size(); ++i) {
+                Properties.setValue(TrailLength.PROPERTY, offered[i] as Number);
+                app.onSettingsChanged();
+                counts[i] = lit(rain.shades());
+            }
+        } finally {
+            Properties.setValue(TrailLength.PROPERTY, saved as Number);
             app.onSettingsChanged();
-            counts[i] = lit(rain.shades());
         }
 
-        Properties.setValue(TrailLength.PROPERTY, saved as Number);
         logger.debug("lit bands at 25/50/75%: " + counts);
         var rows = rain.shades().size();
         for (var i = 0; i < offered.size(); ++i) {

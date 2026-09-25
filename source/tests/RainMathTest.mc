@@ -76,8 +76,10 @@ class RainMathTest {
     static function theRampFadesAndThenStaysBlack(logger as Test.Logger) as Boolean {
         // #8: the ramp fades to black over `steps` rows, and _drawTrails skips the black
         // tail rather than drawing it. Checked per channel, because the packed values
-        // are only monotonic if each channel is. The fractions are Premium's trail
-        // lengths, a quarter, half and three quarters of the ring (#53); half is Lite's.
+        // are only monotonic if each channel is. A quarter, half and three quarters of
+        // the ring, the lengths Premium's setting offers (#53); half is Lite's. The
+        // truncating percentage is written out here because this suite is shared and
+        // TrailLength is Premium's: TrailLengthTest checks TrailLength.steps itself.
         var rowCounts = [17, 19, 21, 27, 31];
         var percents = [25, 50, 75];
         for (var n = 0; n < rowCounts.size(); ++n) {

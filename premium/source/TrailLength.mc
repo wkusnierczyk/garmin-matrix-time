@@ -38,6 +38,8 @@ module TrailLength {
     // The ramp's steps for a ring of rowCount rows: the percentage of it, truncating, so
     // 50 is exactly Lite's rowCount / 2. Kept inside [1, rowCount - 1], for a short ring
     // where a small percentage would round to no trail at all, or a large one to all of it.
+    // A one-row ring has room for only the lit row, and gets 1; no supported screen has
+    // fewer than 17.
     function steps(percent as Number, rowCount as Number) as Number {
         var steps = rowCount * percent / 100;
         if (steps > rowCount - 1) {

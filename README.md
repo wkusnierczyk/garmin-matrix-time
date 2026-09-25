@@ -690,15 +690,16 @@ declaration is what lets `Properties.getValue` fall back to the default on an un
 taking the app down with an error no `catch` clause sees (#91, #93). Remove the resource, or empty it
 out, and both tests report an error rather than a failure.
 
-`TrailLengthTest`, also Premium's, covers the trail length setting: that the property is declared,
-that each offered length is kept and anything that is not a percentage strictly between 0 and 100
-falls back to 50%, that 50% is exactly Lite's half screen on every ring, that a trail always keeps at
-least one lit row and one black one, and that a settings change reaches the ramp a falling rain draws.
-
 `TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
 property joins Lite's table instead of replacing it, that each of the four sizes is kept and anything
 else, of any type, falls back to Small, that a settings change reaches the font the face draws, that Large reuses the always-on font instead of loading it twice, and that
 the four fonts really do grow in height on the product under test.
+
+`TrailLengthTest`, also in `premium/source/tests/`, covers the trail length setting: that the property
+is declared, that each offered length is kept and anything that is not a percentage strictly between 0
+and 100 falls back to 50%, that 50% is exactly Lite's half screen on every ring, that a trail always
+keeps at least one lit row and, on any ring of two rows or more, one black one, and that a settings
+change reaches the ramp a falling rain draws.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release

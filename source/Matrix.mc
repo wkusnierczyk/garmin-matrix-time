@@ -152,7 +152,7 @@ class DigitalRain {
     // is not known until the first Dc: applySettings runs before it at start-up, and
     // _initialize then builds the ramp from whatever this holds. 50 is Lite's half screen.
     (:premium)
-    private var _trailPercent as Number = 50;
+    private var _trailPercent as Number = TrailLength.DEFAULT;
 
     // Called at start-up and whenever the settings change. Only the ramp moves -- the grid,
     // the glyphs and the heads are untouched -- so a change takes effect on the next frame
