@@ -637,6 +637,31 @@ Three checks keep the editions honest:
 `make check-lite` cannot see a `(:premium)` declaration leaking out of a shared file, since the copy
 has the same file and the same `lite.jungle`; that is the unit tests' job.
 
+### `premium-dev`
+
+Premium features are built on `premium-dev`, an integration branch that lives until the first Premium
+release. `main` stays exactly what ships Lite in the meantime, with no half-finished Premium work on it.
+
+* **Features** branch off `premium-dev`, one issue per branch as everywhere else, and are squash-merged
+  back into it through a pull request.
+* **Lite work**, which is shared work, still lands on `main`, and reaches `premium-dev` as a merge:
+
+  ```bash
+  git switch premium-dev
+  git merge main
+  git push
+  ```
+
+  Merge, never rebase. `premium-dev` is pushed and shared, and a ruleset blocks force-pushes and
+  deletion on it. Nor is the sync a squash-merged pull request: a squash does not record `main` as
+  merged, so every later sync would apply the same changes again. CI runs on pushes to `premium-dev`
+  for exactly this push.
+* **At the first Premium release**, `premium-dev` lands on `main` through one pull request, merged with
+  "Rebase and merge", which is switched on in the repository settings for that pull request alone. Each
+  feature then stays a commit of its own on `main` and the history stays linear; the sync merges drop
+  out, since their content is on `main` already. Rehearse the rebase locally before relying on it. Then
+  delete the branch and its ruleset, and take `premium-dev` out of `build.yml`'s push trigger.
+
 ### Unit tests
 
 `make test` compiles a unit-test binary, loads it into the simulator and reports the result. The suite
@@ -727,7 +752,7 @@ For the manual route, or for sideloading from another platform, see
 
 ### Continuous integration
 
-Every push to `main` and every pull request runs
+Every push to `main` or to [`premium-dev`](#premium-dev), and every pull request, runs
 [`.github/workflows/build.yml`](.github/workflows/build.yml), which does three things:
 
 | Job | What it proves |
