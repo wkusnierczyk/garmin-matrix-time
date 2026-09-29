@@ -514,6 +514,34 @@ ok(not proportional and examined == want_examined and time_glyphs,
    f"with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
    + (f" (not {proportional[:3]})" if proportional else ""))
 
+# Premium's time alignment (#154) keeps the box drawText fills on the glass, and relies on
+# no pixel of a digit falling outside that box: every glyph of a Premium time font has to
+# be a cell at offset 0, as wide as its advance and as tall as the line. ttf2bmp writes
+# them that way; a generator that trimmed glyphs to their ink, or let one overhang, would
+# put pixels where TimeAlign's margin does not look. Checked in every family, with every
+# font expected found and read, as above.
+overhang, examined = [], 0
+for w, h, shape in targets:
+    fam = f"{shape}-{w}x{h}"
+    d = f'premium/resources-{fam}/fonts'
+    xml = f'{d}/fonts.xml'
+    declared = dict(FONT_RE.findall(open(xml).read())) if os.path.exists(xml) else {}
+    for fid in time_ids['premium']:
+        fn = declared.get(fid)
+        if not fn or not os.path.exists(f'{d}/{fn}'):
+            overhang.append((d, fid, 'missing')); continue
+        common, glyphs = fnt_metrics(f'{d}/{fn}')
+        for cid, g in glyphs.items():
+            if (g['xoffset'], g['yoffset']) != ('0', '0') or g['width'] != g['xadvance'] \
+                    or g['height'] != common['lineHeight']:
+                overhang.append((d, fid, chr(int(cid)), g))
+        examined += 1
+want_examined = len(targets) * len(time_ids['premium'])
+ok(not overhang and examined == want_examined,
+   f"every Premium time glyph is its whole cell, advance wide and line high, so no digit "
+   f"leaves the aligned box, in all {len(targets)} families ({examined} of {want_examined} fonts)"
+   + (f" (not {overhang[:3]})" if overhang else ""))
+
 # Premium's size table is generated like Lite's -- garmin-font-scaler --project-dir
 # premium --table fonts.md writes premium/fonts.md -- and the README copies it.
 pfonts_md = open('premium/fonts.md').read()

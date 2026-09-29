@@ -28,4 +28,9 @@
     <property id="timeColor" type="number">0</property>
     <property id="rainColor" type="number">0</property>
 
+    <!-- timeAlign is the woken time at the left, centre or right of the screen, an index
+         read by TimeAlign (#154). 1, centre, is Lite's alignment, and the fallback in
+         TimeAlign.alignOf. The always-on time stays centred whatever this holds. -->
+    <property id="timeAlign" type="number">1</property>
+
 </properties>
