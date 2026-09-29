@@ -91,16 +91,18 @@ class View extends WatchUi.WatchFace {
         return true;
     }
 
-    // Premium's settings, applied at start-up and on every change (#32, #53, #143).
+    // Premium's settings, applied at start-up and on every change (#32, #53, #143, #154).
+    // applyTimeAlign follows reloadTimeFont, since the margin depends on the font.
     (:premium)
     function applySettings() as Void {
         _digitalRain.reloadTimeFont();
+        _digitalRain.applyTimeAlign();
         _digitalRain.applyTrailLength();
         _digitalRain.applyColors();
     }
 
-    // For TimeSizeTest, TrailLengthTest, TimeStyleTest, TimeColorTest, RainColorTest and
-    // LowPowerFontTest only; (:debug) for the reason DigitalRain.timeFont gives.
+    // For TimeSizeTest, TrailLengthTest, TimeStyleTest, TimeColorTest, RainColorTest,
+    // TimeAlignTest and LowPowerFontTest only; (:debug) for the reason DigitalRain.timeFont gives.
     (:debug :premium)
     function digitalRain() as DigitalRain {
         return _digitalRain;

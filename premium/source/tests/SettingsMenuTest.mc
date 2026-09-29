@@ -37,6 +37,7 @@ class SettingsMenuTest {
                     : property.equals(TrailLength.PROPERTY) ? TrailLength.percentOf(value)
                     : property.equals(TimeColor.PROPERTY) ? TimeColor.indexOf(value)
                     : property.equals(RainColor.PROPERTY) ? RainColor.indexOf(value)
+                    : property.equals(TimeAlign.PROPERTY) ? TimeAlign.alignOf(value)
                     : TimeStyle.styleOf(value);
                 Test.assertEqualMessage(kept, value, property + " keeps the offered " + value);
             }
@@ -55,6 +56,9 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.labelOf(TrailLength.PROPERTY, 75), "75% of the screen");
         Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.FILLED), "Filled");
         Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.HOLLOW), "Hollow (Large and Extra large)");
+        Test.assertEqual(SettingsMenu.labelOf(TimeAlign.PROPERTY, TimeAlign.LEFT), "Left");
+        Test.assertEqual(SettingsMenu.labelOf(TimeAlign.PROPERTY, TimeAlign.CENTER), "Centre");
+        Test.assertEqual(SettingsMenu.labelOf(TimeAlign.PROPERTY, TimeAlign.RIGHT), "Right");
         Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, TimeColor.GREEN), "Green");
         Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, 4), "Orange");
         Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, RainColor.GREEN), "Green");
@@ -73,6 +77,11 @@ class SettingsMenuTest {
         var styles = SettingsMenu.valuesOf(TimeStyle.PROPERTY);
         Test.assertEqual(SettingsMenu.next(styles, TimeStyle.FILLED), TimeStyle.HOLLOW);
         Test.assertEqual(SettingsMenu.next(styles, TimeStyle.HOLLOW), TimeStyle.FILLED);
+
+        var aligns = SettingsMenu.valuesOf(TimeAlign.PROPERTY);
+        Test.assertEqual(SettingsMenu.next(aligns, TimeAlign.LEFT), TimeAlign.CENTER);
+        Test.assertEqual(SettingsMenu.next(aligns, TimeAlign.CENTER), TimeAlign.RIGHT);
+        Test.assertEqual(SettingsMenu.next(aligns, TimeAlign.RIGHT), TimeAlign.LEFT);
         return true;
     }
 

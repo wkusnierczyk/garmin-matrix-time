@@ -34,6 +34,10 @@ each change is recorded in full.
   or red, and the always-on time follows it, dimmed. The rain can be green, cyan, blue, amber, red or
   white, or change hue as it fades: white to green, a white-hot head cooling to green, or green to
   teal. Green, Lite's look, is the default for both. (#143)
+* **Premium: a choice of time alignment.** The time can sit at the left, centre or right of the woken
+  screen. Centre, Lite's look, is the default. The margin follows the screen's curve and the time
+  size, so no digit is cut off by a round screen's edge, and the time keeps its fixed width, so it
+  never moves as the hour changes. The always-on time stays centred. (#154)
 * **Premium: a larger always-on time.** The always-on screen draws the time at the Extra large size as
   an outline, whatever the settings for the woken screen. It is bigger than before, lights about as
   few pixels as Lite's smaller solid time, and stays well inside the burn-in limits on every

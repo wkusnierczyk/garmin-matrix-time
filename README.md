@@ -65,7 +65,7 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds five settings. They can be changed in the Connect IQ app, and on the watch from the
+Premium adds six settings. They can be changed in the Connect IQ app, and on the watch from the
 face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
 the next value. The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
@@ -90,6 +90,16 @@ there the watch is the only way to change them.
   chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with the screen, like the
   font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is drawn hollow at Extra
   large whichever style is chosen here.
+* **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre is
+  where Lite draws it, and is the default. At the left or right the time keeps its fixed width of five
+  characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a left-aligned
+  time therefore starts one blank character in from its margin. The margin is not fixed: it is worked
+  out from the screen's curve at the top and bottom of the time, plus half a character, so no digit
+  is cut off by a round screen's edge at any time size, and the black box behind a filled time stays
+  on the glass too. At the 416x416 reference that puts the time 9 pixels in at Small and 26 at Extra
+  large. A rectangular screen gets the same margin as the circle that fits it, so the time sits the
+  same way on every shape. The always-on screen is not affected: it stays centred, so its burn-in
+  figures above hold.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at two thirds of its
   brightness, as Lite's always-on green is two thirds of its woken green. The burn-in protector counts
@@ -114,7 +124,7 @@ Matrix Time comes in two editions, built from this one source tree:
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
   It is not published yet. Its features so far are its settings -- time size, trail length, time
-  style, and time and rain colours, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
+  style, time alignment, and time and rain colours, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
   than Regular, see [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
@@ -650,7 +660,9 @@ the Premium font directory for every family, that the four time sizes grow at ev
 that the only Lite font ids Premium repeats are the two it redraws in ExtraBold, `Time` and
 `TimeLarge`, at Lite's sizes. It also checks that every time font, Lite's and Premium's, holds the full
 time charset, digits, space and colon, with one advance in every family, since the fixed-width time
-depends on it.
+depends on it, and that every glyph of a Premium time font fills its whole cell, as wide as its
+advance and as tall as the line, since the time alignment setting keeps that box on the glass and
+counts on no digit reaching outside it.
 For the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
 family, that the size tables give the same strokes and label exactly those fonts hollow, that no
 generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled twin's
@@ -811,6 +823,15 @@ box at hollow Large and Extra large only, and that the style never changes the s
 one value `reloadTimeFont` both loads the font from and drops the box by; which of two fonts of the same
 size was loaded cannot itself be observed from a test.
 
+`TimeAlignTest`, also in `premium/source/tests/`, covers the time alignment setting: that the property
+is declared, that anything but Left, Centre or Right falls back to Centre, the margin against values
+worked by hand, that the box every time font fills stays on the glass at the left and the right and
+keeps a gap from the edge, that a settings change reaches the `drawText` the woken time is drawn
+with, and that the always-on time stays centred under every alignment. The last two draw a frame into
+`RecordingDc`, a stand-in for the screen's `Dc` that records where the time was drawn. CI runs the suite
+on one product; the margin was checked on one product per supported resolution when the setting
+landed.
+
 `SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that every
 value it offers has a label and is kept as it is by the setting it belongs to, so the menu can never
 write a value the face would ignore, that each value is shown with its own label, that the open menu
@@ -822,8 +843,9 @@ Run No Evil strips every `(:test)` function from ordinary builds, so none of thi
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds six, `TimeSizeTest`, `TrailLengthTest`,
-`TimeColorTest`, `RainColorTest`, `TimeStyleTest` and `SettingsMenuTest`.
+since none of them is ever instantiated. Premium adds nine, `TimeSizeTest`, `LowPowerFontTest`,
+`TrailLengthTest`, `TimeColorTest`, `RainColorTest`, `TimeStyleTest`, `TimeAlignTest`, `RecordingDc`
+and `SettingsMenuTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
