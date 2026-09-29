@@ -30,6 +30,20 @@ class SettingsMenuTest {
     }
 
 
+    // Against the strings themselves, so a labelsOf out of step with valuesOf fails here
+    // rather than passing the size check above.
+    (:test)
+    static function eachValueIsShownWithItsOwnLabel(logger as Test.Logger) as Boolean {
+        Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.SMALL), "Small");
+        Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.EXTRA_LARGE), "Extra large");
+        Test.assertEqual(SettingsMenu.labelOf(TrailLength.PROPERTY, 25), "25% of the screen");
+        Test.assertEqual(SettingsMenu.labelOf(TrailLength.PROPERTY, 75), "75% of the screen");
+        Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.FILLED), "Filled");
+        Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.HOLLOW), "Hollow (Large and Extra large)");
+        return true;
+    }
+
+
     (:test)
     static function selectingStepsToTheNextValueAndWraps(logger as Test.Logger) as Boolean {
         var sizes = SettingsMenu.valuesOf(TimeSize.PROPERTY);

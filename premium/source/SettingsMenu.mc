@@ -13,8 +13,10 @@ import Toybox.Lang;
 // phone and the watch read and write the same properties, so the two stay in step.
 //
 // The values and labels below are settings.xml's listEntry lists, in the same order. Keep
-// them together: a value added there and not here can be picked on the phone and is then
-// shown here by its number, but never offered.
+// them together: a value added there and not here can be picked on the phone but is never
+// offered here, and is shown here as whatever the face makes of it -- by its number for a
+// trail length, which TrailLength keeps, and as the default for a size or style, which
+// TimeSize and TimeStyle clamp.
 module SettingsMenu {
 
     // The settings, in the order the menu lists them and settings.xml declares them.

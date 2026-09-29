@@ -654,9 +654,10 @@ Its typeface is a symlink to Lite's, so there is one copy in LFS, not two.
 Premium's settings are resources in `premium/resources-base/`: `settings/settings.xml`, and a
 `properties/properties.xml` that joins Lite's property table rather than replacing it, so the schema
 marker Lite depends on is still there. Code that reads a setting is Premium-only and lives in
-`premium/source/`, and so does `SettingsMenu`, the watch's menu for the same settings, which
-`App.getSettingsView` returns; what a shared file needs to react to it is annotated `(:premium)`, with a `(:lite)`
-twin where Lite must keep its own version, as `App.getInitialView` does.
+`premium/source/`. So does the watch's menu for the same settings, in `SettingsMenu.mc`:
+`App.getSettingsView` returns its `SettingsMenuView` and `SettingsMenuDelegate`. What a shared file
+needs to react to a setting is annotated `(:premium)`, with a `(:lite)` twin where Lite must keep its
+own version, as `App.getInitialView` does.
 
 Three checks keep the editions honest:
 
@@ -746,15 +747,16 @@ size was loaded cannot itself be observed from a test.
 
 `SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that every
 value it offers has a label and is kept as it is by the setting it belongs to, so the menu can never
-write a value the face would ignore, that selecting steps to the next value and wraps, and that a trail
-length the list does not offer steps to the next offered one.
+write a value the face would ignore, that each value is shown with its own label, that selecting steps
+to the next value and wraps, and that a trail length the list does not offer steps to the next offered
+one.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds three, `TimeSizeTest`, `TrailLengthTest` and
-`TimeStyleTest`.
+since none of them is ever instantiated. Premium adds four, `TimeSizeTest`, `TrailLengthTest`,
+`TimeStyleTest` and `SettingsMenuTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
