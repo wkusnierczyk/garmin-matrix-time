@@ -1,9 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
     <fonts>
-        <font id="TimeMedium" filename="SUSEMono-Regular-31.fnt" antialias="true" />
-        <font id="TimeExtraLarge" filename="SUSEMono-Regular-52.fnt" antialias="true" />
-        <font id="TimeLargeHollow" filename="SUSEMono-Regular-42-stroke0p92.fnt" antialias="true" />
-        <font id="TimeExtraLargeHollow" filename="SUSEMono-Regular-52-stroke0p92.fnt" antialias="true" />
+        <font id="Time" filename="SUSEMono-ExtraBold-21.fnt" antialias="true" />
+        <font id="TimeMedium" filename="SUSEMono-ExtraBold-31.fnt" antialias="true" />
+        <font id="TimeLarge" filename="SUSEMono-ExtraBold-42.fnt" antialias="true" />
+        <font id="TimeExtraLarge" filename="SUSEMono-ExtraBold-52.fnt" antialias="true" />
+        <font id="TimeLargeHollow" filename="SUSEMono-ExtraBold-42-stroke0p92.fnt" antialias="true" />
+        <font id="TimeExtraLargeHollow" filename="SUSEMono-ExtraBold-52-stroke0p92.fnt" antialias="true" />
     </fonts>
 </resources>

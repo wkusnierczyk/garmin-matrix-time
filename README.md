@@ -50,7 +50,7 @@ The rain glyphs sit on a fixed grid rather than being set as text. Matrix Code N
 The rain is laid out on a rectangular grid, so on a round watch the corners of that grid fall off the glass and are never drawn. A cell is kept when the cell itself overlaps the visible disc, not merely when its centre does, so the rain reaches the rim at every round resolution instead of stopping a cell short of it.
 
 **Always-on display**  
-Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, drawn at twice the size used on the woken screen, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Raising the wrist wakes the watch face and brings the rain back.
+Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, drawn at twice the size used on the woken screen, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. That holds for Premium's heavier ExtraBold time too: simulated over a full day in both clock modes, on every supported resolution, it lights at most 2.03% of the screen (Lite's Regular: 1.40%), and no pixel for three minutes running. Raising the wrist wakes the watch face and brings the rain back.
 
 ## Features
 
@@ -72,8 +72,8 @@ installed with `make sideload` rather than from the store has no settings in the
 there the watch is the only way to change them.
 
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
-  Small is the size Lite draws, and is the default, so Premium looks like Lite until the setting is
-  changed. At the 416x416 reference the four are 27, 40, 54 and 68; see
+  Small is the size Lite draws, and is the default. Premium draws every size in SUSEMono ExtraBold,
+  a heavier weight of Lite's typeface. At the 416x416 reference the four are 27, 40, 54 and 68; see
   [Fonts](#fonts) for every resolution. The always-on screen is not affected: it stays at its own
   size, 54 at the reference, the one its burn-in protection was measured at. A change applies at once,
   and reloads the time font only -- the rain is sized from its own font and does not move.
@@ -98,8 +98,9 @@ Matrix Time comes in two editions, built from this one source tree:
   2026-09-24: it gets defect fixes only, and new features go to Premium.
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
-  It is not published yet. Its features so far are its settings: time size, trail length and time
-  style; see [Premium settings](#premium-settings).
+  It is not published yet. Its features so far are its settings -- time size, trail length and time
+  style, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
+  than Regular, see [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
 has goes in `premium/`: code in `premium/source/`, resources for every product in
@@ -113,7 +114,8 @@ to build each, and for what keeps Premium out of Lite.
 The Matrix Time watch face uses custom fonts:
 
 * [Norfok Matrix Code NFI](https://www.norfok.com) for the digital raing glyphs.
-* [SUSEMono Regular](https://fonts.google.com/specimen/SUSE+Mono) for the current time, at two sizes: the smaller one on the woken screen, and one twice as large on the always-on screen, where the time is all that is drawn and legibility matters most.
+* [SUSEMono Regular](https://fonts.google.com/specimen/SUSE+Mono) for the current time in Lite, at two sizes: the smaller one on the woken screen, and one twice as large on the always-on screen, where the time is all that is drawn and legibility matters most.
+* SUSEMono ExtraBold, a static weight-800 instance of the same [variable font](https://fonts.google.com/specimen/SUSE+Mono) under the same SIL Open Font License, for the current time in Premium, at every size; see the Premium table below.
 
 > The development of Garmin watch faces motivated the implementation of two useful tools:
 > * A TTF to FNT+PNG converter ([`ttf2bmp`](https://github.com/wkusnierczyk/ttf2bmp)).  
@@ -157,45 +159,70 @@ The table below lists all font sizes provided for the supported screen resolutio
 |  448 x 486 | rectangle | Time       | SUSEMono regular |   29 |
 |  448 x 486 | rectangle | Time large | SUSEMono regular |   58 |
 
-The Premium time sizes add four fonts to these. Small and Large, of the
-[time size setting](#premium-settings), are Lite's Time and Time large; Medium and Extra large are
-Premium's own. The other two are the hollow time of the [time style setting](#premium-settings): Large
-and Extra large again, drawn as an outline. Their stroke is 1.2 pixels at the reference, scaled per
-resolution like the size, which is the Stroke column. All four are configured in
-`premium/resources/fonts/` and generated into `premium/resources-<family>/` by
-`garmin-font-scaler --project-dir premium`, from the same reference resolution. The table is a copy of
-[`premium/fonts.md`](premium/fonts.md), which the scaler writes.
+The Premium time sizes are all drawn in **SUSEMono ExtraBold**, weight 800, where Lite draws
+Regular: on the woken screen and the always-on one, filled and hollow. It is the same typeface in a
+heavier weight, and just as monospace, so the time is still five equal cells wide at every hour. The
+weight is a static instance of the variable font Google Fonts publishes, made with
+[`fonttools`](https://github.com/fonttools/fonttools):
 
-| Resolution |   Shape   |         Element         |           Font           | Size | Stroke |
-| ---------: | :-------- | :---------------------- | :----------------------- | ---: | -----: |
-|  320 x 360 | rectangle | Time extra large        | SUSEMono regular         |   52 |        |
-|  320 x 360 | rectangle | Time extra large hollow | SUSEMono regular, hollow |   52 |   0.92 |
-|  320 x 360 | rectangle | Time large hollow       | SUSEMono regular, hollow |   42 |   0.92 |
-|  320 x 360 | rectangle | Time medium             | SUSEMono regular         |   31 |        |
-|  360 x 360 | round     | Time extra large        | SUSEMono regular         |   59 |        |
-|  360 x 360 | round     | Time extra large hollow | SUSEMono regular, hollow |   59 |   1.04 |
-|  360 x 360 | round     | Time large hollow       | SUSEMono regular, hollow |   47 |   1.04 |
-|  360 x 360 | round     | Time medium             | SUSEMono regular         |   35 |        |
-|  390 x 390 | round     | Time extra large        | SUSEMono regular         |   64 |        |
-|  390 x 390 | round     | Time extra large hollow | SUSEMono regular, hollow |   64 |   1.12 |
-|  390 x 390 | round     | Time large hollow       | SUSEMono regular, hollow |   51 |   1.12 |
-|  390 x 390 | round     | Time medium             | SUSEMono regular         |   38 |        |
-|  416 x 416 | round     | Time extra large        | SUSEMono regular         |   68 |        |
-|  416 x 416 | round     | Time extra large hollow | SUSEMono regular, hollow |   68 |    1.2 |
-|  416 x 416 | round     | Time large hollow       | SUSEMono regular, hollow |   54 |    1.2 |
-|  416 x 416 | round     | Time medium             | SUSEMono regular         |   40 |        |
-|  454 x 454 | round     | Time extra large        | SUSEMono regular         |   74 |        |
-|  454 x 454 | round     | Time extra large hollow | SUSEMono regular, hollow |   74 |   1.31 |
-|  454 x 454 | round     | Time large hollow       | SUSEMono regular, hollow |   59 |   1.31 |
-|  454 x 454 | round     | Time medium             | SUSEMono regular         |   44 |        |
-|  466 x 466 | round     | Time extra large        | SUSEMono regular         |   76 |        |
-|  466 x 466 | round     | Time extra large hollow | SUSEMono regular, hollow |   76 |   1.34 |
-|  466 x 466 | round     | Time large hollow       | SUSEMono regular, hollow |   60 |   1.34 |
-|  466 x 466 | round     | Time medium             | SUSEMono regular         |   45 |        |
-|  448 x 486 | rectangle | Time extra large        | SUSEMono regular         |   73 |        |
-|  448 x 486 | rectangle | Time extra large hollow | SUSEMono regular, hollow |   73 |   1.29 |
-|  448 x 486 | rectangle | Time large hollow       | SUSEMono regular, hollow |   58 |   1.29 |
-|  448 x 486 | rectangle | Time medium             | SUSEMono regular         |   43 |        |
+```bash
+fonttools varLib.instancer "SUSEMono[wght].ttf" wght=800 --update-name-table -o SUSEMono-ExtraBold.ttf
+```
+
+Premium's six time fonts are therefore all its own. Small and Large, of the [time size
+setting](#premium-settings), are Lite's Time and Time large at the same sizes and under the same ids,
+so Premium's bitmaps replace Lite's rather than joining them, and Lite's Regular bitmaps are not
+compiled into the Premium app. Medium and Extra large are the two sizes Lite does not have. The other
+two are the hollow time of the [time style setting](#premium-settings): Large and Extra large again,
+drawn as an outline. Their stroke is 1.2 pixels at the reference, scaled per resolution like the size,
+which is the Stroke column. All six are configured in `premium/resources/fonts/` and generated into
+`premium/resources-<family>/` by `garmin-font-scaler --project-dir premium`, from the same reference
+resolution. The table is a copy of [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
+
+| Resolution |   Shape   |         Element         |            Font            | Size | Stroke |
+| ---------: | :-------- | :---------------------- | :------------------------- | ---: | -----: |
+|  320 x 360 | rectangle | Time                    | SUSEMono extrabold         |   21 |        |
+|  320 x 360 | rectangle | Time extra large        | SUSEMono extrabold         |   52 |        |
+|  320 x 360 | rectangle | Time extra large hollow | SUSEMono extrabold, hollow |   52 |   0.92 |
+|  320 x 360 | rectangle | Time large              | SUSEMono extrabold         |   42 |        |
+|  320 x 360 | rectangle | Time large hollow       | SUSEMono extrabold, hollow |   42 |   0.92 |
+|  320 x 360 | rectangle | Time medium             | SUSEMono extrabold         |   31 |        |
+|  360 x 360 | round     | Time                    | SUSEMono extrabold         |   23 |        |
+|  360 x 360 | round     | Time extra large        | SUSEMono extrabold         |   59 |        |
+|  360 x 360 | round     | Time extra large hollow | SUSEMono extrabold, hollow |   59 |   1.04 |
+|  360 x 360 | round     | Time large              | SUSEMono extrabold         |   47 |        |
+|  360 x 360 | round     | Time large hollow       | SUSEMono extrabold, hollow |   47 |   1.04 |
+|  360 x 360 | round     | Time medium             | SUSEMono extrabold         |   35 |        |
+|  390 x 390 | round     | Time                    | SUSEMono extrabold         |   25 |        |
+|  390 x 390 | round     | Time extra large        | SUSEMono extrabold         |   64 |        |
+|  390 x 390 | round     | Time extra large hollow | SUSEMono extrabold, hollow |   64 |   1.12 |
+|  390 x 390 | round     | Time large              | SUSEMono extrabold         |   51 |        |
+|  390 x 390 | round     | Time large hollow       | SUSEMono extrabold, hollow |   51 |   1.12 |
+|  390 x 390 | round     | Time medium             | SUSEMono extrabold         |   38 |        |
+|  416 x 416 | round     | Time                    | SUSEMono extrabold         |   27 |        |
+|  416 x 416 | round     | Time extra large        | SUSEMono extrabold         |   68 |        |
+|  416 x 416 | round     | Time extra large hollow | SUSEMono extrabold, hollow |   68 |    1.2 |
+|  416 x 416 | round     | Time large              | SUSEMono extrabold         |   54 |        |
+|  416 x 416 | round     | Time large hollow       | SUSEMono extrabold, hollow |   54 |    1.2 |
+|  416 x 416 | round     | Time medium             | SUSEMono extrabold         |   40 |        |
+|  454 x 454 | round     | Time                    | SUSEMono extrabold         |   29 |        |
+|  454 x 454 | round     | Time extra large        | SUSEMono extrabold         |   74 |        |
+|  454 x 454 | round     | Time extra large hollow | SUSEMono extrabold, hollow |   74 |   1.31 |
+|  454 x 454 | round     | Time large              | SUSEMono extrabold         |   59 |        |
+|  454 x 454 | round     | Time large hollow       | SUSEMono extrabold, hollow |   59 |   1.31 |
+|  454 x 454 | round     | Time medium             | SUSEMono extrabold         |   44 |        |
+|  466 x 466 | round     | Time                    | SUSEMono extrabold         |   30 |        |
+|  466 x 466 | round     | Time extra large        | SUSEMono extrabold         |   76 |        |
+|  466 x 466 | round     | Time extra large hollow | SUSEMono extrabold, hollow |   76 |   1.34 |
+|  466 x 466 | round     | Time large              | SUSEMono extrabold         |   60 |        |
+|  466 x 466 | round     | Time large hollow       | SUSEMono extrabold, hollow |   60 |   1.34 |
+|  466 x 466 | round     | Time medium             | SUSEMono extrabold         |   45 |        |
+|  448 x 486 | rectangle | Time                    | SUSEMono extrabold         |   29 |        |
+|  448 x 486 | rectangle | Time extra large        | SUSEMono extrabold         |   73 |        |
+|  448 x 486 | rectangle | Time extra large hollow | SUSEMono extrabold, hollow |   73 |   1.29 |
+|  448 x 486 | rectangle | Time large              | SUSEMono extrabold         |   58 |        |
+|  448 x 486 | rectangle | Time large hollow       | SUSEMono extrabold, hollow |   58 |   1.29 |
+|  448 x 486 | rectangle | Time medium             | SUSEMono extrabold         |   43 |        |
 
 To regenerate them, from the repository root:
 
@@ -404,11 +431,12 @@ reference guide covers the extension in full; what follows is the part of it thi
 
 ### Git LFS
 
-Thirteen binaries in this repository are [Git LFS](https://git-lfs.com) objects: both source typefaces,
-`resources/fonts/MatrixCodeNFI.ttf` and `resources/fonts/SUSEMono-Regular.ttf`; the launcher icon
+Fourteen binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
+typefaces, `resources/fonts/MatrixCodeNFI.ttf`, `resources/fonts/SUSEMono-Regular.ttf` and Premium's
+`premium/resources/fonts/SUSEMono-ExtraBold.ttf`; the launcher icon
 fallback, `resources/drawables/launcher_icon.png`; and the ten hero and screenshot graphics under
 `resources/graphics/`. Everything else is stored normally, the generated bitmap fonts and the
-per-device launcher icons included -- they are build output of the two typefaces, small, and worth
+per-device launcher icons included -- they are build output of the typefaces, small, and worth
 diffing.
 
 `git lfs install` is once per machine, not once per repository, and wants doing before the clone:
@@ -603,7 +631,11 @@ and with the bitmaps on disk, that the rain charset is the same string in `sourc
 to the generated reference-resolution ones, and that the size tables in this file and in `fonts.md` are
 what the scaler produced. It checks Premium's fonts the same way, against `premium/resources/fonts/`
 and `premium/fonts.md`, and also that Premium's `resolutions.json` is Lite's, that `premium.jungle` adds
-the Premium font directory for every family, and that the four time sizes grow at every resolution.
+the Premium font directory for every family, that the four time sizes grow at every resolution, and
+that the only Lite font ids Premium repeats are the two it redraws in ExtraBold, `Time` and
+`TimeLarge`, at Lite's sizes. It also checks that every time font, Lite's and Premium's, holds the full
+time charset, digits, space and colon, with one advance in every family, since the fixed-width time
+depends on it.
 For the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
 family, that the size tables give the same strokes and label exactly those fonts hollow, that no
 generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled twin's

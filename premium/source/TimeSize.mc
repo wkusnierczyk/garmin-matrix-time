@@ -8,10 +8,11 @@ import Toybox.Lang;
 // The time size setting: which font the woken screen draws the time in (#32).
 //
 // S, M, L, XL are 27, 40, 54 and 68 at the 416x416 reference; garmin-font-scaler
-// derives every other resolution from those. S and L are Lite's Time and TimeLarge, so
-// only M and XL are Premium fonts, generated from premium/resources/fonts. The
-// always-on scene is not affected: it stays at TimeLarge, the size its burn-in jitter
-// and lit-pixel budget were measured at (#69).
+// derives every other resolution from those. S and L are Lite's Time and TimeLarge ids at
+// Lite's sizes; M and XL are Premium's own. All four are Premium fonts, generated from
+// premium/resources/fonts in SUSE Mono ExtraBold (#144), Time and TimeLarge overriding
+// Lite's Regular ones. The always-on scene is not affected: it stays at TimeLarge, the
+// size its burn-in jitter and lit-pixel budget were measured at (#69).
 //
 // The time font is independent of the rain (#50), so a change of size reloads one
 // font and nothing else -- the grid is derived from the Matrix font alone.

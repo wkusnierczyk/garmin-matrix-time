@@ -311,10 +311,11 @@ class RainMathTest {
 
     (:test)
     static function theClockIsAlwaysFiveCellsWide(logger as Test.Logger) as Boolean {
-        // #7. The hour is padded with %2d on purpose: SUSEMono-Regular is monospace, so
-        // the padding space is one digit cell wide and the centre-justified time never
-        // shifts as the hour crosses 9 -> 10 or between the two clock modes. %d would
-        // make it jump, which is why this is a test and not a comment.
+        // #7. The hour is padded with %2d on purpose: SUSEMono is monospace, in Lite's
+        // Regular and Premium's ExtraBold alike (#144), so the padding space is one digit
+        // cell wide and the centre-justified time never shifts as the hour crosses
+        // 9 -> 10 or between the two clock modes. %d would make it jump, which is why
+        // this is a test and not a comment.
         for (var hour = 0; hour < 24; ++hour) {
             Test.assertEqualMessage(RainMath.timeText(hour, 0, true).length(), 5,
                 "24-hour clock at " + hour + ":00");

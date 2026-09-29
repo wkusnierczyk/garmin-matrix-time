@@ -35,7 +35,9 @@ const
     // that remain after #19 are a subset of those thirteen, so the result still holds.
     // 16 is the largest round value below that, and halves as the font doubled -- at
     // the previous 32 the doubled glyphs would have had up to 31 permanently lit
-    // pixels (#69). The two jitter constants are read by RainMath.jitter; the colour is
+    // pixels (#69). Re-measured for Premium's heavier ExtraBold TimeLarge (#144) on the
+    // seven families shipped then: the threshold is the same for both weights, 20 or
+    // below leaving no such pixel and 21 the first to leave one, so 16 still clears. The two jitter constants are read by RainMath.jitter; the colour is
     // used below.
     LOW_POWER_TIME_COLOR = 0x00AA00,
     LOW_POWER_POSITIONS = 4,

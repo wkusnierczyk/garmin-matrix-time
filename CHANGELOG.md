@@ -24,6 +24,10 @@ each change is recorded in full.
   digits, with the black box behind it gone, so the rain falls through the digits. It applies to the
   Large and Extra large time sizes; Small and Medium stay solid. Filled, Lite's look, is the default.
   (#72)
+* **Premium: a bolder time.** Premium draws the time in SUSE Mono ExtraBold, the same typeface as
+  Lite at a heavier weight, at every size, filled and hollow, woken and always-on. The digits read
+  more strongly against the rain, and the outline of the hollow time has room to show it through. The
+  always-on screen stays well inside the burn-in limits on every supported watch. (#144)
 * **Premium: the settings on the watch.** The face's Customize menu lists all three settings with
   their current values, and selecting one steps to the next value. They were in the Connect IQ app
   only, which also left a sideloaded face with no way to change them. (#148)

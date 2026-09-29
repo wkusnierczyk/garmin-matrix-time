@@ -329,7 +329,13 @@ ok(bool(prose) and any('resolutions.json' in b for b in prose),
 # undefined symbol, or, where a monkeyc resource path is mistyped, not at all.
 print("\nPREMIUM")
 PDIR = 'premium/resources/fonts'
-PREMIUM_FONT_IDS = {'TimeMedium', 'TimeExtraLarge', 'TimeLargeHollow', 'TimeExtraLargeHollow'}
+PREMIUM_FONT_IDS = {'Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge',
+                    'TimeLargeHollow', 'TimeExtraLargeHollow'}
+# The Lite ids Premium redefines, to draw them in its own weight (#144). premium.jungle
+# appends premium/resources-<family> after resources-<family>, and a later resource
+# directory redefines an id rather than colliding with it: Premium compiles its own
+# bitmaps under these ids and none of Lite's. Any other repeated id is a mistake.
+PREMIUM_OVERRIDES = {'Time', 'TimeLarge'}
 # Each hollow font is its filled twin drawn as an outline (#72): the same face at the same
 # size, so the same metrics, and swapping one for the other never moves the time.
 HOLLOW_TWINS = {'TimeLargeHollow': 'TimeLarge', 'TimeExtraLargeHollow': 'TimeExtraLarge'}
@@ -359,13 +365,21 @@ twins_all = {**refsize, **psize}
 for hollow, filled in sorted(HOLLOW_TWINS.items()):
     ok(hollow in psize and filled in twins_all and psize[hollow] == twins_all[filled],
        f"{hollow} is {filled}'s face and size, {twins_all.get(filled)}")
-ok(not set(psize) & set(refsize),
-   "no Premium font id repeats a Lite one (the two would collide in the Premium build)")
+ok(set(psize) & set(refsize) == PREMIUM_OVERRIDES,
+   f"Premium repeats exactly the Lite font ids it overrides, {sorted(PREMIUM_OVERRIDES)} "
+   f"(found {sorted(set(psize) & set(refsize))})")
+# An override changes the weight, never the size: S and L stay Lite's sizes, and L is the
+# always-on font whose burn-in jitter and lit-pixel budget were measured at that size (#69).
+for fid in sorted(PREMIUM_OVERRIDES & set(psize) & set(refsize)):
+    ok(psize[fid][1] == refsize[fid][1],
+       f"Premium {fid} keeps Lite's reference size ({psize[fid][1]} vs {refsize[fid][1]})")
 
-# The typeface is a symlink to Lite's, so there is one LFS object, not two.
+# Premium's typeface is its own file, an instance of a weight Lite does not ship, and the
+# licence travels with it; OFL-SUSEMono.txt is a symlink to Lite's copy.
 ttfs = {stem for stem, _ in psize.values()}
 for stem in sorted(ttfs):
     ok(os.path.exists(f'{PDIR}/{stem}.ttf'), f"{PDIR}/{stem}.ttf resolves")
+ok(os.path.exists(f'{PDIR}/OFL-SUSEMono.txt'), f"{PDIR}/OFL-SUSEMono.txt resolves")
 
 # The time size ladder, S M L XL, is Time, TimeMedium, TimeLarge, TimeExtraLarge: one
 # typeface, strictly growing at the reference. The scaler rounds per target, so the
@@ -467,6 +481,37 @@ for w, h, shape in targets:
             twin_bad.append((fam, hollow, os.path.basename(a), os.path.basename(b)))
 ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(targets)} families"
    + (f" (not {twin_bad[:3]})" if twin_bad else ""))
+
+# The time is padded with %2d so that it is always five cells wide and a centre-justified
+# time never shifts (#7). That holds only while every glyph of a time font -- digits, space
+# and colon -- has one advance, which a typeface or weight change could quietly break
+# (#144). Checked on the generated files, Lite's and Premium's, in every family.
+# Each font must hold exactly the Time charset -- a monospace font that lost its space or
+# colon would otherwise pass -- and every one expected must be found and read, so that a
+# missing file cannot make the check pass by examining nothing.
+time_glyphs = {str(ord(c)) for c in charsets.get('Time', '')}
+time_ids = {'lite': sorted(f for f in refsize if f.startswith('Time')),
+            'premium': sorted(f for f in psize if f.startswith('Time'))}
+proportional, examined = [], 0
+for w, h, shape in targets:
+    fam = f"{shape}-{w}x{h}"
+    for edition, d in (('lite', f'resources-{fam}/fonts'), ('premium', f'premium/resources-{fam}/fonts')):
+        xml = f'{d}/fonts.xml'
+        declared = dict(FONT_RE.findall(open(xml).read())) if os.path.exists(xml) else {}
+        for fid in time_ids[edition]:
+            fn = declared.get(fid)
+            if not fn or not os.path.exists(f'{d}/{fn}'):
+                proportional.append((d, fid, 'missing')); continue
+            glyphs = fnt_metrics(f'{d}/{fn}')[1]
+            advances = {g['xadvance'] for g in glyphs.values()}
+            if set(glyphs) != time_glyphs or len(advances) != 1:
+                proportional.append((d, fid, sorted(advances), sorted(time_glyphs - set(glyphs))))
+            examined += 1
+want_examined = len(targets) * (len(time_ids['lite']) + len(time_ids['premium']))
+ok(not proportional and examined == want_examined and time_glyphs,
+   f"every time font, Lite and Premium, holds exactly the Time charset (digits, space, colon) "
+   f"with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
+   + (f" (not {proportional[:3]})" if proportional else ""))
 
 # Premium's size table is generated like Lite's -- garmin-font-scaler --project-dir
 # premium --table fonts.md writes premium/fonts.md -- and the README copies it.
