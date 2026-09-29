@@ -20,4 +20,11 @@
          (#72). 0, filled, is Lite's style, solid digits on a black box. Hollow applies to the L and XL sizes only. -->
     <property id="timeStyle" type="number">0</property>
 
+    <!-- timeColor and rainColor are indices into the palettes in TimeColor and RainColor
+         (#143), not the colours themselves: a rain entry is a pair of colours, and the
+         watch's menu steps through the list in its own order. 0, green, is Lite's colour
+         in both. -->
+    <property id="timeColor" type="number">0</property>
+    <property id="rainColor" type="number">0</property>
+
 </properties>

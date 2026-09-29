@@ -28,9 +28,13 @@ each change is recorded in full.
   Lite at a heavier weight, at every size, filled and hollow, woken and always-on. The digits read
   more strongly against the rain, and the outline of the hollow time has room to show it through. The
   always-on screen stays well inside the burn-in limits on every supported watch. (#144)
-* **Premium: the settings on the watch.** The face's Customize menu lists all three settings with
+* **Premium: the settings on the watch.** The face's Customize menu lists all the settings with
   their current values, and selecting one steps to the next value. They were in the Connect IQ app
   only, which also left a sideloaded face with no way to change them. (#148)
+* **Premium: a choice of time and rain colours.** The time can be green, white, cyan, amber, orange
+  or red, and the always-on time follows it, dimmed. The rain can be green, cyan, blue, amber, red or
+  white, or change hue as it fades: white to green, a white-hot head cooling to green, or green to
+  teal. Green, Lite's look, is the default for both. (#143)
 
 ## 0.2.1 -- 2026-09-21
 

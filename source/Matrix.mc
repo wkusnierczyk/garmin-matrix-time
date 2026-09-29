@@ -22,7 +22,8 @@ const
     JUSTIFY = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
 
 const
-    // The always-on scene: TIME_COLOR at two thirds of its brightness, stepped round
+    // The always-on scene: TIME_COLOR at two thirds of its brightness -- Premium's time
+    // colour setting at two thirds of its, by the same arithmetic (#143) -- stepped round
     // the four corners of a small square so that no pixel stays lit for more than
     // one minute at a time. The offset is a fraction of the screen width so that it
     // scales with the glyphs, which are themselves scaled per resolution.
@@ -184,7 +185,38 @@ class DigitalRain {
         }
     }
 
-    // For TrailLengthTest only; (:debug) for the reason timeFont gives.
+    // Premium's time and rain colour settings (#143). _timeColor and _matrixColor were
+    // kept as fields for this (#16); Premium writes them here, and adds the two colours
+    // Lite has as constants: the always-on time, which follows the time colour at two
+    // thirds, and the colour the rain's trail cools towards, which is the rain colour
+    // itself unless a gradient is chosen. Their defaults are Lite's.
+    (:premium)
+    private var
+        _lowPowerTimeColor as Number = LOW_POWER_TIME_COLOR,
+        _matrixTailColor as Number = MATRIX_COLOR;
+
+    // Called at start-up and whenever the settings change, like applyTrailLength and for
+    // the same reason: the ramp needs _rowCount, so before the first Dc the colours are
+    // only held, and _initialize builds the ramp from them.
+    (:premium)
+    function applyColors() as Void {
+        _timeColor = TimeColor.colorOf(TimeColor.selected());
+        _lowPowerTimeColor = TimeColor.lowPowerOf(_timeColor);
+        var rain = RainColor.selected();
+        _matrixColor = RainColor.headOf(rain);
+        _matrixTailColor = RainColor.tailOf(rain);
+        if (_initialized) {
+            _generateShades();
+        }
+    }
+
+    // For TimeColorTest only; (:debug) for the reason timeFont gives.
+    (:debug :premium)
+    function timeColors() as Array<Number> {
+        return [_timeColor, _lowPowerTimeColor];
+    }
+
+    // For TrailLengthTest and RainColorTest only; (:debug) for the reason timeFont gives.
     (:debug :premium)
     function shades() as Array<Graphics.ColorType> {
         return _shades;
@@ -258,11 +290,27 @@ class DigitalRain {
     // No black box is painted behind the time here, unlike the high-power scene: a
     // lit rectangle is exactly what the burn-in protector counts, and with no rain
     // behind it there is nothing for it to mask anyway.
+    //
+    // Lite draws it in LOW_POWER_TIME_COLOR, always. Two definitions for the reason draw
+    // gives.
+    (:lite)
     function drawLowPower(dc as Graphics.Dc) as DigitalRain {
 
         var offset = RainMath.jitter(_time.value(), _width);
 
         _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, LOW_POWER_TIME_COLOR, Graphics.COLOR_TRANSPARENT);
+
+        return self;
+
+    }
+
+    // Premium draws it in the time colour setting's own always-on colour (#143).
+    (:premium)
+    function drawLowPower(dc as Graphics.Dc) as DigitalRain {
+
+        var offset = RainMath.jitter(_time.value(), _width);
+
+        _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, _lowPowerTimeColor, Graphics.COLOR_TRANSPARENT);
 
         return self;
 
@@ -497,10 +545,11 @@ class DigitalRain {
         _shades = RainMath.shades(_rowCount, _rowCount / 2, _matrixColor);
     }
 
-    // Premium fades over the length the setting chose (#53).
+    // Premium fades over the length the setting chose (#53), from the rain colour's head
+    // to its tail (#143).
     (:premium)
     private function _generateShades() as Void {
-        _shades = RainMath.shades(_rowCount, TrailLength.steps(_trailPercent, _rowCount), _matrixColor);
+        _shades = RainMath.gradient(_rowCount, TrailLength.steps(_trailPercent, _rowCount), _matrixColor, _matrixTailColor);
     }
 
 }

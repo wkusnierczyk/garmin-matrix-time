@@ -15,13 +15,13 @@ import Toybox.Lang;
 // The values and labels below are settings.xml's listEntry lists, in the same order. Keep
 // them together: a value added there and not here can be picked on the phone but is never
 // offered here, and is shown here as whatever the face makes of it -- by its number for a
-// trail length, which TrailLength keeps, and as the default for a size or style, which
-// TimeSize and TimeStyle clamp.
+// trail length, which TrailLength keeps, and as the default for a size, style or colour,
+// which TimeSize, TimeStyle, TimeColor and RainColor clamp.
 module SettingsMenu {
 
     // The settings, in the order the menu lists them and settings.xml declares them.
     function properties() as Array<String> {
-        return [TimeSize.PROPERTY, TrailLength.PROPERTY, TimeStyle.PROPERTY];
+        return [TimeSize.PROPERTY, TrailLength.PROPERTY, TimeStyle.PROPERTY, TimeColor.PROPERTY, RainColor.PROPERTY];
     }
 
     function titleOf(property as String) as ResourceId {
@@ -30,6 +30,12 @@ module SettingsMenu {
         }
         if (property.equals(TrailLength.PROPERTY)) {
             return Rez.Strings.TrailLengthTitle;
+        }
+        if (property.equals(TimeColor.PROPERTY)) {
+            return Rez.Strings.TimeColorTitle;
+        }
+        if (property.equals(RainColor.PROPERTY)) {
+            return Rez.Strings.RainColorTitle;
         }
         return Rez.Strings.TimeStyleTitle;
     }
@@ -41,6 +47,12 @@ module SettingsMenu {
         }
         if (property.equals(TrailLength.PROPERTY)) {
             return [25, 50, 75];
+        }
+        if (property.equals(TimeColor.PROPERTY)) {
+            return [0, 1, 2, 3, 4, 5];
+        }
+        if (property.equals(RainColor.PROPERTY)) {
+            return [0, 1, 2, 3, 4, 5, 6, 7];
         }
         return [TimeStyle.FILLED, TimeStyle.HOLLOW];
     }
@@ -58,6 +70,28 @@ module SettingsMenu {
         if (property.equals(TrailLength.PROPERTY)) {
             return [Rez.Strings.TrailLength25, Rez.Strings.TrailLength50, Rez.Strings.TrailLength75];
         }
+        if (property.equals(TimeColor.PROPERTY)) {
+            return [
+                Rez.Strings.ColorGreen,
+                Rez.Strings.ColorWhite,
+                Rez.Strings.ColorCyan,
+                Rez.Strings.ColorAmber,
+                Rez.Strings.ColorOrange,
+                Rez.Strings.ColorRed
+            ];
+        }
+        if (property.equals(RainColor.PROPERTY)) {
+            return [
+                Rez.Strings.ColorGreen,
+                Rez.Strings.ColorCyan,
+                Rez.Strings.ColorBlue,
+                Rez.Strings.ColorAmber,
+                Rez.Strings.ColorRed,
+                Rez.Strings.ColorWhite,
+                Rez.Strings.RainColorWhiteToGreen,
+                Rez.Strings.RainColorGreenToTeal
+            ];
+        }
         return [Rez.Strings.TimeStyleFilled, Rez.Strings.TimeStyleHollow];
     }
 
@@ -69,6 +103,12 @@ module SettingsMenu {
         }
         if (property.equals(TrailLength.PROPERTY)) {
             return TrailLength.selected();
+        }
+        if (property.equals(TimeColor.PROPERTY)) {
+            return TimeColor.selected();
+        }
+        if (property.equals(RainColor.PROPERTY)) {
+            return RainColor.selected();
         }
         return TimeStyle.selected();
     }
