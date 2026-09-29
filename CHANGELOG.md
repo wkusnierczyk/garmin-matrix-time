@@ -14,8 +14,8 @@ each change is recorded in full.
 ### Added
 
 * **Premium: a choice of time size.** Premium's settings, in Connect IQ and on the watch, offer
-  Small, Medium, Large and Extra large for the time on the woken screen. Small is Lite's size and the
-  default; Extra large is two and a half times it. The rain is unaffected. (#32)
+  Small, Medium, Large and Extra large for the time on the woken screen. Small is Lite's size; Extra
+  large, two and a half times it, is the default. The rain is unaffected. (#32, #155)
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
   saves battery; a longer one fades more smoothly. (#53)

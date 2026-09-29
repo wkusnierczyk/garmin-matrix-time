@@ -46,21 +46,22 @@ class TimeSizeTest {
 
 
     // A value no listEntry offers can still arrive -- from a settings file written by some
-    // other version, or by hand. It falls back to S, Lite's size, rather than to nothing.
+    // other version, or by hand. It falls back to XL, the default, rather than to nothing
+    // (#155).
     (:test)
-    static function anOutOfRangeSizeFallsBackToSmall(logger as Test.Logger) as Boolean {
-        Test.assertEqualMessage(selectedWith(-1), TimeSize.SMALL, "-1 falls back to S");
-        Test.assertEqualMessage(selectedWith(4), TimeSize.SMALL, "4 falls back to S");
+    static function anOutOfRangeSizeFallsBackToExtraLarge(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(selectedWith(-1), TimeSize.EXTRA_LARGE, "-1 falls back to XL");
+        Test.assertEqualMessage(selectedWith(4), TimeSize.EXTRA_LARGE, "4 falls back to XL");
         return true;
     }
 
 
     (:test)
-    static function aValueOfTheWrongTypeFallsBackToSmall(logger as Test.Logger) as Boolean {
-        Test.assertEqualMessage(TimeSize.sizeOf(null), TimeSize.SMALL, "null falls back to S");
-        Test.assertEqualMessage(TimeSize.sizeOf("2"), TimeSize.SMALL, "a String falls back to S");
-        Test.assertEqualMessage(TimeSize.sizeOf(2.0f), TimeSize.SMALL, "a Float falls back to S");
-        Test.assertEqualMessage(TimeSize.sizeOf(true), TimeSize.SMALL, "a Boolean falls back to S");
+    static function aValueOfTheWrongTypeFallsBackToExtraLarge(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(TimeSize.sizeOf(null), TimeSize.EXTRA_LARGE, "null falls back to XL");
+        Test.assertEqualMessage(TimeSize.sizeOf("2"), TimeSize.EXTRA_LARGE, "a String falls back to XL");
+        Test.assertEqualMessage(TimeSize.sizeOf(2.0f), TimeSize.EXTRA_LARGE, "a Float falls back to XL");
+        Test.assertEqualMessage(TimeSize.sizeOf(true), TimeSize.EXTRA_LARGE, "a Boolean falls back to XL");
         Test.assertEqualMessage(TimeSize.sizeOf(2), TimeSize.LARGE, "the Number 2 is L");
         return true;
     }
