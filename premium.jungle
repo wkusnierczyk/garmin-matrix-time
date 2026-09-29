@@ -30,6 +30,10 @@ base.resourcePath = $(base.resourcePath);premium/resources-base
 # lists. There is deliberately no unqualified copy, so a product outside these
 # families fails to compile a Premium font rather than falling back to one scaled
 # for another screen.
+#
+# Appended after Lite's resources-<family>, and that order is load-bearing: Premium's
+# fonts.xml redefines Lite's Time and TimeLarge in ExtraBold (#144), and the later
+# directory wins. Lite's Regular bitmaps are then not compiled into Premium at all.
 round-360x360.resourcePath = $(round-360x360.resourcePath);premium/resources-round-360x360
 round-390x390.resourcePath = $(round-390x390.resourcePath);premium/resources-round-390x390
 round-416x416.resourcePath = $(round-416x416.resourcePath);premium/resources-round-416x416

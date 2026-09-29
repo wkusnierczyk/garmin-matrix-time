@@ -187,8 +187,9 @@ module RainMath {
     // The clock string. `hour` is 0-23 as Gregorian.FORMAT_SHORT reports it; on a 12-hour
     // watch it is mapped to a 12-hour clock where 0 and 12 both read as 12.
     //
-    // The hour is padded with %2d on purpose -- do not "fix" it to %d. SUSEMono-Regular is
-    // monospace, every glyph including the space and the colon sharing one advance, so the
+    // The hour is padded with %2d on purpose -- do not "fix" it to %d. SUSEMono is
+    // monospace in both weights drawn, Regular in Lite and ExtraBold in Premium (#144),
+    // every glyph including the space and the colon sharing one advance, so the
     // padding space occupies exactly one digit cell. That keeps the string a constant five
     // cells wide for every hour, and a centre-justified time therefore never shifts as the
     // hour crosses 9 -> 10 or between 12- and 24-hour mode. %d would make it jump. See #7,
