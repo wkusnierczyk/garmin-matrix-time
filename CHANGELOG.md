@@ -15,8 +15,7 @@ each change is recorded in full.
 
 * **Premium: a choice of time size.** Premium's settings, in Connect IQ and on the watch, offer
   Small, Medium, Large and Extra large for the time on the woken screen. Small is Lite's size and the
-  default; Extra large is two and a half times it. The always-on screen keeps its own size, and the
-  rain is unaffected. (#32)
+  default; Extra large is two and a half times it. The rain is unaffected. (#32)
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
   saves battery; a longer one fades more smoothly. (#53)
@@ -35,6 +34,10 @@ each change is recorded in full.
   or red, and the always-on time follows it, dimmed. The rain can be green, cyan, blue, amber, red or
   white, or change hue as it fades: white to green, a white-hot head cooling to green, or green to
   teal. Green, Lite's look, is the default for both. (#143)
+* **Premium: a larger always-on time.** The always-on screen draws the time at the Extra large size as
+  an outline, whatever the settings for the woken screen. It is bigger than before and lights about as
+  few pixels as Lite's smaller solid time, so it stays well inside the burn-in limits on every
+  supported watch. (#145)
 
 ## 0.2.1 -- 2026-09-21
 

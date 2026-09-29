@@ -6,7 +6,8 @@
          it writes premium/resources-FAMILY/fonts and leaves Lite's font trees alone.
 
          Every time font Premium draws, in SUSE Mono ExtraBold (#144): S, M, L and XL of
-         the time size setting, L being the always-on font too, and the two hollow ones.
+         the time size setting, and the two hollow ones, XL hollow being the always-on
+         font too (#145).
          Time and TimeLarge repeat Lite's ids on purpose. premium.jungle puts
          premium/resources-FAMILY after resources-FAMILY, and a later resource directory
          redefines an id rather than colliding with it, so Premium gets these and Lite's
