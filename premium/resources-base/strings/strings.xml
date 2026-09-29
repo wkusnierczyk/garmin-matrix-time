@@ -22,6 +22,12 @@
     <string id="TimeStyleFilled">Filled</string>
     <string id="TimeStyleHollow">Hollow (Large and Extra large)</string>
 
+    <!-- The time alignment setting (#154). -->
+    <string id="TimeAlignTitle">Time alignment</string>
+    <string id="TimeAlignLeft">Left</string>
+    <string id="TimeAlignCenter">Centre</string>
+    <string id="TimeAlignRight">Right</string>
+
     <!-- The time and rain colour settings (#143). The colour names are shared by both. -->
     <string id="TimeColorTitle">Time colour</string>
     <string id="RainColorTitle">Rain colour</string>

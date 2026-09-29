@@ -29,6 +29,15 @@
         </settingConfig>
     </setting>
 
+    <!-- The values are the indices TimeAlign reads (#154). -->
+    <setting propertyKey="@Properties.timeAlign" title="@Strings.TimeAlignTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.TimeAlignLeft</listEntry>
+            <listEntry value="1">@Strings.TimeAlignCenter</listEntry>
+            <listEntry value="2">@Strings.TimeAlignRight</listEntry>
+        </settingConfig>
+    </setting>
+
     <!-- The values index TimeColor.COLORS (#143). -->
     <setting propertyKey="@Properties.timeColor" title="@Strings.TimeColorTitle">
         <settingConfig type="list">

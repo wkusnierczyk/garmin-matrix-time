@@ -245,6 +245,35 @@ class DigitalRain {
         }
     }
 
+    // Premium's time alignment setting (#154): where the woken time is drawn, and what its
+    // text is anchored to there.
+    //
+    // _timeX is not the centre until applyTimeAlign has run: the centre is known only in
+    // initialize, which Lite shares and which therefore cannot set it. App.getInitialView
+    // runs applySettings before the first frame, as it does for _lowPowerFontLoaded, so on
+    // the watch draw never sees the 0.
+    (:premium)
+    private var
+        _timeX as Number = 0,
+        _timeJustify as Number = JUSTIFY;
+
+    // Called at start-up and whenever the settings change, after reloadTimeFont: the margin
+    // at the left and right comes from the height of the font being drawn, so a change of
+    // time size moves it too. Graphics.getFontHeight needs no Dc, so unlike the ramp this
+    // can be settled before the first frame.
+    (:premium)
+    function applyTimeAlign() as Void {
+        var align = TimeAlign.selected();
+        _timeX = TimeAlign.xOf(align, _width, _height, Graphics.getFontHeight(_timeFont));
+        _timeJustify = TimeAlign.justifyOf(align);
+    }
+
+    // For TimeAlignTest only; (:debug) for the reason timeFont gives.
+    (:debug :premium)
+    function timePlacement() as Array<Number> {
+        return [_timeX, _timeJustify];
+    }
+
     // For TimeColorTest only; (:debug) for the reason timeFont gives.
     (:debug :premium)
     function timeColors() as Array<Number> {
@@ -307,7 +336,8 @@ class DigitalRain {
 
     }
 
-    // Premium draws it on whatever the time style chose (#72).
+    // Premium draws it on whatever the time style chose (#72), where the time alignment
+    // put it (#154).
     (:premium)
     function draw(dc as Graphics.Dc) as DigitalRain {
 
@@ -316,7 +346,7 @@ class DigitalRain {
         }
 
         _drawTrails(dc);
-        _drawTime(dc, _centerX, _centerY, _timeFont, _timeColor, _timeBackground);
+        _drawTime(dc, _timeX, _centerY, _timeFont, _timeColor, _timeBackground, _timeJustify);
 
         return self;
 
@@ -350,12 +380,15 @@ class DigitalRain {
     // hollow ExtraBold XL whatever the time size and style (#145), which reloadTimeFont has
     // put in _timeLargeFont. The outline is larger than Lite's filled L and lights about as
     // many pixels; see LOW_POWER_JITTER_DIVISOR.
+    //
+    // Always centred, whatever the time alignment (#154), so that the burn-in measurement
+    // stands: the jitter square was measured about the centre.
     (:premium)
     function drawLowPower(dc as Graphics.Dc) as DigitalRain {
 
         var offset = RainMath.jitter(_time.value(), _width);
 
-        _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, _lowPowerTimeColor, Graphics.COLOR_TRANSPARENT);
+        _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, _lowPowerTimeColor, Graphics.COLOR_TRANSPARENT, JUSTIFY);
 
         return self;
 
@@ -574,12 +607,26 @@ class DigitalRain {
     }
 
 
+    // Lite always centres the time. Two definitions for the reason draw gives.
+    (:lite)
     private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType) as Void {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var time = RainMath.timeText(info.hour, info.min, System.getDeviceSettings().is24Hour);
         dc.setColor(color, background);
         dc.drawText(x, y, font, time, JUSTIFY);
+
+    }
+
+    // Premium anchors it where the time alignment says (#154); the always-on screen passes
+    // JUSTIFY.
+    (:premium)
+    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType, justify as Number) as Void {
+
+        var info = Gregorian.info(_time, Time.FORMAT_SHORT);
+        var time = RainMath.timeText(info.hour, info.min, System.getDeviceSettings().is24Hour);
+        dc.setColor(color, background);
+        dc.drawText(x, y, font, time, justify);
 
     }
 
