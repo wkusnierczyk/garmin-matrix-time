@@ -17,10 +17,18 @@
     },
     {
         "fontCharset": "0123456789 :",
+        "fontId": "TimeExtraExtraLarge"
+    },
+    {
+        "fontCharset": "0123456789 :",
         "fontId": "TimeLargeHollow"
     },
     {
         "fontCharset": "0123456789 :",
         "fontId": "TimeExtraLargeHollow"
+    },
+    {
+        "fontCharset": "0123456789 :",
+        "fontId": "TimeExtraExtraLargeHollow"
     }
 ]

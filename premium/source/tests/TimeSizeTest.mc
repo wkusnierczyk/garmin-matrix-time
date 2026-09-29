@@ -37,8 +37,8 @@ class TimeSizeTest {
 
 
     (:test)
-    static function eachOfTheFourSizesIsKept(logger as Test.Logger) as Boolean {
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+    static function eachOfTheFiveSizesIsKept(logger as Test.Logger) as Boolean {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             Test.assertEqualMessage(selectedWith(size), size, "size " + size + " is selected as stored");
         }
         return true;
@@ -51,7 +51,7 @@ class TimeSizeTest {
     (:test)
     static function anOutOfRangeSizeFallsBackToExtraLarge(logger as Test.Logger) as Boolean {
         Test.assertEqualMessage(selectedWith(-1), TimeSize.EXTRA_LARGE, "-1 falls back to XL");
-        Test.assertEqualMessage(selectedWith(4), TimeSize.EXTRA_LARGE, "4 falls back to XL");
+        Test.assertEqualMessage(selectedWith(5), TimeSize.EXTRA_LARGE, "5 falls back to XL");
         return true;
     }
 
@@ -91,13 +91,13 @@ class TimeSizeTest {
     }
 
 
-    // The ladder is 27, 40, 54, 68 at the reference; on every family the scaler has to
+    // The ladder is 27, 40, 54, 68, 82 at the reference; on every family the scaler has to
     // keep it a ladder. Heights rather than point sizes, because heights are what can be
     // read back from a loaded font.
     (:test)
-    static function theFourSizesGrow(logger as Test.Logger) as Boolean {
+    static function theFiveSizesGrow(logger as Test.Logger) as Boolean {
         var previous = 0;
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var height = Graphics.getFontHeight(TimeSize.load(size));
             logger.debug("size " + size + ": " + height + " px");
             Test.assertMessage(height > previous, "size " + size + " is taller than the one below it");

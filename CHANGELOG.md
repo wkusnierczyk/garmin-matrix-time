@@ -14,14 +14,15 @@ each change is recorded in full.
 ### Added
 
 * **Premium: a choice of time size.** Premium's settings, in Connect IQ and on the watch, offer
-  Small, Medium, Large and Extra large for the time on the woken screen. Small is Lite's size; Extra
-  large, two and a half times it, is the default. The rain is unaffected. (#32, #155)
+  Small, Medium, Large, Extra large and Extra extra large for the time on the woken screen. Small is
+  Lite's size; Extra large, two and a half times it, is the default, and Extra extra large, three
+  times it, spans 60% of the screen. The rain is unaffected. (#32, #155, #153)
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
   saves battery; a longer one fades more smoothly. (#53)
 * **Premium: a hollow time.** A time style setting draws the time as an outline instead of solid
   digits, with the black box behind it gone, so the rain falls through the digits. It applies to the
-  Large and Extra large time sizes; Small and Medium stay solid. Filled, Lite's look, is the default.
+  Large, Extra large and Extra extra large time sizes; Small and Medium stay solid. Filled, Lite's look, is the default.
   (#72)
 * **Premium: a bolder time.** Premium draws the time in SUSE Mono ExtraBold, the same typeface as
   Lite at a heavier weight, at every size, filled and hollow, woken and always-on. The digits read
@@ -38,10 +39,10 @@ each change is recorded in full.
   screen. Centre, Lite's look, is the default. The margin follows the screen's curve and the time
   size, so no digit is cut off by a round screen's edge, and the time keeps its fixed width, so it
   never moves as the hour changes. The always-on time stays centred. (#154)
-* **Premium: a larger always-on time.** The always-on screen draws the time at the Extra large size as
-  an outline, whatever the settings for the woken screen. It is bigger than before, lights about as
-  few pixels as Lite's smaller solid time, and stays well inside the burn-in limits on every
-  supported watch. (#145)
+* **Premium: a larger always-on time.** The always-on screen draws the time at the Extra extra large
+  size as an outline, whatever the settings for the woken screen. It is bigger than before, and moves
+  a little further each minute than Lite's does, which keeps it well inside the burn-in limits on
+  every supported watch. (#145, #153)
 
 ## 0.2.1 -- 2026-09-21
 
