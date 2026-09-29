@@ -486,20 +486,31 @@ ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(t
 # time never shifts (#7). That holds only while every glyph of a time font -- digits, space
 # and colon -- has one advance, which a typeface or weight change could quietly break
 # (#144). Checked on the generated files, Lite's and Premium's, in every family.
-proportional = []
+# Each font must hold exactly the Time charset -- a monospace font that lost its space or
+# colon would otherwise pass -- and every one expected must be found and read, so that a
+# missing file cannot make the check pass by examining nothing.
+time_glyphs = {str(ord(c)) for c in charsets.get('Time', '')}
+time_ids = {'lite': sorted(f for f in refsize if f.startswith('Time')),
+            'premium': sorted(f for f in psize if f.startswith('Time'))}
+proportional, examined = [], 0
 for w, h, shape in targets:
     fam = f"{shape}-{w}x{h}"
-    for d in (f'resources-{fam}/fonts', f'premium/resources-{fam}/fonts'):
+    for edition, d in (('lite', f'resources-{fam}/fonts'), ('premium', f'premium/resources-{fam}/fonts')):
         xml = f'{d}/fonts.xml'
-        if not os.path.exists(xml):
-            continue
-        for fid, fn in sorted(FONT_RE.findall(open(xml).read())):
-            if not fid.startswith('Time') or not os.path.exists(f'{d}/{fn}'):
-                continue
-            advances = {g['xadvance'] for g in fnt_metrics(f'{d}/{fn}')[1].values()}
-            if len(advances) != 1:
-                proportional.append((d, fid, sorted(advances)))
-ok(not proportional, f"every time font is monospace in all {len(targets)} families, Lite and Premium"
+        declared = dict(FONT_RE.findall(open(xml).read())) if os.path.exists(xml) else {}
+        for fid in time_ids[edition]:
+            fn = declared.get(fid)
+            if not fn or not os.path.exists(f'{d}/{fn}'):
+                proportional.append((d, fid, 'missing')); continue
+            glyphs = fnt_metrics(f'{d}/{fn}')[1]
+            advances = {g['xadvance'] for g in glyphs.values()}
+            if set(glyphs) != time_glyphs or len(advances) != 1:
+                proportional.append((d, fid, sorted(advances), sorted(time_glyphs - set(glyphs))))
+            examined += 1
+want_examined = len(targets) * (len(time_ids['lite']) + len(time_ids['premium']))
+ok(not proportional and examined == want_examined and time_glyphs,
+   f"every time font, Lite and Premium, holds exactly the Time charset (digits, space, colon) "
+   f"with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
    + (f" (not {proportional[:3]})" if proportional else ""))
 
 # Premium's size table is generated like Lite's -- garmin-font-scaler --project-dir

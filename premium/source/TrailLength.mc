@@ -8,7 +8,7 @@ import Toybox.Lang;
 // The property holds the length itself, as a percentage of the screen height, rather than
 // an index into a list: a longer or shorter option is then one more listEntry in
 // settings.xml and nothing here. Lite fades over half the screen, so 50 is the default and
-// Premium looks like Lite until the setting is changed.
+// Premium's rain looks like Lite's until the setting is changed.
 //
 // It is also the face's largest battery control. _drawTrails skips every black band, so
 // the bands it draws a frame are exactly the steps this returns: 25% roughly halves the

@@ -73,7 +73,7 @@ there the watch is the only way to change them.
 
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
   Small is the size Lite draws, and is the default. Premium draws every size in SUSEMono ExtraBold,
-  a heavier weight of Lite's typeface; see [Fonts](#fonts). At the 416x416 reference the four are 27, 40, 54 and 68; see
+  a heavier weight of Lite's typeface. At the 416x416 reference the four are 27, 40, 54 and 68; see
   [Fonts](#fonts) for every resolution. The always-on screen is not affected: it stays at its own
   size, 54 at the reference, the one its burn-in protection was measured at. A change applies at once,
   and reloads the time font only -- the rain is sized from its own font and does not move.
@@ -98,9 +98,9 @@ Matrix Time comes in two editions, built from this one source tree:
   2026-09-24: it gets defect fixes only, and new features go to Premium.
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
-  It is not published yet. Its features so far are its settings, time size, trail length and time
-  style (see [Premium settings](#premium-settings)), and the time drawn in SUSEMono ExtraBold rather
-  than Regular (see [Fonts](#fonts)).
+  It is not published yet. Its features so far are its settings -- time size, trail length and time
+  style, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
+  than Regular, see [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
 has goes in `premium/`: code in `premium/source/`, resources for every product in
@@ -114,8 +114,8 @@ to build each, and for what keeps Premium out of Lite.
 The Matrix Time watch face uses custom fonts:
 
 * [Norfok Matrix Code NFI](https://www.norfok.com) for the digital raing glyphs.
-* [SUSEMono Regular](https://fonts.google.com/specimen/SUSE+Mono) for the current time, at two sizes: the smaller one on the woken screen, and one twice as large on the always-on screen, where the time is all that is drawn and legibility matters most.
-* SUSEMono ExtraBold, the same typeface at weight 800, for the current time in Premium, at every size; see the Premium table below.
+* [SUSEMono Regular](https://fonts.google.com/specimen/SUSE+Mono) for the current time in Lite, at two sizes: the smaller one on the woken screen, and one twice as large on the always-on screen, where the time is all that is drawn and legibility matters most.
+* SUSEMono ExtraBold, a static weight-800 instance of the same [variable font](https://fonts.google.com/specimen/SUSE+Mono) under the same SIL Open Font License, for the current time in Premium, at every size; see the Premium table below.
 
 > The development of Garmin watch faces motivated the implementation of two useful tools:
 > * A TTF to FNT+PNG converter ([`ttf2bmp`](https://github.com/wkusnierczyk/ttf2bmp)).  
@@ -169,13 +169,13 @@ weight is a static instance of the variable font Google Fonts publishes, made wi
 fonttools varLib.instancer "SUSEMono[wght].ttf" wght=800 --update-name-table -o SUSEMono-ExtraBold.ttf
 ```
 
-Premium's six time fonts are therefore all its own. Small and Large, of the [time size setting](#premium-settings), are Lite's Time and Time large at the
-same sizes and under the same ids, so Premium's bitmaps replace Lite's rather than joining them, and
-Lite's Regular bitmaps are not compiled into the Premium app. Medium and Extra large are the two
-sizes Lite does not have. The other two are the hollow time of the
-[time style setting](#premium-settings): Large and Extra large again, drawn as an outline. Their
-stroke is 1.2 pixels at the reference, scaled per resolution like the size, which is the Stroke
-column. All six are configured in `premium/resources/fonts/` and generated into
+Premium's six time fonts are therefore all its own. Small and Large, of the [time size
+setting](#premium-settings), are Lite's Time and Time large at the same sizes and under the same ids,
+so Premium's bitmaps replace Lite's rather than joining them, and Lite's Regular bitmaps are not
+compiled into the Premium app. Medium and Extra large are the two sizes Lite does not have. The other
+two are the hollow time of the [time style setting](#premium-settings): Large and Extra large again,
+drawn as an outline. Their stroke is 1.2 pixels at the reference, scaled per resolution like the size,
+which is the Stroke column. All six are configured in `premium/resources/fonts/` and generated into
 `premium/resources-<family>/` by `garmin-font-scaler --project-dir premium`, from the same reference
 resolution. The table is a copy of [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
 
@@ -633,8 +633,9 @@ what the scaler produced. It checks Premium's fonts the same way, against `premi
 and `premium/fonts.md`, and also that Premium's `resolutions.json` is Lite's, that `premium.jungle` adds
 the Premium font directory for every family, that the four time sizes grow at every resolution, and
 that the only Lite font ids Premium repeats are the two it redraws in ExtraBold, `Time` and
-`TimeLarge`, at Lite's sizes. It also checks that every time font, Lite's and Premium's, is monospace
-in every family, since the fixed-width time depends on it.
+`TimeLarge`, at Lite's sizes. It also checks that every time font, Lite's and Premium's, holds the full
+time charset, digits, space and colon, with one advance in every family, since the fixed-width time
+depends on it.
 For the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
 family, that the size tables give the same strokes and label exactly those fonts hollow, that no
 generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled twin's
