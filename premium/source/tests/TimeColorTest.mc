@@ -18,8 +18,6 @@ class TimeColorTest {
     }
 
 
-    // The default is Lite's time, woken and always-on, so Premium looks like Lite until the
-    // setting is changed.
     (:test)
     static function greenIsLitesColourAwakeAndAlwaysOn(logger as Test.Logger) as Boolean {
         Test.assertEqual(TimeColor.colorOf(TimeColor.GREEN), TIME_COLOR);
