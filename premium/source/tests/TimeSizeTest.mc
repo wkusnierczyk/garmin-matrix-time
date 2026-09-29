@@ -90,24 +90,14 @@ class TimeSizeTest {
     }
 
 
-    // L is the always-on font the caller already holds, not a second copy of it.
-    (:test)
-    static function largeReusesTheFontItIsHanded(logger as Test.Logger) as Boolean {
-        var large = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
-        Test.assertMessage(TimeSize.load(TimeSize.LARGE, large) == large, "L is the font handed in");
-        return true;
-    }
-
-
     // The ladder is 27, 40, 54, 68 at the reference; on every family the scaler has to
     // keep it a ladder. Heights rather than point sizes, because heights are what can be
     // read back from a loaded font.
     (:test)
     static function theFourSizesGrow(logger as Test.Logger) as Boolean {
-        var large = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
         var previous = 0;
         for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
-            var height = Graphics.getFontHeight(TimeSize.load(size, large));
+            var height = Graphics.getFontHeight(TimeSize.load(size));
             logger.debug("size " + size + ": " + height + " px");
             Test.assertMessage(height > previous, "size " + size + " is taller than the one below it");
             previous = height;

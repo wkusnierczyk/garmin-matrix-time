@@ -99,8 +99,8 @@ class View extends WatchUi.WatchFace {
         _digitalRain.applyColors();
     }
 
-    // For TimeSizeTest, TrailLengthTest, TimeStyleTest, TimeColorTest and RainColorTest
-    // only; (:debug) for the reason DigitalRain.timeFont gives.
+    // For TimeSizeTest, TrailLengthTest, TimeStyleTest, TimeColorTest, RainColorTest and
+    // LowPowerFontTest only; (:debug) for the reason DigitalRain.timeFont gives.
     (:debug :premium)
     function digitalRain() as DigitalRain {
         return _digitalRain;

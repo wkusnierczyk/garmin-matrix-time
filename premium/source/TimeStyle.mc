@@ -39,9 +39,11 @@ module TimeStyle {
     // drawn filled: the filled style, or a size with no hollow font, S and M.
     //
     // An id rather than a loaded font, because it is the one decision the draw follows:
-    // DigitalRain loads this font and drops the box together, from this value, so the two
-    // cannot disagree. Two loaded fonts cannot be told apart from Monkey C, but two ids can,
-    // which is what lets TimeStyleTest check the choice itself.
+    // DigitalRain picks this font and drops the box together, from this value, so the two
+    // cannot disagree. Two loaded fonts cannot be told apart by what they hold -- only
+    // whether they are the same object -- but two ids can, which is what lets TimeStyleTest
+    // check the choice itself. For the hollow XL, DigitalRain reuses the always-on font
+    // rather than loading it again; that is alwaysOnFont, below, so the same id.
     function hollowFont(size as Number, style as Number) as ResourceId or Null {
         if (style != HOLLOW) {
             return null;
@@ -54,6 +56,15 @@ module TimeStyle {
             default:
                 return null;
         }
+    }
+
+    // Premium's always-on font (#145): the hollow XL, whatever the size and style chosen for
+    // the woken screen. Defined through hollowFont so that it is the woken hollow XL by
+    // construction, which is what lets DigitalRain draw both from one loaded font. An id for
+    // the reason hollowFont gives: LowPowerFontTest checks it is the hollow one, which a
+    // loaded font could not show, since filled and hollow XL share every metric.
+    function alwaysOnFont() as ResourceId {
+        return hollowFont(TimeSize.EXTRA_LARGE, HOLLOW) as ResourceId;
     }
 
 }

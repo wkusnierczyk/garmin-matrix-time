@@ -79,10 +79,9 @@ class TimeStyleTest {
     // in every family; this checks the fonts as the device loads them.
     (:test)
     static function aHollowFontHasItsFilledTwinsMetrics(logger as Test.Logger) as Boolean {
-        var large = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
         var dc = (Graphics.createBufferedBitmap({:width => 1, :height => 1}).get() as Graphics.BufferedBitmap).getDc();
         for (var size = TimeSize.LARGE; size <= TimeSize.EXTRA_LARGE; ++size) {
-            var filled = TimeSize.load(size, large);
+            var filled = TimeSize.load(size);
             var hollow = Application.loadResource(
                 TimeStyle.hollowFont(size, TimeStyle.HOLLOW) as ResourceId) as Graphics.FontType;
             var text = "12:34";

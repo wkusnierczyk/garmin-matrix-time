@@ -54,6 +54,8 @@ class DigitalRainTest {
 
         // The always-on scene draws no rain, so it needs no grid: everything it touches
         // -- the screen centre, the width, the large font -- is set in the constructor.
+        // That is Lite's always-on font. Premium swaps in its own when the settings are
+        // applied, which this rain never has; LowPowerFontTest draws the cycle with that one.
         var rain = new DigitalRain();
         var dc = _scratchDc();
 

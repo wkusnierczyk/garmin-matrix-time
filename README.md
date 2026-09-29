@@ -50,7 +50,7 @@ The rain glyphs sit on a fixed grid rather than being set as text. Matrix Code N
 The rain is laid out on a rectangular grid, so on a round watch the corners of that grid fall off the glass and are never drawn. A cell is kept when the cell itself overlaps the visible disc, not merely when its centre does, so the rain reaches the rim at every round resolution instead of stopping a cell short of it.
 
 **Always-on display**  
-Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, drawn at twice the size used on the woken screen, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. That holds for Premium's heavier ExtraBold time too: simulated over a full day in both clock modes, on every supported resolution, it lights at most 2.03% of the screen (Lite's Regular: 1.40%), and no pixel for three minutes running. Raising the wrist wakes the watch face and brings the rain back.
+Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, dimmed to two thirds of its normal brightness and shifted to a different corner of a small square every minute. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it as an outline at the Extra large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at every size but Extra large, where the two are the same size. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 1.44% for Premium. A filled Extra large time would also pass, at 3.14%; the outline keeps Premium's larger time down to about the area Lite's lights. Raising the wrist wakes the watch face and brings the rain back.
 
 ## Features
 
@@ -59,7 +59,7 @@ The Matrix Time watch face supports the following features:
 |Screenshot|Description|
 |-|:-|
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
-|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, at twice its woken size, dimmed, and moved to a different corner of a small square every minute. See **Always-on display** above for why the rain cannot stay.
+|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, dimmed, and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it as an outline at Extra large, whatever the woken time's size and style. See **Always-on display** above for why the rain cannot stay.
 
 Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
@@ -74,8 +74,8 @@ there the watch is the only way to change them.
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
   Small is the size Lite draws, and is the default. Premium draws every size in SUSEMono ExtraBold,
   a heavier weight of Lite's typeface. At the 416x416 reference the four are 27, 40, 54 and 68; see
-  [Fonts](#fonts) for every resolution. The always-on screen is not affected: it stays at its own
-  size, 54 at the reference, the one its burn-in protection was measured at. A change applies at once,
+  [Fonts](#fonts) for every resolution. The always-on screen is not affected: it is always drawn
+  hollow at Extra large; see **Always-on display** above. A change applies at once,
   and reloads the time font only -- the rain is sized from its own font and does not move.
 * **Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
   fades to black. 50% is the length Lite draws, and is the default. Being a share of the screen height
@@ -88,7 +88,8 @@ there the watch is the only way to change them.
   draws, and is the default. Hollow applies to the Large and Extra large sizes only; at Small and
   Medium the outline is too fine to read against the rain, so those stay filled whichever style is
   chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with the screen, like the
-  font sizes; see [Fonts](#fonts). The always-on screen is not affected.
+  font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is drawn hollow at Extra
+  large whichever style is chosen here.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at two thirds of its
   brightness, as Lite's always-on green is two thirds of its woken green. The burn-in protector counts
@@ -774,8 +775,14 @@ out, and both tests report an error rather than a failure.
 
 `TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
 property joins Lite's table instead of replacing it, that each of the four sizes is kept and anything
-else, of any type, falls back to Small, that a settings change reaches the font the face draws, that Large reuses the always-on font instead of loading it twice, and that
+else, of any type, falls back to Small, that a settings change reaches the font the face draws, and that
 the four fonts really do grow in height on the product under test.
+
+`LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is Extra
+large under every combination of time size and style, that it is loaded from the hollow font's id and not
+the filled one's (which share every metric, so only the id can tell them apart), that a hollow Extra large
+woken time is drawn in that same font rather than a second copy of it, that every other combination loads
+a font of its own, and that the always-on scene draws in it at every corner of the jitter square.
 
 `TrailLengthTest`, also in `premium/source/tests/`, covers the trail length setting: that the property
 is declared, that each offered length is kept and anything that is not a percentage strictly between 0
