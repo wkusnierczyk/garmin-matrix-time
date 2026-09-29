@@ -141,11 +141,28 @@ class DigitalRain {
     //
     // The outgoing font is dropped before the new one is loaded, by pointing the field at
     // a system font for the moment in between, so the two bitmaps are never held at once.
+    //
+    // The time style setting (#72) picks between a size's filled font and its hollow one.
+    // Hollow is drawn with no box behind it, so the rain shows through the digits; S and M
+    // have no hollow font and stay filled on their box.
     (:premium)
     function reloadTimeFont() as Void {
         _timeFont = Graphics.FONT_XTINY;
-        _timeFont = TimeSize.load(TimeSize.selected(), _timeLargeFont);
+        var size = TimeSize.selected();
+        var hollow = (TimeStyle.selected() == TimeStyle.HOLLOW) ? TimeStyle.loadHollow(size) : null;
+        if (hollow != null) {
+            _timeFont = hollow;
+            _timeBackground = Graphics.COLOR_TRANSPARENT;
+        } else {
+            _timeFont = TimeSize.load(size, _timeLargeFont);
+            _timeBackground = Graphics.COLOR_BLACK;
+        }
     }
+
+    // What the woken time is drawn on: the opaque box that masks the rain behind a filled
+    // time, or nothing, for a hollow one (#72). Lite always draws the box, and has no field.
+    (:premium)
+    private var _timeBackground as Graphics.ColorType = Graphics.COLOR_BLACK;
 
     // Premium's trail length setting (#53), as a percentage of the screen height. Held
     // here rather than applied at once, because the ramp is built from _rowCount and that
@@ -179,6 +196,12 @@ class DigitalRain {
         return _timeFont;
     }
 
+    // For TimeStyleTest only; (:debug) for the reason timeFont gives.
+    (:debug :premium)
+    function timeBackground() as Graphics.ColorType {
+        return _timeBackground;
+    }
+
 
     // The one caller, View.onUpdate, always has a Moment in hand, so the parameter is
     // not nullable and there is no "now" default to fall back to. Deciding what time it
@@ -192,6 +215,9 @@ class DigitalRain {
     }
 
 
+    // Lite always draws the time on its black box. Two definitions rather than a shared
+    // one reading a field, so that Lite, which is frozen, compiles exactly as before.
+    (:lite)
     function draw(dc as Graphics.Dc) as DigitalRain {
 
         if (!_initialized) {
@@ -200,6 +226,21 @@ class DigitalRain {
 
         _drawTrails(dc);
         _drawTime(dc, _centerX, _centerY, _timeFont, _timeColor, Graphics.COLOR_BLACK);
+
+        return self;
+
+    }
+
+    // Premium draws it on whatever the time style chose (#72).
+    (:premium)
+    function draw(dc as Graphics.Dc) as DigitalRain {
+
+        if (!_initialized) {
+            _initialize(dc);
+        }
+
+        _drawTrails(dc);
+        _drawTime(dc, _centerX, _centerY, _timeFont, _timeColor, _timeBackground);
 
         return self;
 

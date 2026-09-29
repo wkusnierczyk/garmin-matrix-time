@@ -20,4 +20,13 @@
         </settingConfig>
     </setting>
 
+    <!-- The values are the indices TimeStyle reads (#72). Hollow has no effect at S or M,
+         and its label says so, since the two settings are on separate lines. -->
+    <setting propertyKey="@Properties.timeStyle" title="@Strings.TimeStyleTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.TimeStyleFilled</listEntry>
+            <listEntry value="1">@Strings.TimeStyleHollow</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

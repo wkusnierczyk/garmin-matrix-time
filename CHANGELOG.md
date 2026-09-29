@@ -20,6 +20,10 @@ each change is recorded in full.
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
   saves battery; a longer one fades more smoothly. (#53)
+* **Premium: a hollow time.** A time style setting draws the time as an outline instead of solid
+  digits, with the black box behind it gone, so the rain falls through the digits. It applies to the
+  Large and Extra large time sizes; Small and Medium stay solid. Filled, Lite's look, is the default.
+  (#72)
 
 ## 0.2.1 -- 2026-09-21
 
