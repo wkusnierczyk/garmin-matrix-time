@@ -18,10 +18,11 @@ class TimeColorTest {
     }
 
 
+    // Always-on, at the Dim brightness (#161), which is Lite's two thirds.
     (:test)
     static function greenIsLitesColourAwakeAndAlwaysOn(logger as Test.Logger) as Boolean {
         Test.assertEqual(TimeColor.colorOf(TimeColor.GREEN), TIME_COLOR);
-        Test.assertEqual(TimeColor.lowPowerOf(TIME_COLOR), LOW_POWER_TIME_COLOR);
+        Test.assertEqual(TimeColor.lowPowerOf(TIME_COLOR, AlwaysOnBrightness.DIM), LOW_POWER_TIME_COLOR);
         return true;
     }
 
@@ -38,12 +39,18 @@ class TimeColorTest {
     }
 
 
-    // Channel by channel, truncating: 0xFF is 0xAA and 0x80 is 0x55.
+    // Channel by channel, truncating, at each always-on brightness (#161): all of it, five
+    // sixths, where 0xFF is 0xD4 and 0x80 is 0x6A, and two thirds, where 0xFF is 0xAA and
+    // 0x80 is 0x55.
     (:test)
-    static function alwaysOnIsTwoThirdsOfEachChannel(logger as Test.Logger) as Boolean {
-        Test.assertEqual(TimeColor.lowPowerOf(0xFFFFFF), 0xAAAAAA);
-        Test.assertEqual(TimeColor.lowPowerOf(0xFF8000), 0xAA5500);
-        Test.assertEqual(TimeColor.lowPowerOf(0x000000), 0x000000);
+    static function alwaysOnIsEachLevelsShareOfEachChannel(logger as Test.Logger) as Boolean {
+        Test.assertEqual(TimeColor.lowPowerOf(0xFFFFFF, AlwaysOnBrightness.BRIGHT), 0xFFFFFF);
+        Test.assertEqual(TimeColor.lowPowerOf(0xFF8000, AlwaysOnBrightness.BRIGHT), 0xFF8000);
+        Test.assertEqual(TimeColor.lowPowerOf(0xFFFFFF, AlwaysOnBrightness.DIMMED), 0xD4D4D4);
+        Test.assertEqual(TimeColor.lowPowerOf(0xFF8000, AlwaysOnBrightness.DIMMED), 0xD46A00);
+        Test.assertEqual(TimeColor.lowPowerOf(0xFFFFFF, AlwaysOnBrightness.DIM), 0xAAAAAA);
+        Test.assertEqual(TimeColor.lowPowerOf(0xFF8000, AlwaysOnBrightness.DIM), 0xAA5500);
+        Test.assertEqual(TimeColor.lowPowerOf(0x000000, AlwaysOnBrightness.BRIGHT), 0x000000);
         return true;
     }
 
@@ -61,7 +68,7 @@ class TimeColorTest {
                 app.onSettingsChanged();
                 var drawn = view.digitalRain().timeColors();
                 Test.assertEqualMessage(drawn[0], TimeColor.COLORS[i], "colour " + i + " woken");
-                Test.assertEqualMessage(drawn[1], TimeColor.lowPowerOf(TimeColor.COLORS[i]), "colour " + i + " always-on");
+                Test.assertEqualMessage(drawn[1], TimeColor.lowPowerOf(TimeColor.COLORS[i], AlwaysOnBrightness.selected()), "colour " + i + " always-on");
             }
         } finally {
             Properties.setValue(TimeColor.PROPERTY, saved as Number);

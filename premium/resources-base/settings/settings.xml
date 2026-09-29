@@ -66,4 +66,13 @@
         </settingConfig>
     </setting>
 
+    <!-- The values are the levels AlwaysOnBrightness reads (#161). -->
+    <setting propertyKey="@Properties.alwaysOnBrightness" title="@Strings.AlwaysOnBrightnessTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.AlwaysOnBrightnessBright</listEntry>
+            <listEntry value="1">@Strings.AlwaysOnBrightnessDimmed</listEntry>
+            <listEntry value="2">@Strings.AlwaysOnBrightnessDim</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

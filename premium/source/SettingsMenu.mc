@@ -15,14 +15,15 @@ import Toybox.Lang;
 // The values and labels below are settings.xml's listEntry lists, in the same order. Keep
 // them together: a value added there and not here can be picked on the phone but is never
 // offered here, and is shown here as whatever the face makes of it -- by its number for a
-// trail length, which TrailLength keeps, and as the default for a size, style, alignment or
-// colour, which TimeSize, TimeStyle, TimeAlign, TimeColor and RainColor clamp.
+// trail length, which TrailLength keeps, and as the default for a size, style, alignment,
+// colour or always-on brightness, which TimeSize, TimeStyle, TimeAlign, TimeColor, RainColor
+// and AlwaysOnBrightness clamp.
 module SettingsMenu {
 
     // The settings, in the order the menu lists them and settings.xml declares them.
     function properties() as Array<String> {
         return [TimeSize.PROPERTY, TrailLength.PROPERTY, TimeStyle.PROPERTY, TimeAlign.PROPERTY, TimeColor.PROPERTY,
-            RainColor.PROPERTY];
+            RainColor.PROPERTY, AlwaysOnBrightness.PROPERTY];
     }
 
     function titleOf(property as String) as ResourceId {
@@ -40,6 +41,9 @@ module SettingsMenu {
         }
         if (property.equals(RainColor.PROPERTY)) {
             return Rez.Strings.RainColorTitle;
+        }
+        if (property.equals(AlwaysOnBrightness.PROPERTY)) {
+            return Rez.Strings.AlwaysOnBrightnessTitle;
         }
         return Rez.Strings.TimeStyleTitle;
     }
@@ -60,6 +64,9 @@ module SettingsMenu {
         }
         if (property.equals(RainColor.PROPERTY)) {
             return [0, 1, 2, 3, 4, 5, 6, 7];
+        }
+        if (property.equals(AlwaysOnBrightness.PROPERTY)) {
+            return [AlwaysOnBrightness.BRIGHT, AlwaysOnBrightness.DIMMED, AlwaysOnBrightness.DIM];
         }
         return [TimeStyle.FILLED, TimeStyle.HOLLOW];
     }
@@ -103,6 +110,13 @@ module SettingsMenu {
                 Rez.Strings.RainColorGreenToTeal
             ];
         }
+        if (property.equals(AlwaysOnBrightness.PROPERTY)) {
+            return [
+                Rez.Strings.AlwaysOnBrightnessBright,
+                Rez.Strings.AlwaysOnBrightnessDimmed,
+                Rez.Strings.AlwaysOnBrightnessDim
+            ];
+        }
         return [Rez.Strings.TimeStyleFilled, Rez.Strings.TimeStyleHollow];
     }
 
@@ -123,6 +137,9 @@ module SettingsMenu {
         }
         if (property.equals(RainColor.PROPERTY)) {
             return RainColor.selected();
+        }
+        if (property.equals(AlwaysOnBrightness.PROPERTY)) {
+            return AlwaysOnBrightness.selected();
         }
         return TimeStyle.selected();
     }

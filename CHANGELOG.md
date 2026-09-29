@@ -32,7 +32,7 @@ each change is recorded in full.
   their current values, and selecting one steps to the next value. They were in the Connect IQ app
   only, which also left a sideloaded face with no way to change them. (#148)
 * **Premium: a choice of time and rain colours.** The time can be green, white, cyan, amber, orange
-  or red, and the always-on time follows it, dimmed. The rain can be green, cyan, blue, amber, red or
+  or red, and the always-on time follows it. The rain can be green, cyan, blue, amber, red or
   white, or change hue as it fades: white to green, a white-hot head cooling to green, or green to
   teal. Green, Lite's look, is the default for both. (#143)
 * **Premium: a choice of time alignment.** The time can sit at the left, centre or right of the woken
@@ -43,6 +43,10 @@ each change is recorded in full.
   size as an outline, whatever the settings for the woken screen. It is bigger than before, and
   moves a little further each minute than Lite's does, which keeps it well inside the burn-in limits
   on every supported watch. (#145, #153)
+* **Premium: a choice of always-on brightness.** The time on the always-on screen can be Bright,
+  the full time colour, Dimmed, five sixths of it, or Dim, the two thirds Lite draws. Bright is the
+  default, since the dimmer always-on time was hard to read. The burn-in figures hold at every level.
+  (#161)
 
 ## 0.2.1 -- 2026-09-21
 
