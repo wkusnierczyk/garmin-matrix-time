@@ -16,4 +16,8 @@
          Lite's half screen. -->
     <property id="trailLength" type="number">50</property>
 
+    <!-- timeStyle is the woken time drawn filled or hollow, an index read by TimeStyle
+         (#72). 0, filled, is Lite's look. Hollow applies to the L and XL sizes only. -->
+    <property id="timeStyle" type="number">0</property>
+
 </properties>

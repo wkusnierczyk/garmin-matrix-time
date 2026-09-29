@@ -6,10 +6,19 @@
          it writes premium/resources-FAMILY/fonts and leaves Lite's font trees alone.
 
          The two sizes Lite does not have. S and L of the time size setting are Lite's
-         Time and TimeLarge, so they are not declared again here. -->
+         Time and TimeLarge, so they are not declared again here.
+
+         The hollow time (#72): L and XL again, drawn as an outline so the rain shows
+         through the digits. stroke is the outline width in reference pixels, which the
+         scaler scales per resolution like the size and passes to ttf2bmp; it needs
+         garmin-font-scaler 0.3.0 and ttf2bmp 0.3.0. 1.2 is the look chosen from the
+         prototype on #72. S and M have no hollow font: an outline that small reads as
+         noise in the rain. -->
     <fonts>
         <font id="TimeMedium" filename="SUSEMono-Regular-40.fnt" antialias="true" />
         <font id="TimeExtraLarge" filename="SUSEMono-Regular-68.fnt" antialias="true" />
+        <font id="TimeLargeHollow" filename="SUSEMono-Regular-54.fnt" stroke="1.2" antialias="true" />
+        <font id="TimeExtraLargeHollow" filename="SUSEMono-Regular-68.fnt" stroke="1.2" antialias="true" />
     </fonts>
 
     <jsonData id="FontCharsets" filename="charsets.json"/>

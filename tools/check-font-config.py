@@ -80,6 +80,34 @@ def expected(fid, w, h, sizes=None):
     return stem, round(sz * k(w, h))
 
 
+# A hollow font's outline width, as garmin-font-scaler 0.3.0 derives it for a target
+# (#72): scaled by the same k as the size, rounded to two decimals, passed as written at
+# the reference, and never below ttf2bmp's minimum of 0.125.
+MIN_STROKE = 0.125
+
+
+def expected_stroke(ref_stroke, w, h):
+    factor = k(w, h)
+    stroke = ref_stroke * factor
+    if stroke < MIN_STROKE:
+        return MIN_STROKE
+    if factor == 1:
+        return ref_stroke
+    return max(MIN_STROKE, round(stroke, 2))
+
+
+def stroke_text(stroke):
+    """How the scaler and ttf2bmp write a width: the shortest decimal, 1.0 as "1"."""
+    text = repr(float(stroke))
+    return text[:-2] if text.endswith('.0') else text
+
+
+def fnt_name(stem, size, stroke=None):
+    """The file the scaler points a font id at; hollow ones carry the stroke, "." as "p"."""
+    suffix = '' if stroke is None else '-stroke' + stroke_text(stroke).replace('.', 'p')
+    return f"{stem}-{size}{suffix}.fnt"
+
+
 print("\nCHAIN CHECKS")
 
 # both fonts must exist -- otherwise the shared-size invariant below is vacuous
@@ -204,8 +232,11 @@ ok(charsets.get('Time') == charsets.get('TimeLarge'),
       if charsets.get('Time') != charsets.get('TimeLarge') else ""))
 
 # ------------------------------------------------------------------- derived docs
+# The Font column may read "SUSEMono regular, hollow", and a table with a hollow font in
+# it has a sixth column, the stroke, blank for a filled font (#72).
 ROW_RE = re.compile(
-    r'^\|\s*(\d+)\s*x\s*(\d+)\s*\|\s*([\w-]+)\s*\|\s*([\w ]+?)\s*\|\s*[\w -]+?\s*\|\s*(\d+)\s*\|$')
+    r'^\|\s*(\d+)\s*x\s*(\d+)\s*\|\s*([\w-]+)\s*\|\s*([\w ]+?)\s*\|\s*[\w ,-]+?\s*\|\s*(\d+)\s*\|'
+    r'(?:\s*([\d.]*)\s*\|)?$')
 
 
 def humanize(fid):
@@ -224,20 +255,22 @@ def table_rows(text, heading):
     for line in body.splitlines():
         m = ROW_RE.match(line.strip())
         if m:
-            out.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), int(m.group(5))))
+            out.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), int(m.group(5)),
+                        m.group(6) or None))
         elif out and not line.strip().startswith('|'):
             break
     return out
 
 
-def check_table(rows, label, sizes=None):
+def check_table(rows, label, sizes=None, strokes=None):
     """A table is correct only if it matches values derived from the config."""
     sizes = sizes or refsize
+    strokes = strokes or {}
     if not rows:
         ok(False, f"{label}: no size rows parsed"); return
     want = {(w, h, shape, humanize(fid)): expected(fid, w, h, sizes)[1]
             for (w, h, shape) in targets for fid in sizes}
-    got = {(w, h, shape, fid): size for (w, h, shape, fid, size) in rows}
+    got = {(w, h, shape, fid): size for (w, h, shape, fid, size, _) in rows}
     missing = sorted(set(want) - set(got))
     extra = sorted(set(got) - set(want))
     wrong = sorted(kk for kk in set(want) & set(got) if want[kk] != got[kk])
@@ -247,6 +280,15 @@ def check_table(rows, label, sizes=None):
        + (f" (extra {extra[:3]})" if extra else ""))
     ok(not wrong, f"{label}: every size equals round(ref x k)"
        + (f" (wrong {[(kk, got[kk], want[kk]) for kk in wrong[:3]]})" if wrong else ""))
+    if strokes:
+        want_stroke = {(w, h, shape, humanize(fid)):
+                       stroke_text(expected_stroke(strokes[fid], w, h)) if fid in strokes else None
+                       for (w, h, shape) in targets for fid in sizes}
+        got_stroke = {(w, h, shape, fid): st for (w, h, shape, fid, _, st) in rows}
+        bad = sorted(kk for kk in set(want_stroke) & set(got_stroke)
+                     if want_stroke[kk] != got_stroke[kk])
+        ok(not bad, f"{label}: every stroke equals the reference stroke x k, and filled fonts have none"
+           + (f" (wrong {[(kk, got_stroke[kk], want_stroke[kk]) for kk in bad[:3]]})" if bad else ""))
 
 
 fonts_md = open('fonts.md').read()
@@ -282,7 +324,11 @@ ok(bool(prose) and any('resolutions.json' in b for b in prose),
 # undefined symbol, or, where a monkeyc resource path is mistyped, not at all.
 print("\nPREMIUM")
 PDIR = 'premium/resources/fonts'
-PREMIUM_FONT_IDS = {'TimeMedium', 'TimeExtraLarge'}
+PREMIUM_FONT_IDS = {'TimeMedium', 'TimeExtraLarge', 'TimeLargeHollow', 'TimeExtraLargeHollow'}
+# Each hollow font is its filled twin drawn as an outline (#72): the same face at the same
+# size, so the same metrics, and swapping one for the other never moves the time.
+HOLLOW_TWINS = {'TimeLargeHollow': 'TimeLarge', 'TimeExtraLargeHollow': 'TimeExtraLarge'}
+STROKE_RE = re.compile(r'<font\s+id="(\w+)"[^>]*\sstroke="([^"]+)"')
 
 ok(open(f'{PDIR}/resolutions.json').read() == open('resources/fonts/resolutions.json').read(),
    f"{PDIR}/resolutions.json is identical to Lite's")
@@ -299,6 +345,15 @@ for fid, fn in pfonts.items():
 
 ok(set(psize) == PREMIUM_FONT_IDS,
    f"premium fonts.xml declares exactly {sorted(PREMIUM_FONT_IDS)} (found {sorted(psize)})")
+
+pstroke = {fid: float(s) for fid, s in STROKE_RE.findall(open(f'{PDIR}/fonts.xml').read())}
+ok(set(pstroke) == set(HOLLOW_TWINS),
+   f"premium fonts.xml gives a stroke to exactly the hollow fonts {sorted(HOLLOW_TWINS)} "
+   f"(found {sorted(pstroke)})")
+twins_all = {**refsize, **psize}
+for hollow, filled in sorted(HOLLOW_TWINS.items()):
+    ok(hollow in psize and filled in twins_all and psize[hollow] == twins_all[filled],
+       f"{hollow} is {filled}'s face and size, {twins_all.get(filled)}")
 ok(not set(psize) & set(refsize),
    "no Premium font id repeats a Lite one (the two would collide in the Premium build)")
 
@@ -347,23 +402,27 @@ for w, h, shape in targets:
     got = dict(FONT_RE.findall(open(xml).read()))
     if set(got) != set(psize):
         ok(False, f"{d}: declares fonts {sorted(got)}, premium config declares {sorted(psize)}"); bad += 1
+    if 'stroke=' in open(xml).read():
+        ok(False, f"{xml}: carries a stroke attribute, which Connect IQ does not know"); bad += 1
     for fid, fn in sorted(got.items()):
         if fid not in psize:
             continue
         stem, sz = expected(fid, w, h, psize)
-        if fn != f"{stem}-{sz}.fnt":
-            ok(False, f"{d} {fid}: declares {fn}, expected {stem}-{sz}.fnt"); bad += 1
-        elif not all(os.path.exists(f'{d}/fonts/{stem}-{sz}.{e}') for e in ('fnt', 'png')):
+        stroke = expected_stroke(pstroke[fid], w, h) if fid in pstroke else None
+        want = fnt_name(stem, sz, stroke)
+        if fn != want:
+            ok(False, f"{d} {fid}: declares {fn}, expected {want}"); bad += 1
+        elif not all(os.path.exists(f'{d}/fonts/{want[:-4]}.{e}') for e in ('fnt', 'png')):
             ok(False, f"{d} {fid}: {fn} declared but .fnt/.png missing"); bad += 1
 if not bad:
     ok(True, f"all {len(targets)} Premium targets: named in premium.jungle, "
-             "declared size == round(ref x k), ids match, files present")
+             "declared size == round(ref x k), stroke == ref x k, ids match, files present")
 
 # Premium's size table is generated like Lite's -- garmin-font-scaler --project-dir
 # premium --table fonts.md writes premium/fonts.md -- and the README copies it.
 pfonts_md = open('premium/fonts.md').read()
-check_table(table_rows(pfonts_md, '# Font sizes by resolution'), 'premium/fonts.md table', psize)
-check_table(table_rows(rd, 'The Premium time sizes'), 'README Premium table', psize)
+check_table(table_rows(pfonts_md, '# Font sizes by resolution'), 'premium/fonts.md table', psize, pstroke)
+check_table(table_rows(rd, 'The Premium time sizes'), 'README Premium table', psize, pstroke)
 pm_lines = [l for l in pfonts_md.split('# Font sizes by resolution', 1)[1].splitlines()
             if l.startswith('|')]
 m = re.search(r'The Premium time sizes.*?(\| Resolution \|.*?)(?=\n\n)', rd, re.S)
