@@ -35,8 +35,8 @@ each change is recorded in full.
   white, or change hue as it fades: white to green, a white-hot head cooling to green, or green to
   teal. Green, Lite's look, is the default for both. (#143)
 * **Premium: a larger always-on time.** The always-on screen draws the time at the Extra large size as
-  an outline, whatever the settings for the woken screen. It is bigger than before and lights about as
-  few pixels as Lite's smaller solid time, so it stays well inside the burn-in limits on every
+  an outline, whatever the settings for the woken screen. It is bigger than before, lights about as
+  few pixels as Lite's smaller solid time, and stays well inside the burn-in limits on every
   supported watch. (#145)
 
 ## 0.2.1 -- 2026-09-21
