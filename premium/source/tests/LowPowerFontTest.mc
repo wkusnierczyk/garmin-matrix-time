@@ -2,6 +2,7 @@ using Toybox.Application;
 using Toybox.Application.Properties;
 using Toybox.Graphics;
 using Toybox.Test;
+using Toybox.Time;
 
 import Toybox.Lang;
 
@@ -50,9 +51,19 @@ class LowPowerFontTest {
     }
 
 
+    // The id DigitalRain loads the always-on font from. Filled and hollow XL share every
+    // metric, so no loaded font can show which of the two it is; the id can. Filled XL here
+    // would light more than twice the pixels (#145).
+    (:test)
+    static function theAlwaysOnFontIsTheHollowOne(logger as Test.Logger) as Boolean {
+        Test.assertMessage(TimeStyle.alwaysOnFont() == Rez.Fonts.TimeExtraLargeHollow,
+            "the always-on font is TimeExtraLargeHollow");
+        return true;
+    }
+
+
     // The hollow XL woken time is the always-on font itself, the one object, not a second
-    // copy of the bitmap. That is also what shows the always-on font is the hollow one:
-    // TimeStyleTest checks that this combination draws TimeExtraLargeHollow.
+    // copy of the bitmap.
     (:test)
     static function theHollowExtraLargeTimeSharesTheAlwaysOnFont(logger as Test.Logger) as Boolean {
         var fonts = withSettings(TimeSize.EXTRA_LARGE, TimeStyle.HOLLOW);
@@ -74,6 +85,21 @@ class LowPowerFontTest {
                 Test.assertMessage(fonts[1] != fonts[0],
                     "size " + size + ", style " + style + ": the woken time has its own font");
             }
+        }
+        return true;
+    }
+
+
+    // DigitalRainTest drives the always-on scene round the jitter cycle on a rain built
+    // directly, which draws Lite's font. This drives it with the font Premium draws, the one
+    // the settings have swapped in, at every corner of the square.
+    (:test)
+    static function theAlwaysOnFontSurvivesTheWholeJitterCycle(logger as Test.Logger) as Boolean {
+        var app = Application.getApp() as App;
+        var rain = ((app.getInitialView() as Array)[0] as View).digitalRain();
+        var dc = (Graphics.createBufferedBitmap({:width => 64, :height => 64}).get() as Graphics.BufferedBitmap).getDc();
+        for (var minute = 0; minute < 2 * LOW_POWER_POSITIONS; ++minute) {
+            rain.forTime(new Time.Moment(minute * 60)).drawLowPower(dc);
         }
         return true;
     }

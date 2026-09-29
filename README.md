@@ -59,7 +59,7 @@ The Matrix Time watch face supports the following features:
 |Screenshot|Description|
 |-|:-|
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
-|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, at twice its woken size (in Premium, larger still and as an outline), dimmed, and moved to a different corner of a small square every minute. See **Always-on display** above for why the rain cannot stay.
+|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn, at twice its woken size (in Premium, at Extra large and as an outline), dimmed, and moved to a different corner of a small square every minute. See **Always-on display** above for why the rain cannot stay.
 
 Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
@@ -779,8 +779,10 @@ else, of any type, falls back to Small, that a settings change reaches the font 
 the four fonts really do grow in height on the product under test.
 
 `LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is Extra
-large under every combination of time size and style, that a hollow Extra large woken time is drawn in
-that same font rather than a second copy of it, and that every other combination loads a font of its own.
+large under every combination of time size and style, that it is loaded from the hollow font's id and not
+the filled one's (which share every metric, so only the id can tell them apart), that a hollow Extra large
+woken time is drawn in that same font rather than a second copy of it, that every other combination loads
+a font of its own, and that the always-on scene draws in it at every corner of the jitter square.
 
 `TrailLengthTest`, also in `premium/source/tests/`, covers the trail length setting: that the property
 is declared, that each offered length is kept and anything that is not a percentage strictly between 0

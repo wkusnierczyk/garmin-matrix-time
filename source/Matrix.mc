@@ -169,15 +169,16 @@ class DigitalRain {
     // The hollow XL woken time is then that same font, not a second copy of it.
     (:premium)
     function reloadTimeFont() as Void {
+        var alwaysOn = TimeStyle.alwaysOnFont();
         if (!_lowPowerFontLoaded) {
             _timeLargeFont = Graphics.FONT_XTINY;
-            _timeLargeFont = Application.loadResource(Rez.Fonts.TimeExtraLargeHollow) as Graphics.FontType;
+            _timeLargeFont = Application.loadResource(alwaysOn) as Graphics.FontType;
             _lowPowerFontLoaded = true;
         }
         _timeFont = Graphics.FONT_XTINY;
         var size = TimeSize.selected();
         var hollow = TimeStyle.hollowFont(size, TimeStyle.selected());
-        if (hollow == Rez.Fonts.TimeExtraLargeHollow) {
+        if (hollow == alwaysOn) {
             _timeFont = _timeLargeFont;
             _timeBackground = Graphics.COLOR_TRANSPARENT;
         } else if (hollow != null) {
@@ -190,8 +191,9 @@ class DigitalRain {
     }
 
     // Whether _timeLargeFont holds Premium's always-on font yet, rather than the TimeLarge
-    // initialize loaded. Only reloadTimeFont reads it, and applySettings calls that before
-    // the first frame, so drawLowPower never sees TimeLarge on the watch.
+    // initialize loaded. Only reloadTimeFont reads it, and App.getInitialView calls that,
+    // through applySettings, before the first frame, so drawLowPower never sees TimeLarge
+    // on the watch. A DigitalRain built directly, as DigitalRainTest builds one, still does.
     (:premium)
     private var _lowPowerFontLoaded as Boolean = false;
 
@@ -255,7 +257,8 @@ class DigitalRain {
         return _shades;
     }
 
-    // For TimeSizeTest only, which checks that a settings change reaches the font drawn.
+    // For TimeSizeTest, TimeStyleTest and LowPowerFontTest only, which check that a settings
+    // change reaches the font drawn.
     // (:debug), not (:test): the runner calls every (:test) member as a test. Release
     // builds strip (:debug), so this is not in the shipped .prg.
     (:debug :premium)
