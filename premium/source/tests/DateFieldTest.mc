@@ -128,8 +128,10 @@ class DateFieldTest {
         for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var timeHeight = Graphics.getFontHeight(TimeSize.load(size));
             var y = DateField.yOf(height, timeHeight, dateHeight);
-            // Where drawText puts a vertically centred box: its top half the height above, rounded
-            // down. The time's box ends the same way, half its height below the centre rounded up.
+            // Assumes drawText puts a vertically centred box's top half its height above y,
+            // rounded down, and so the time's bottom half its height below the centre, rounded
+            // up. That is yOf's own arithmetic, so this guards yOf, not the platform; placed
+            // the other way round, an odd height still leaves the date under the time.
             var top = y - dateHeight / 2;
             var bottom = top + dateHeight;
             Test.assertMessage(top >= height / 2 + (timeHeight + 1) / 2, "size " + size + ": the date is under the time");
@@ -156,14 +158,17 @@ class DateFieldTest {
 
 
     // The whole path a change takes, App.onSettingsChanged to the drawText: on, the date is
-    // the last thing drawn, in S, anchored as the time is and where DateField puts it.
+    // the last thing drawn, in S, anchored as the time is and where DateField puts it. At S,
+    // where the date shares the time's font, and at XL, where it does not.
     (:test)
     static function theDateIsDrawnUnderTheTimeWhenOn(logger as Test.Logger) as Boolean {
         var width = System.getDeviceSettings().screenWidth;
         var height = System.getDeviceSettings().screenHeight;
         var dateHeight = Graphics.getFontHeight(DateField.load());
-        for (var align = TimeAlign.LEFT; align <= TimeAlign.RIGHT; ++align) {
-            var size = TimeSize.EXTRA_LARGE;
+        var sizes = [TimeSize.SMALL, TimeSize.EXTRA_LARGE];
+        for (var i = 0; i < 6; ++i) {
+            var align = i % 3;
+            var size = sizes[i / 3];
             var drawn = drawnWith(DateField.ON, align, size, false);
             var dc = drawn[0];
             var timeHeight = Graphics.getFontHeight(TimeSize.load(size));
@@ -174,6 +179,8 @@ class DateFieldTest {
             Test.assertEqualMessage(dc.x, x, "align " + align + ": the date's x");
             Test.assertEqualMessage(dc.y, y, "align " + align + ": the date's y");
             Test.assertEqualMessage(dc.justify, TimeAlign.justifyOf(align), "align " + align + ": anchored as the time");
+            Test.assertMessage(dc.font != null && Graphics.getFontHeight(dc.font as Graphics.FontType) == dateHeight,
+                "size " + size + ", align " + align + ": the date is drawn in S");
         }
         return true;
     }

@@ -125,9 +125,11 @@ there the watch is the only way to change them.
   the default, so the face looks as Lite does until it is turned on. The date is drawn at the Small
   time size whatever the time size, in the time colour, on a black box like a filled time's, so it
   stays legible over the rain whichever time style is chosen. It follows the **Time alignment**
-  setting: at the left or right it lines up with the edge of the time, unless the screen's curve is
-  already narrower at the date's height, in which case it sits further in, so no digit is cut off.
-  Like the time, it is a fixed width, ten characters every day. The always-on screen is not
+  setting: at the left or right it lines up with the edge of the time, unless the circle that fits
+  the screen is already narrower at the date's height, in which case it sits further in, so no
+  digit is cut off. That happens under the smaller time sizes, by a few pixels. Like the time, it is
+  a fixed width, ten characters every day. The time's blank padding character before 10:00 on a
+  12-hour clock therefore leaves a left-aligned date one character further out than the hour. The always-on screen is not
   affected: it shows the time alone, so its burn-in figures above hold.
 
 ## Editions
@@ -139,8 +141,9 @@ Matrix Time comes in two editions, built from this one source tree:
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
   It is not published yet. Its features so far are its settings -- time size, trail length, time
-  style, time alignment, time and rain colours, always-on brightness and the date, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
-  than Regular, see [Fonts](#fonts).
+  style, time alignment, time and rain colours, always-on brightness and the date, see [Premium
+  settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
+  [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
 has goes in `premium/`: code in `premium/source/`, resources for every product in
@@ -693,8 +696,8 @@ against `premium/resources/fonts/` and `premium/fonts.md`, and also that Premium
 family, that the five time sizes grow at every resolution, and that the only Lite font ids Premium
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
 that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
-and Premium's Small the date's `-` as well, with one advance in every family, since the fixed-width time depends on it, and that every glyph of
-a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
+and Premium's Small the date's `-` as well, with one advance in every family, since the fixed-width
+time depends on it, and that every glyph of a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
 time alignment setting keeps that box on the glass and counts on no digit reaching outside it. For
 the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
 family, that the size tables give the same strokes and label exactly those fonts hollow, that no

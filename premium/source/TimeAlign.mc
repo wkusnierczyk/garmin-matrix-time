@@ -60,6 +60,9 @@ module TimeAlign {
     // its corners to be on the circle of this radius. Rounded up, so that the box is never
     // a fraction of a pixel outside it, and taking the half height rounded up too, since
     // centring an odd height puts the extra row on one side or the other.
+    //
+    // The time's case of insetAt. xOf passes the same half height to xAt directly; this is
+    // kept for TimeAlignTest's hand-worked values, and for DateField's comment on rounding.
     function inset(radius as Number, boxHeight as Number) as Number {
         return insetAt(radius, (boxHeight + 1) / 2);
     }

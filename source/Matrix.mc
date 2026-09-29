@@ -199,6 +199,10 @@ class DigitalRain {
         } else if (hollow != null) {
             _timeFont = Application.loadResource(hollow) as Graphics.FontType;
             _timeBackground = Graphics.COLOR_TRANSPARENT;
+        } else if (size == TimeSize.SMALL && _dateFont != null) {
+            // The date's font is S (#163): share it rather than hold S twice.
+            _timeFont = _dateFont as Graphics.FontType;
+            _timeBackground = Graphics.COLOR_BLACK;
         } else {
             _timeFont = TimeSize.load(size);
             _timeBackground = Graphics.COLOR_BLACK;
@@ -300,9 +304,10 @@ class DigitalRain {
             _dateFont = null;
             return;
         }
-        // At time size S the time's own font is the date's. At any other size the date keeps
-        // the S it holds -- reloadTimeFont loads a new time font rather than changing the one
-        // the date shares -- or loads one.
+        // At time size S the time's own font is the date's; reloadTimeFont reuses the date's S
+        // for the time when it has one. At any other size the date keeps the S it holds --
+        // reloadTimeFont loads a new time font rather than changing the one the date shares --
+        // or loads one.
         if (TimeSize.selected() == TimeSize.SMALL) {
             _dateFont = _timeFont;
         } else if (_dateFont == null) {

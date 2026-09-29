@@ -10,7 +10,8 @@ import Toybox.Lang;
 
 // Stands in for the screen's Dc and records the last drawText, which is the time in both
 // scenes while the date is off: draw paints the rain first and the time over it, and
-// drawLowPower draws nothing else. With the date on (#163), draw's last drawText is the date. Everything else goes to a real Dc, which answers the font metrics the grid is built
+// drawLowPower draws nothing else. With the date on (#163), draw's last drawText is the
+// date. Everything else goes to a real Dc, which answers the font metrics the grid is built
 // from; that one is small, so the rain is clipped, for the reason DigitalRainTest gives.
 (:test)
 class RecordingDc {
