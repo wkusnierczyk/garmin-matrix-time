@@ -6,8 +6,8 @@
          Premium's resource path only, so Lite's property table is unchanged.
 
          timeSize is the time font on the woken screen, as an index into the S, M, L, XL
-         ladder in TimeSize (#32). 0, S, is Lite's size, so Premium looks like Lite until
-         the setting is changed. -->
+         ladder in TimeSize (#32). 0, S, is Lite's size; Premium draws it in ExtraBold
+         where Lite draws Regular (#144). -->
     <property id="timeSize" type="number">0</property>
 
     <!-- trailLength is how far down the screen the rain fades to black, as a percentage
@@ -17,7 +17,7 @@
     <property id="trailLength" type="number">50</property>
 
     <!-- timeStyle is the woken time drawn filled or hollow, an index read by TimeStyle
-         (#72). 0, filled, is Lite's look. Hollow applies to the L and XL sizes only. -->
+         (#72). 0, filled, is Lite's style, solid digits on a black box. Hollow applies to the L and XL sizes only. -->
     <property id="timeStyle" type="number">0</property>
 
 </properties>

@@ -5,8 +5,15 @@
          declares, and the scaler requires them. Run the scaler with project dir premium;
          it writes premium/resources-FAMILY/fonts and leaves Lite's font trees alone.
 
-         The two sizes Lite does not have. S and L of the time size setting are Lite's
-         Time and TimeLarge, so they are not declared again here.
+         Every time font Premium draws, in SUSE Mono ExtraBold (#144): S, M, L and XL of
+         the time size setting, L being the always-on font too, and the two hollow ones.
+         Time and TimeLarge repeat Lite's ids on purpose. premium.jungle puts
+         premium/resources-FAMILY after resources-FAMILY, and a later resource directory
+         redefines an id rather than colliding with it, so Premium gets these and Lite's
+         Regular bitmaps are not compiled into the Premium PRG at all.
+
+         SUSEMono-ExtraBold.ttf is a static instance of the Google Fonts variable font,
+         made with fonttools varLib.instancer at wght=800; the README has the command.
 
          The hollow time (#72): L and XL again, drawn as an outline so the rain shows
          through the digits. stroke is the outline width in reference pixels, which the
@@ -15,10 +22,12 @@
          prototype on #72. S and M have no hollow font: an outline that small reads as
          noise in the rain. -->
     <fonts>
-        <font id="TimeMedium" filename="SUSEMono-Regular-40.fnt" antialias="true" />
-        <font id="TimeExtraLarge" filename="SUSEMono-Regular-68.fnt" antialias="true" />
-        <font id="TimeLargeHollow" filename="SUSEMono-Regular-54.fnt" stroke="1.2" antialias="true" />
-        <font id="TimeExtraLargeHollow" filename="SUSEMono-Regular-68.fnt" stroke="1.2" antialias="true" />
+        <font id="Time" filename="SUSEMono-ExtraBold-27.fnt" antialias="true" />
+        <font id="TimeMedium" filename="SUSEMono-ExtraBold-40.fnt" antialias="true" />
+        <font id="TimeLarge" filename="SUSEMono-ExtraBold-54.fnt" antialias="true" />
+        <font id="TimeExtraLarge" filename="SUSEMono-ExtraBold-68.fnt" antialias="true" />
+        <font id="TimeLargeHollow" filename="SUSEMono-ExtraBold-54.fnt" stroke="1.2" antialias="true" />
+        <font id="TimeExtraLargeHollow" filename="SUSEMono-ExtraBold-68.fnt" stroke="1.2" antialias="true" />
     </fonts>
 
     <jsonData id="FontCharsets" filename="charsets.json"/>
