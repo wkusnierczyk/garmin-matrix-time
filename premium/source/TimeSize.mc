@@ -11,8 +11,8 @@ import Toybox.Lang;
 // derives every other resolution from those. S and L are Lite's Time and TimeLarge ids at
 // Lite's sizes; M and XL are Premium's own. All four are Premium fonts, generated from
 // premium/resources/fonts in SUSE Mono ExtraBold (#144), Time and TimeLarge overriding
-// Lite's Regular ones. The always-on scene is not affected: it stays at TimeLarge, the
-// size its burn-in jitter and lit-pixel budget were measured at (#69).
+// Lite's Regular ones. The always-on scene is not affected: it draws the hollow XL at
+// every size and style (#145).
 //
 // The time font is independent of the rain (#50), so a change of size reloads one
 // font and nothing else -- the grid is derived from the Matrix font alone.
@@ -40,14 +40,13 @@ module TimeSize {
         return SMALL;
     }
 
-    // Loads the selected font, and only that one. L is handed the always-on font the
-    // caller already holds rather than loading TimeLarge a second time.
-    function load(size as Number, large as Graphics.FontType) as Graphics.FontType {
+    // Loads the selected font, and only that one.
+    function load(size as Number) as Graphics.FontType {
         switch (size) {
             case MEDIUM:
                 return Application.loadResource(Rez.Fonts.TimeMedium) as Graphics.FontType;
             case LARGE:
-                return large;
+                return Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
             case EXTRA_LARGE:
                 return Application.loadResource(Rez.Fonts.TimeExtraLarge) as Graphics.FontType;
             default:

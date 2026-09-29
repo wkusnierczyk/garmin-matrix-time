@@ -38,8 +38,18 @@ const
     // the previous 32 the doubled glyphs would have had up to 31 permanently lit
     // pixels (#69). Re-measured for Premium's heavier ExtraBold TimeLarge (#144) on the
     // seven families shipped then: the threshold is the same for both weights, 20 or
-    // below leaving no such pixel and 21 the first to leave one, so 16 still clears. The two jitter constants are read by RainMath.jitter; the colour is
-    // used below.
+    // below leaving no such pixel and 21 the first to leave one, so 16 still clears.
+    //
+    // Premium's always-on font is now the hollow ExtraBold XL (#145), and that has no
+    // margin: measured the same way over a whole day, 12- and 24-hour, on the seven
+    // families, every divisor from 8 to 16 leaves no such pixel and 17 leaves 21 to 58.
+    // A hollow stroke is no help here -- what stays lit at 17 and above are pixels where
+    // one digit's outline lands on another's once shifted, not the middle of a stroke. So
+    // 16 still clears, but a larger always-on font, or a larger divisor, has to be
+    // measured again. The same run puts the most of the screen the time lights at 1.44%
+    // (360x360), against 10% allowed; Lite's filled Regular L is at 1.40% there.
+    //
+    // The two jitter constants are read by RainMath.jitter; the colour is used below.
     LOW_POWER_TIME_COLOR = 0x00AA00,
     LOW_POWER_POSITIONS = 4,
     LOW_POWER_JITTER_DIVISOR = 16;
@@ -61,6 +71,9 @@ class DigitalRain {
     // watch shows nearly all of the time, and at the rain glyph size the time was
     // unreadable (#69). The two sizes are independent: time-rain alignment was abandoned
     // in #50, so Time is no longer tied to the Matrix glyph size and is free to be larger.
+    //
+    // _timeLargeFont is the always-on font. In Premium that is the hollow XL rather than
+    // TimeLarge (#145); reloadTimeFont swaps it in, and says why it is not loaded here.
     private var
         _timeFont as Graphics.FontType,
         _timeLargeFont as Graphics.FontType,
@@ -148,19 +161,41 @@ class DigitalRain {
     // The time style setting (#72) picks between a size's filled font and its hollow one.
     // Hollow is drawn with no box behind it, so the rain shows through the digits; S and M
     // have no hollow font and stay filled on their box.
+    //
+    // The first call also swaps the always-on font: Premium draws the always-on time in the
+    // hollow XL (#145). initialize is shared with Lite, which is frozen and still compiles
+    // byte for byte as it did, so it loads TimeLarge in Premium too; this drops that before
+    // loading the hollow XL, at the cost of one wasted load at start-up and nothing held.
+    // The hollow XL woken time is then that same font, not a second copy of it.
     (:premium)
     function reloadTimeFont() as Void {
+        var alwaysOn = TimeStyle.alwaysOnFont();
+        if (!_lowPowerFontLoaded) {
+            _timeLargeFont = Graphics.FONT_XTINY;
+            _timeLargeFont = Application.loadResource(alwaysOn) as Graphics.FontType;
+            _lowPowerFontLoaded = true;
+        }
         _timeFont = Graphics.FONT_XTINY;
         var size = TimeSize.selected();
         var hollow = TimeStyle.hollowFont(size, TimeStyle.selected());
-        if (hollow != null) {
+        if (hollow == alwaysOn) {
+            _timeFont = _timeLargeFont;
+            _timeBackground = Graphics.COLOR_TRANSPARENT;
+        } else if (hollow != null) {
             _timeFont = Application.loadResource(hollow) as Graphics.FontType;
             _timeBackground = Graphics.COLOR_TRANSPARENT;
         } else {
-            _timeFont = TimeSize.load(size, _timeLargeFont);
+            _timeFont = TimeSize.load(size);
             _timeBackground = Graphics.COLOR_BLACK;
         }
     }
+
+    // Whether _timeLargeFont holds Premium's always-on font yet, rather than the TimeLarge
+    // initialize loaded. Only reloadTimeFont reads it, and App.getInitialView calls that,
+    // through applySettings, before the first frame, so drawLowPower never sees TimeLarge
+    // on the watch. A DigitalRain built directly, as DigitalRainTest builds one, still does.
+    (:premium)
+    private var _lowPowerFontLoaded as Boolean = false;
 
     // What the woken time is drawn on: the opaque box that masks the rain behind a filled
     // time, or nothing, for a hollow one (#72). Lite always draws the box, and has no field.
@@ -222,12 +257,19 @@ class DigitalRain {
         return _shades;
     }
 
-    // For TimeSizeTest only, which checks that a settings change reaches the font drawn.
+    // For TimeSizeTest, TimeStyleTest and LowPowerFontTest only, which check that a settings
+    // change reaches the font drawn.
     // (:debug), not (:test): the runner calls every (:test) member as a test. Release
     // builds strip (:debug), so this is not in the shipped .prg.
     (:debug :premium)
     function timeFont() as Graphics.FontType {
         return _timeFont;
+    }
+
+    // For LowPowerFontTest only; (:debug) for the reason timeFont gives.
+    (:debug :premium)
+    function lowPowerFont() as Graphics.FontType {
+        return _timeLargeFont;
     }
 
     // For TimeStyleTest only; (:debug) for the reason timeFont gives.
@@ -304,7 +346,10 @@ class DigitalRain {
 
     }
 
-    // Premium draws it in the time colour setting's own always-on colour (#143).
+    // Premium draws it in the time colour setting's own always-on colour (#143), and in the
+    // hollow ExtraBold XL whatever the time size and style (#145), which reloadTimeFont has
+    // put in _timeLargeFont. The outline is larger than Lite's filled L and lights about as
+    // many pixels; see LOW_POWER_JITTER_DIVISOR.
     (:premium)
     function drawLowPower(dc as Graphics.Dc) as DigitalRain {
 

@@ -368,8 +368,9 @@ for hollow, filled in sorted(HOLLOW_TWINS.items()):
 ok(set(psize) & set(refsize) == PREMIUM_OVERRIDES,
    f"Premium repeats exactly the Lite font ids it overrides, {sorted(PREMIUM_OVERRIDES)} "
    f"(found {sorted(set(psize) & set(refsize))})")
-# An override changes the weight, never the size: S and L stay Lite's sizes, and L is the
-# always-on font whose burn-in jitter and lit-pixel budget were measured at that size (#69).
+# An override changes the weight, never the size: S and L stay Lite's sizes. L is Lite's
+# always-on font, whose burn-in jitter and lit-pixel budget were measured at that size (#69);
+# Premium's always-on font is TimeExtraLargeHollow instead, measured on its own (#145).
 for fid in sorted(PREMIUM_OVERRIDES & set(psize) & set(refsize)):
     ok(psize[fid][1] == refsize[fid][1],
        f"Premium {fid} keeps Lite's reference size ({psize[fid][1]} vs {refsize[fid][1]})")
