@@ -460,8 +460,10 @@ for w, h, shape in targets:
         if not (a and b and os.path.exists(a) and os.path.exists(b)):
             twin_bad.append((fam, hollow, 'missing')); continue
         ma, mb = fnt_metrics(a), fnt_metrics(b)
-        if not (ma[0] and ma[1]) or ma != mb:
-            # Two empty or truncated files would otherwise compare equal.
+        # Both must hold exactly the glyphs of the hollow font's charset: two files empty,
+        # or truncated to the same few glyphs, would otherwise compare equal.
+        glyphs = {str(ord(c)) for c in pcharsets.get(hollow, '')}
+        if not ma[0] or set(ma[1]) != glyphs or set(mb[1]) != glyphs or ma != mb:
             twin_bad.append((fam, hollow, os.path.basename(a), os.path.basename(b)))
 ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(targets)} families"
    + (f" (not {twin_bad[:3]})" if twin_bad else ""))
