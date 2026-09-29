@@ -8,6 +8,7 @@
             <listEntry value="1">@Strings.TimeSizeMedium</listEntry>
             <listEntry value="2">@Strings.TimeSizeLarge</listEntry>
             <listEntry value="3">@Strings.TimeSizeExtraLarge</listEntry>
+            <listEntry value="4">@Strings.TimeSizeExtraExtraLarge</listEntry>
         </settingConfig>
     </setting>
 

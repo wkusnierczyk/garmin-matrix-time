@@ -54,19 +54,21 @@ class TimeStyleTest {
     }
 
 
-    // The choice the draw follows, for every size and style: hollow L and XL are drawn in
-    // their hollow fonts, and everything else is drawn filled, which is null here.
+    // The choice the draw follows, for every size and style: hollow L, XL and XXL are drawn
+    // in their hollow fonts, and everything else is drawn filled, which is null here.
     (:test)
-    static function hollowIsLargeAndExtraLargeOnly(logger as Test.Logger) as Boolean {
+    static function hollowIsLargeAndAboveOnly(logger as Test.Logger) as Boolean {
         var filled = TimeStyle.FILLED;
         var hollow = TimeStyle.HOLLOW;
         Test.assertMessage(TimeStyle.hollowFont(TimeSize.LARGE, hollow) == Rez.Fonts.TimeLargeHollow,
             "hollow L is drawn in TimeLargeHollow");
         Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_LARGE, hollow) == Rez.Fonts.TimeExtraLargeHollow,
             "hollow XL is drawn in TimeExtraLargeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_EXTRA_LARGE, hollow) == Rez.Fonts.TimeExtraExtraLargeHollow,
+            "hollow XXL is drawn in TimeExtraExtraLargeHollow");
         Test.assertMessage(TimeStyle.hollowFont(TimeSize.SMALL, hollow) == null, "hollow S is drawn filled");
         Test.assertMessage(TimeStyle.hollowFont(TimeSize.MEDIUM, hollow) == null, "hollow M is drawn filled");
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             Test.assertMessage(TimeStyle.hollowFont(size, filled) == null, "filled size " + size + " is drawn filled");
         }
         return true;
@@ -80,7 +82,7 @@ class TimeStyleTest {
     (:test)
     static function aHollowFontHasItsFilledTwinsMetrics(logger as Test.Logger) as Boolean {
         var dc = (Graphics.createBufferedBitmap({:width => 1, :height => 1}).get() as Graphics.BufferedBitmap).getDc();
-        for (var size = TimeSize.LARGE; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.LARGE; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var filled = TimeSize.load(size);
             var hollow = Application.loadResource(
                 TimeStyle.hollowFont(size, TimeStyle.HOLLOW) as ResourceId) as Graphics.FontType;
@@ -98,16 +100,18 @@ class TimeStyleTest {
 
 
     // The whole path a change takes, App.onSettingsChanged to DigitalRain.reloadTimeFont,
-    // and what it decides: hollow L and XL drop the box, everything else keeps it.
+    // and what it decides: hollow L, XL and XXL drop the box, everything else keeps it.
     (:test)
-    static function hollowDropsTheBoxAtLargeAndExtraLargeOnly(logger as Test.Logger) as Boolean {
+    static function hollowDropsTheBoxAtLargeAndAboveOnly(logger as Test.Logger) as Boolean {
         var none = Graphics.COLOR_TRANSPARENT;
         var box = Graphics.COLOR_BLACK;
+        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.HOLLOW)[1], none, "hollow XXL: no box");
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.HOLLOW)[1], none, "hollow XL: no box");
         Test.assertEqualMessage(drawnWith(TimeSize.LARGE, TimeStyle.HOLLOW)[1], none, "hollow L: no box");
         Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.HOLLOW)[1], box, "hollow M: filled, on the box");
         Test.assertEqualMessage(drawnWith(TimeSize.SMALL, TimeStyle.HOLLOW)[1], box, "hollow S: filled, on the box");
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XL: on the box");
+        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XXL: on the box");
         return true;
     }
 
@@ -115,7 +119,7 @@ class TimeStyleTest {
     // The style changes the font, never the size.
     (:test)
     static function hollowKeepsTheSelectedSize(logger as Test.Logger) as Boolean {
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var filled = drawnWith(size, TimeStyle.FILLED)[0];
             var hollow = drawnWith(size, TimeStyle.HOLLOW)[0];
             Test.assertEqualMessage(hollow, filled, "size " + size + ": the same height either style");
