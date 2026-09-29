@@ -32,6 +32,13 @@ class App extends Application.AppBase {
         return [ view ];
     }
 
+    // The watch's Customize menu (#148). settings.xml gives the phone app its screen; the
+    // watch has only this.
+    (:premium)
+    function getSettingsView() as [WatchUi.Views] or [WatchUi.Views, WatchUi.InputDelegates] or Null {
+        return [ new SettingsMenuView(), new SettingsMenuDelegate() ];
+    }
+
     (:premium)
     function onSettingsChanged() as Void {
         var view = _view;

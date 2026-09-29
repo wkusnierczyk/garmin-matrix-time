@@ -65,7 +65,11 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds a settings screen, in Connect IQ and on the watch, with three settings:
+Premium adds three settings. They can be changed in the Connect IQ app, and on the watch from the
+face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
+the next value. The two are the same settings, so a change made in one shows in the other. A face
+installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
+there the watch is the only way to change them.
 
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
   Small is the size Lite draws, and is the default, so Premium looks like Lite until the setting is
@@ -650,7 +654,8 @@ Its typeface is a symlink to Lite's, so there is one copy in LFS, not two.
 Premium's settings are resources in `premium/resources-base/`: `settings/settings.xml`, and a
 `properties/properties.xml` that joins Lite's property table rather than replacing it, so the schema
 marker Lite depends on is still there. Code that reads a setting is Premium-only and lives in
-`premium/source/`; what a shared file needs to react to it is annotated `(:premium)`, with a `(:lite)`
+`premium/source/`, and so does `SettingsMenu`, the watch's menu for the same settings, which
+`App.getSettingsView` returns; what a shared file needs to react to it is annotated `(:premium)`, with a `(:lite)`
 twin where Lite must keep its own version, as `App.getInitialView` does.
 
 Three checks keep the editions honest:
@@ -738,6 +743,11 @@ wide as its filled twin, so switching style never moves the time, that a setting
 box at hollow Large and Extra large only, and that the style never changes the size. The mapping is the
 one value `reloadTimeFont` both loads the font from and drops the box by; which of two fonts of the same
 size was loaded cannot itself be observed from a test.
+
+`SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that every
+value it offers has a label and is kept as it is by the setting it belongs to, so the menu can never
+write a value the face would ignore, that selecting steps to the next value and wraps, and that a trail
+length the list does not offer steps to the next offered one.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
