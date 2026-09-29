@@ -71,13 +71,13 @@ the next value. The two are the same settings, so a change made in one shows in 
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
 there the watch is the only way to change them.
 
-* **Time size** -- Small, Medium, Large, Extra large or Extra extra large: the size of the time on the
-  woken screen. Extra large is the default; Small is the size Lite draws. Premium draws every size in
-  SUSEMono ExtraBold, a heavier weight of Lite's typeface. At the 416x416 reference the five are 27, 40,
-  54, 68 and 82; see [Fonts](#fonts) for every resolution. Extra extra large is 60% of the screen width
-  on every resolution. The always-on screen is not affected: it is always drawn hollow at Extra extra
-  large; see **Always-on display** above. A change applies at once, and reloads the time font only --
-  the rain is sized from its own font and does not move.
+* **Time size** -- Small, Medium, Large, Extra large or Extra extra large: the size of the time on
+  the woken screen. Extra large is the default; Small is the size Lite draws. Premium draws every
+  size in SUSEMono ExtraBold, a heavier weight of Lite's typeface. At the 416x416 reference the five
+  are 27, 40, 54, 68 and 82; see [Fonts](#fonts) for every resolution. Extra extra large is about
+  60% of the screen width on every resolution. The always-on screen is not affected: it is always
+  drawn hollow at Extra extra large; see **Always-on display** above. A change applies at once, and
+  reloads the time font only -- the rain is sized from its own font and does not move.
 * **Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
   fades to black. 50% is the length Lite draws, and is the default. Being a share of the screen height
   rather than a count of glyphs, a setting looks the same on every resolution. It is also a battery
@@ -87,20 +87,20 @@ there the watch is the only way to change them.
 * **Time style** -- Filled or Hollow: the time on the woken screen drawn as solid digits on a black
   box, or as an outline with no box, so the rain falls through the digits. Filled is the look Lite
   draws, and is the default. Hollow applies to the Large, Extra large and Extra extra large sizes
-  only; at Small and Medium the outline is too fine to read against the rain, so those stay filled whichever style is
-  chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with the screen, like the
-  font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is drawn hollow at Extra
-  extra large whichever style is chosen here.
-* **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre is
-  where Lite draws it, and is the default. At the left or right the time keeps its fixed width of five
-  characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a left-aligned
-  time therefore starts one blank character in from its margin. The margin is not fixed: it is worked
-  out from the screen's curve at the top and bottom of the time, plus half a character, so no digit
-  is cut off by a round screen's edge at any time size, and the black box behind a filled time stays
-  on the glass too. At the 416x416 reference that puts the time 9 pixels in at Small, 26 at Extra
-  large and 33 at Extra extra large. A rectangular screen gets the same margin as the circle that fits it, so the time sits the
-  same way on every shape. The always-on screen is not affected: it stays centred, so its burn-in
-  figures above hold.
+  only; at Small and Medium the outline is too fine to read against the rain, so those stay filled
+  whichever style is chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with
+  the screen, like the font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is
+  drawn hollow at Extra extra large whichever style is chosen here.
+* **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
+  is where Lite draws it, and is the default. At the left or right the time keeps its fixed width of
+  five characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a
+  left-aligned time therefore starts one blank character in from its margin. The margin is not
+  fixed: it is worked out from the screen's curve at the top and bottom of the time, plus half a
+  character, so no digit is cut off by a round screen's edge at any time size, and the black box
+  behind a filled time stays on the glass too. At the 416x416 reference that puts the time 9 pixels
+  in at Small, 26 at Extra large and 33 at Extra extra large. A rectangular screen gets the same
+  margin as the circle that fits it, so the time sits the same way on every shape. The always-on
+  screen is not affected: it stays centred, so its burn-in figures above hold.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at two thirds of its
   brightness, as Lite's always-on green is two thirds of its woken green. The burn-in protector counts
@@ -196,12 +196,13 @@ fonttools varLib.instancer "SUSEMono[wght].ttf" wght=800 --update-name-table -o 
 ```
 
 Premium's eight time fonts are therefore all its own. Small and Large, of the [time size
-setting](#premium-settings), are Lite's Time and Time large at the same sizes and under the same ids,
-so Premium's bitmaps replace Lite's rather than joining them, and Lite's Regular bitmaps are not
-compiled into the Premium app. Medium, Extra large and Extra extra large are the three sizes Lite does
-not have. The other three are the hollow time of the [time style setting](#premium-settings): Large,
-Extra large and Extra extra large again, drawn as an outline. Their stroke is 1.2 pixels at the
-reference, scaled per resolution like the size, which is the Stroke column. All eight are configured in `premium/resources/fonts/` and generated into
+setting](#premium-settings), are Lite's Time and Time large at the same sizes and under the same
+ids, so Premium's bitmaps replace Lite's rather than joining them, and Lite's Regular bitmaps are
+not compiled into the Premium app. Medium, Extra large and Extra extra large are the three sizes
+Lite does not have. The other three are the hollow time of the [time style
+setting](#premium-settings): Large, Extra large and Extra extra large again, drawn as an outline.
+Their stroke is 1.2 pixels at the reference, scaled per resolution like the size, which is the
+Stroke column. All eight are configured in `premium/resources/fonts/` and generated into
 `premium/resources-<family>/` by `garmin-font-scaler --project-dir premium`, from the same reference
 resolution. The table is a copy of [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
 
@@ -664,25 +665,26 @@ newer, and no SDK: the capture runs the Connect IQ simulator inside a container 
 there is no GUI to drive and no macOS screen-recording permission to grant. See
 [Store and README images](#store-and-readme-images).
 
-`make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no SDK.
-`check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one another
-and with the bitmaps on disk, that the rain charset is the same string in `source/Matrix.mc`,
-`resources/fonts/charsets.json` and `tools/make-launcher-icons.py`, that the base fonts are byte-identical
-to the generated reference-resolution ones, and that the size tables in this file and in `fonts.md` are
-what the scaler produced. It checks Premium's fonts the same way, against `premium/resources/fonts/`
-and `premium/fonts.md`, and also that Premium's `resolutions.json` is Lite's, that `premium.jungle` adds
-the Premium font directory for every family, that the four time sizes grow at every resolution, and
-that the only Lite font ids Premium repeats are the two it redraws in ExtraBold, `Time` and
-`TimeLarge`, at Lite's sizes. It also checks that every time font, Lite's and Premium's, holds the full
-time charset, digits, space and colon, with one advance in every family, since the fixed-width time
-depends on it, and that every glyph of a Premium time font fills its whole cell, as wide as its
-advance and as tall as the line, since the time alignment setting keeps that box on the glass and
-counts on no digit reaching outside it.
-For the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
+`make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no
+SDK. `check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one
+another and with the bitmaps on disk, that the rain charset is the same string in
+`source/Matrix.mc`, `resources/fonts/charsets.json` and `tools/make-launcher-icons.py`, that the
+base fonts are byte-identical to the generated reference-resolution ones, and that the size tables
+in this file and in `fonts.md` are what the scaler produced. It checks Premium's fonts the same way,
+against `premium/resources/fonts/` and `premium/fonts.md`, and also that Premium's
+`resolutions.json` is Lite's, that `premium.jungle` adds the Premium font directory for every
+family, that the five time sizes grow at every resolution, and that the only Lite font ids Premium
+repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
+that every time font, Lite's and Premium's, holds the full time charset, digits, space and colon,
+with one advance in every family, since the fixed-width time depends on it, and that every glyph of
+a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
+time alignment setting keeps that box on the glass and counts on no digit reaching outside it. For
+the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
 family, that the size tables give the same strokes and label exactly those fonts hollow, that no
-generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled twin's
-metrics in every family, so switching style never moves the time. `check-icons` does the same for the launcher icons and their per-product mapping
-in `monkey.jungle`; see [Launcher icon](#launcher-icon).
+generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled
+twin's metrics in every family, so switching style never moves the time. `check-icons` does the same
+for the launcher icons and their per-product mapping in `monkey.jungle`; see [Launcher
+icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
 accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both
@@ -806,11 +808,12 @@ property joins Lite's table instead of replacing it, that each of the five sizes
 else, of any type, falls back to Extra large, the default, that a settings change reaches the font the
 face draws, and that the five fonts really do grow in height on the product under test.
 
-`LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is Extra
-extra large under all ten combinations of time size and style, that it is loaded from the hollow font's
-id and not the filled one's (which share every metric, so only the id can tell them apart), that a hollow
-Extra extra large woken time is drawn in that same font rather than a second copy of it, that every other combination loads
-a font of its own, and that the always-on scene draws in it at every corner of the jitter square.
+`LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is
+Extra extra large under all ten combinations of time size and style, that it is loaded from the
+hollow font's id and not the filled one's (which share every metric, so only the id can tell them
+apart), that a hollow Extra extra large woken time is drawn in that same font rather than a second
+copy of it, that every other combination loads a font of its own, and that the always-on scene draws
+in it at every corner of the jitter square.
 
 `TrailLengthTest`, also in `premium/source/tests/`, covers the trail length setting: that the property
 is declared, that each offered length is kept and anything that is not a percentage strictly between 0
@@ -831,13 +834,14 @@ that every palette entry fades in distinct, lit steps at the shortest trail leng
 pure red, and that a settings
 change reaches the ramp a falling rain draws.
 
-`TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property is
-declared, that anything but Hollow falls back to Filled, that hollow Large, Extra large and Extra extra large
-map to their hollow fonts and every other size and style maps to none, that a hollow font is exactly as tall and as
-wide as its filled twin, so switching style never moves the time, that a settings change drops the black
-box at hollow Large, Extra large and Extra extra large only, and that the style never changes the size. The mapping is the
-one value `reloadTimeFont` both loads the font from and drops the box by; which of two fonts of the same
-size was loaded cannot itself be observed from a test.
+`TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property
+is declared, that anything but Hollow falls back to Filled, that hollow Large, Extra large and Extra
+extra large map to their hollow fonts and every other size and style maps to none, that a hollow
+font is exactly as tall and as wide as its filled twin, so switching style never moves the time,
+that a settings change drops the black box at hollow Large, Extra large and Extra extra large only,
+and that the style never changes the size. The mapping is the one value `reloadTimeFont` both loads
+the font from and drops the box by; which of two fonts of the same size was loaded cannot itself be
+observed from a test.
 
 `TimeAlignTest`, also in `premium/source/tests/`, covers the time alignment setting: that the property
 is declared, that anything but Left, Centre or Right falls back to Centre, the margin against values
@@ -848,12 +852,12 @@ with, and that the always-on time stays centred under every alignment. The last 
 on one product; the margin was checked on one product per supported resolution when the setting
 landed.
 
-`SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that every
-value it offers has a label and is kept as it is by the setting it belongs to, so the menu can never
-write a value the face would ignore, that each value is shown with its own label, that the open menu
-shows a value changed from the phone, that selecting steps
-to the next value and wraps, Extra extra large back to Small, and that a trail length the list does not offer steps to the next offered
-one.
+`SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that
+every value it offers has a label and is kept as it is by the setting it belongs to, so the menu can
+never write a value the face would ignore, that each value is shown with its own label, that the
+open menu shows a value changed from the phone, that selecting steps to the next value and wraps,
+Extra extra large back to Small, and that a trail length the list does not offer steps to the next
+offered one.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release

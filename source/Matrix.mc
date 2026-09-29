@@ -57,7 +57,8 @@ const
     // 1.73% (360x360), against 10% allowed; Lite's filled Regular L is at 1.40% there.
     // A larger always-on font, or another divisor, has to be measured again.
     //
-    // The two jitter constants are read by RainMath.jitter; the colour is used below.
+    // LOW_POWER_POSITIONS and the edition's LOW_POWER_JITTER_DIVISOR, below, are read by
+    // RainMath.jitter; the colour is used below.
     LOW_POWER_TIME_COLOR = 0x00AA00,
     LOW_POWER_POSITIONS = 4;
 
