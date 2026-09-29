@@ -235,7 +235,7 @@ ok(charsets.get('Time') == charsets.get('TimeLarge'),
 # The Font column may read "SUSEMono regular, hollow", and a table with a hollow font in
 # it has a sixth column, the stroke, blank for a filled font (#72).
 ROW_RE = re.compile(
-    r'^\|\s*(\d+)\s*x\s*(\d+)\s*\|\s*([\w-]+)\s*\|\s*([\w ]+?)\s*\|\s*[\w ,-]+?\s*\|\s*(\d+)\s*\|'
+    r'^\|\s*(\d+)\s*x\s*(\d+)\s*\|\s*([\w-]+)\s*\|\s*([\w ]+?)\s*\|\s*([\w ,-]+?)\s*\|\s*(\d+)\s*\|'
     r'(?:\s*([\d.]*)\s*\|)?$')
 
 
@@ -255,8 +255,8 @@ def table_rows(text, heading):
     for line in body.splitlines():
         m = ROW_RE.match(line.strip())
         if m:
-            out.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), int(m.group(5)),
-                        m.group(6) or None))
+            out.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), int(m.group(6)),
+                        m.group(7) or None, m.group(5)))
         elif out and not line.strip().startswith('|'):
             break
     return out
@@ -270,7 +270,7 @@ def check_table(rows, label, sizes=None, strokes=None):
         ok(False, f"{label}: no size rows parsed"); return
     want = {(w, h, shape, humanize(fid)): expected(fid, w, h, sizes)[1]
             for (w, h, shape) in targets for fid in sizes}
-    got = {(w, h, shape, fid): size for (w, h, shape, fid, size, _) in rows}
+    got = {(w, h, shape, fid): size for (w, h, shape, fid, size, _, _) in rows}
     missing = sorted(set(want) - set(got))
     extra = sorted(set(got) - set(want))
     wrong = sorted(kk for kk in set(want) & set(got) if want[kk] != got[kk])
@@ -284,11 +284,16 @@ def check_table(rows, label, sizes=None, strokes=None):
         want_stroke = {(w, h, shape, humanize(fid)):
                        stroke_text(expected_stroke(strokes[fid], w, h)) if fid in strokes else None
                        for (w, h, shape) in targets for fid in sizes}
-        got_stroke = {(w, h, shape, fid): st for (w, h, shape, fid, _, st) in rows}
+        got_stroke = {(w, h, shape, fid): st for (w, h, shape, fid, _, st, _) in rows}
         bad = sorted(kk for kk in set(want_stroke) & set(got_stroke)
                      if want_stroke[kk] != got_stroke[kk])
         ok(not bad, f"{label}: every stroke equals the reference stroke x k, and filled fonts have none"
            + (f" (wrong {[(kk, got_stroke[kk], want_stroke[kk]) for kk in bad[:3]]})" if bad else ""))
+        hollow_ids = {humanize(fid) for fid in strokes}
+        mislabelled = sorted({fid for (_, _, _, fid, _, _, font) in rows
+                              if font.endswith(', hollow') != (fid in hollow_ids)})
+        ok(not mislabelled, f"{label}: exactly the hollow fonts are labelled hollow"
+           + (f" (wrong {mislabelled})" if mislabelled else ""))
 
 
 fonts_md = open('fonts.md').read()
@@ -417,6 +422,46 @@ for w, h, shape in targets:
 if not bad:
     ok(True, f"all {len(targets)} Premium targets: named in premium.jungle, "
              "declared size == round(ref x k), stroke == ref x k, ids match, files present")
+
+
+# A hollow font must draw the time exactly where its filled twin does: the same line
+# height and base, and every glyph the same width, advance and offsets. Only the glyph's
+# place in the atlas, x, may differ. Compared on the generated files, in every family,
+# since that is what the device loads -- the configuration alone cannot see a ttf2bmp
+# that pads outlined glyphs differently (#72).
+def fnt_metrics(path):
+    common, chars = None, {}
+    for line in open(path):
+        fields = dict(re.findall(r'(\w+)=("[^"]*"|\S+)', line))
+        if line.startswith('common '):
+            common = {kk: v for kk, v in fields.items() if kk in ('lineHeight', 'base', 'scaleH')}
+        elif line.startswith('char '):
+            chars[fields['id']] = {kk: v for kk, v in fields.items() if kk != 'x'}
+    return common, chars
+
+
+def family_font(fid, fam):
+    """The generated .fnt a font id resolves to in a family: Lite's tree or Premium's."""
+    for d in (f'premium/resources-{fam}/fonts', f'resources-{fam}/fonts'):
+        xml = f'{d}/fonts.xml'
+        if os.path.exists(xml):
+            fn = dict(FONT_RE.findall(open(xml).read())).get(fid)
+            if fn:
+                return f'{d}/{fn}'
+    return None
+
+
+twin_bad = []
+for w, h, shape in targets:
+    fam = f"{shape}-{w}x{h}"
+    for hollow, filled in sorted(HOLLOW_TWINS.items()):
+        a, b = family_font(hollow, fam), family_font(filled, fam)
+        if not (a and b and os.path.exists(a) and os.path.exists(b)):
+            twin_bad.append((fam, hollow, 'missing')); continue
+        if fnt_metrics(a) != fnt_metrics(b):
+            twin_bad.append((fam, hollow, os.path.basename(a), os.path.basename(b)))
+ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(targets)} families"
+   + (f" (not {twin_bad[:3]})" if twin_bad else ""))
 
 # Premium's size table is generated like Lite's -- garmin-font-scaler --project-dir
 # premium --table fonts.md writes premium/fonts.md -- and the README copies it.

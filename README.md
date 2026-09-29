@@ -599,7 +599,11 @@ and with the bitmaps on disk, that the rain charset is the same string in `sourc
 to the generated reference-resolution ones, and that the size tables in this file and in `fonts.md` are
 what the scaler produced. It checks Premium's fonts the same way, against `premium/resources/fonts/`
 and `premium/fonts.md`, and also that Premium's `resolutions.json` is Lite's, that `premium.jungle` adds
-the Premium font directory for every family, and that the four time sizes grow at every resolution. `check-icons` does the same for the launcher icons and their per-product mapping
+the Premium font directory for every family, and that the four time sizes grow at every resolution.
+For the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
+family, that the size tables give the same strokes and label exactly those fonts hollow, that no
+generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled twin's
+metrics in every family, so switching style never moves the time. `check-icons` does the same for the launcher icons and their per-product mapping
 in `monkey.jungle`; see [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
@@ -727,11 +731,18 @@ and 100 falls back to 50%, that 50% is exactly Lite's half screen on every ring,
 keeps at least one lit row and, on any ring of two rows or more, one black one, and that a settings
 change reaches the ramp a falling rain draws.
 
+`TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property is
+declared, that anything but Hollow falls back to Filled, that hollow Large and Extra large are drawn in
+their hollow fonts and every other size and style is drawn filled, that a hollow font is exactly as tall
+and as wide as its filled twin, so switching style never moves the time, that a settings change drops
+the black box at hollow Large and Extra large only, and that the style never changes the size.
+
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds two, `TimeSizeTest` and `TrailLengthTest`.
+since none of them is ever instantiated. Premium adds three, `TimeSizeTest`, `TrailLengthTest` and
+`TimeStyleTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
