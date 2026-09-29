@@ -9,6 +9,17 @@ import Toybox.Lang;
 (:test)
 class SettingsMenuTest {
 
+    // The menu offers every entry of each colour palette, no more and no fewer (#143): the
+    // values are indices, so one missing here would be a colour the phone offers and the
+    // watch skips.
+    (:test)
+    static function theMenuOffersEveryPaletteEntry(logger as Test.Logger) as Boolean {
+        Test.assertEqual(SettingsMenu.valuesOf(TimeColor.PROPERTY).size(), TimeColor.COLORS.size());
+        Test.assertEqual(SettingsMenu.valuesOf(RainColor.PROPERTY).size(), RainColor.HEADS.size());
+        return true;
+    }
+
+
     // Every setting in the menu offers a label for each of its values, and every offered
     // value is one its module keeps as it is rather than clamping to the default -- so the
     // menu can never write a value the face would then ignore.
@@ -24,6 +35,8 @@ class SettingsMenuTest {
                 var value = values[j];
                 var kept = property.equals(TimeSize.PROPERTY) ? TimeSize.sizeOf(value)
                     : property.equals(TrailLength.PROPERTY) ? TrailLength.percentOf(value)
+                    : property.equals(TimeColor.PROPERTY) ? TimeColor.indexOf(value)
+                    : property.equals(RainColor.PROPERTY) ? RainColor.indexOf(value)
                     : TimeStyle.styleOf(value);
                 Test.assertEqualMessage(kept, value, property + " keeps the offered " + value);
             }
@@ -42,6 +55,10 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.labelOf(TrailLength.PROPERTY, 75), "75% of the screen");
         Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.FILLED), "Filled");
         Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.HOLLOW), "Hollow (Large and Extra large)");
+        Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, TimeColor.GREEN), "Green");
+        Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, 4), "Orange");
+        Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, RainColor.GREEN), "Green");
+        Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, 6), "White to green");
         return true;
     }
 
