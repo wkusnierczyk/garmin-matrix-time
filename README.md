@@ -72,9 +72,9 @@ installed with `make sideload` rather than from the store has no settings in the
 there the watch is the only way to change them.
 
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
-  Small is the size Lite draws, and is the default. Premium draws every size in SUSEMono ExtraBold,
-  a heavier weight of Lite's typeface. At the 416x416 reference the four are 27, 40, 54 and 68; see
-  [Fonts](#fonts) for every resolution. The always-on screen is not affected: it is always drawn
+  Extra large is the default; Small is the size Lite draws. Premium draws every size in SUSEMono
+  ExtraBold, a heavier weight of Lite's typeface. At the 416x416 reference the four are 27, 40, 54 and
+  68; see [Fonts](#fonts) for every resolution. The always-on screen is not affected: it is always drawn
   hollow at Extra large; see **Always-on display** above. A change applies at once,
   and reloads the time font only -- the rain is sized from its own font and does not move.
 * **Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
@@ -775,8 +775,8 @@ out, and both tests report an error rather than a failure.
 
 `TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
 property joins Lite's table instead of replacing it, that each of the four sizes is kept and anything
-else, of any type, falls back to Small, that a settings change reaches the font the face draws, and that
-the four fonts really do grow in height on the product under test.
+else, of any type, falls back to Extra large, the default, that a settings change reaches the font the
+face draws, and that the four fonts really do grow in height on the product under test.
 
 `LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is Extra
 large under every combination of time size and style, that it is loaded from the hollow font's id and not

@@ -27,17 +27,19 @@ module TimeSize {
 
     // The stored index, clamped by sizeOf.
     function selected() as Number {
-        return sizeOf(PropertyUtils.getPropertyElseDefault(PROPERTY, SMALL));
+        return sizeOf(PropertyUtils.getPropertyElseDefault(PROPERTY, EXTRA_LARGE));
     }
 
     // Anything that is not one of the four -- a missing property, a value of the wrong
-    // type, one out of range -- is S, Lite's size. Separate from selected so that every
-    // such value can be tested directly, without first getting it into the property table.
+    // type, one out of range -- is XL, the default in properties.xml (#155), so a watch
+    // with no stored value and one with a corrupt value look the same. Separate from
+    // selected so that every such value can be tested directly, without first getting it
+    // into the property table.
     function sizeOf(value as Properties.ValueType or Null) as Number {
         if (value instanceof Number && value >= SMALL && value <= EXTRA_LARGE) {
             return value;
         }
-        return SMALL;
+        return EXTRA_LARGE;
     }
 
     // Loads the selected font, and only that one.
