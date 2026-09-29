@@ -791,8 +791,9 @@ change reaches both colours the face draws the time in.
 `RainColorTest`, also in `premium/source/tests/`, covers the rain colour setting and the two-colour ramp
 it builds, `RainMath.gradient`: that the property is declared, that anything but an index into the
 palette falls back to Green, that a plain colour gives exactly Lite's one-colour ramp at every trail
-length, that a gradient starts at its head colour and has cooled to its tail colour by the last lit row,
-that every palette entry fades in distinct, lit steps at the shortest trail length, and that a settings
+length, that every gradient starts at its head colour and has cooled to its tail colour by the last lit row,
+that every palette entry fades in distinct, lit steps at the shortest trail length and is no darker than
+pure red, and that a settings
 change reaches the ramp a falling rain draws.
 
 `TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property is

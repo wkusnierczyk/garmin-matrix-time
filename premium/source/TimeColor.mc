@@ -1,5 +1,4 @@
 using Toybox.Application.Properties;
-using Toybox.Graphics;
 
 import Toybox.Lang;
 

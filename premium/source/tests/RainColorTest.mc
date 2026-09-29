@@ -73,24 +73,52 @@ class RainColorTest {
     }
 
 
-    // The head is the head colour undimmed, the ramp is black from `steps` on, and a gradient
-    // has left its head colour by the last lit row.
+    // Every gradient in the palette, at every trail length: the head is the head colour
+    // undimmed, the last lit row has cooled to the tail colour, and the ramp is black from
+    // `steps` on. "Cooled" is within 4 a channel of the tail dimmed as `shades` dims it: the
+    // head's share at the last lit row is 1 in steps * steps, which at the 4 steps of the
+    // shortest trail still leaves a few units of it -- 0x033F0E where the dimmed tail is
+    // 0x003F0A, for white to green.
     (:test)
-    static function aGradientRunsFromItsHeadColourToBlack(logger as Test.Logger) as Boolean {
-        var ramp = RainMath.gradient(17, 8, 0xFFFFFF, MATRIX_COLOR);
-        Test.assertEqualMessage(ramp[0], 0xFFFFFF, "the head is white");
-        Test.assertMessage(((ramp[7] >> RED_SHIFT) & MASK) < ((ramp[7] >> GREEN_SHIFT) & MASK),
-            "the last lit row has cooled to green, not a grey");
-        for (var i = 8; i < 17; ++i) {
-            Test.assertEqualMessage(ramp[i], 0x000000, "row " + i + " is black");
+    static function aGradientRunsFromItsHeadToItsTailToBlack(logger as Test.Logger) as Boolean {
+        var percents = [25, 50, 75];
+        var shifts = [RED_SHIFT, GREEN_SHIFT, BLUE_SHIFT];
+        var gradients = 0;
+        for (var c = 0; c < RainColor.HEADS.size(); ++c) {
+            var head = RainColor.HEADS[c], tail = RainColor.TAILS[c];
+            if (head == tail) {
+                continue;
+            }
+            ++gradients;
+            for (var n = 0; n < ROW_COUNTS.size(); ++n) {
+                var rows = ROW_COUNTS[n] as Number;
+                for (var p = 0; p < percents.size(); ++p) {
+                    var steps = TrailLength.steps(percents[p] as Number, rows);
+                    var ramp = RainMath.gradient(rows, steps, head, tail);
+                    var cooled = RainMath.shades(rows, steps, tail)[steps - 1];
+                    var where = "colour " + c + ", " + rows + " rows, " + percents[p] + "%";
+                    Test.assertEqualMessage(ramp[0], head, where + ": the head is the head colour");
+                    for (var s = 0; s < shifts.size(); ++s) {
+                        var shift = shifts[s] as Number;
+                        var gap = ((ramp[steps - 1] >> shift) & MASK) - ((cooled >> shift) & MASK);
+                        Test.assertMessage(gap >= -4 && gap <= 4, where + ": the last lit row is the tail colour, channel at " + shift);
+                    }
+                    for (var i = steps; i < rows; ++i) {
+                        Test.assertEqualMessage(ramp[i], 0x000000, where + ": row " + i + " is black");
+                    }
+                }
+            }
         }
+        Test.assertEqualMessage(gradients, 2, "white to green and green to teal");
         return true;
     }
 
 
     // The readable-ramp check the issue asks for: at the shortest trail length, where a
     // ramp has the fewest rows to fade over, every lit row of every palette entry is a
-    // different colour and none is black.
+    // different colour and none is black. Every head has a channel at full, so this holds by
+    // construction; what it guards is an entry added later without one. How bright a colour
+    // looks is headsAreNoDarkerThanRed's.
     (:test)
     static function everyEntryIsAReadableRampAtTheShortestTrail(logger as Test.Logger) as Boolean {
         for (var c = 0; c < RainColor.HEADS.size(); ++c) {
@@ -107,6 +135,28 @@ class RainColorTest {
             }
         }
         return true;
+    }
+
+
+    // A ramp can step evenly and still look dark: pure blue, 0x0000FF, has a channel at full
+    // and fades in steps as distinct as green's, but the eye weighs blue least, so its trail
+    // is gone against black long before its steps run out. Each head is held to the
+    // luminance of pure red, the darkest entry offered, by the Rec. 709 weights in integer
+    // thousandths. That is what rules pure blue out, and why the blue is 0x3399FF.
+    (:test)
+    static function headsAreNoDarkerThanRed(logger as Test.Logger) as Boolean {
+        var red = luminance(0xFF0000);
+        Test.assertMessage(luminance(0x0000FF) < red, "pure blue is darker than red");
+        for (var c = 0; c < RainColor.HEADS.size(); ++c) {
+            Test.assertMessage(luminance(RainColor.HEADS[c]) >= red, "colour " + c + " is no darker than red");
+        }
+        return true;
+    }
+
+    private static function luminance(color as Number) as Number {
+        return 2126 * ((color >> RED_SHIFT) & MASK) +
+               7152 * ((color >> GREEN_SHIFT) & MASK) +
+               722 * ((color >> BLUE_SHIFT) & MASK);
     }
 
 

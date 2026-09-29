@@ -16,9 +16,14 @@ import Toybox.Lang;
 // until the setting is changed.
 //
 // Every entry has to stay a readable ramp at the shortest trail length, where the ramp
-// has the fewest rows to fade over: RainColorTest checks that each of its lit rows is a
-// distinct colour. A dark colour would reach black in fewer visibly different steps, which
-// is why the blue is a light one.
+// has the fewest rows to fade over, and has to look bright enough against black to be
+// seen fading at all: RainColorTest checks that each lit row is a distinct colour and that
+// no head is darker than pure red. Pure blue fails the second, which is why the blue is a
+// light one.
+//
+// Green to teal ends on 0x00FFFF, the same value as Cyan. It reads as teal because the
+// trail dims it, and the ramp is the dimming; a teal proper, such as 0x008080, would be
+// dimmed twice, and the trail would fade into the dark much sooner than the other colours'.
 module RainColor {
 
     const

@@ -111,9 +111,9 @@ module RainMath {
                 scale = 0;
             }
             var weight = scale * scale;
-            ramp[i] = ((_mixChannel(head, tail, RED_SHIFT, weight, full) * scale / steps) << RED_SHIFT) |
-                      ((_mixChannel(head, tail, GREEN_SHIFT, weight, full) * scale / steps) << GREEN_SHIFT) |
-                      ((_mixChannel(head, tail, BLUE_SHIFT, weight, full) * scale / steps) << BLUE_SHIFT);
+            ramp[i] = ((mixChannel(head, tail, RED_SHIFT, weight, full) * scale / steps) << RED_SHIFT) |
+                      ((mixChannel(head, tail, GREEN_SHIFT, weight, full) * scale / steps) << GREEN_SHIFT) |
+                      ((mixChannel(head, tail, BLUE_SHIFT, weight, full) * scale / steps) << BLUE_SHIFT);
         }
         return ramp;
 
@@ -121,7 +121,7 @@ module RainMath {
 
     // One channel of `head` and `tail` mixed, `head` taking `weight` parts in `full`.
     (:premium)
-    function _mixChannel(head as Number, tail as Number, shift as Number, weight as Number, full as Number) as Number {
+    function mixChannel(head as Number, tail as Number, shift as Number, weight as Number, full as Number) as Number {
         return (((head >> shift) & MASK) * weight + ((tail >> shift) & MASK) * (full - weight)) / full;
     }
 
