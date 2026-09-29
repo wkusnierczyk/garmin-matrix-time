@@ -39,6 +39,7 @@ class SettingsMenuTest {
                     : property.equals(RainColor.PROPERTY) ? RainColor.indexOf(value)
                     : property.equals(TimeAlign.PROPERTY) ? TimeAlign.alignOf(value)
                     : property.equals(AlwaysOnBrightness.PROPERTY) ? AlwaysOnBrightness.levelOf(value)
+                    : property.equals(DateField.PROPERTY) ? DateField.showOf(value)
                     : TimeStyle.styleOf(value);
                 Test.assertEqualMessage(kept, value, property + " keeps the offered " + value);
             }
@@ -68,6 +69,8 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.BRIGHT), "Bright");
         Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.DIMMED), "Dimmed");
         Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.DIM), "Dim");
+        Test.assertEqual(SettingsMenu.labelOf(DateField.PROPERTY, DateField.OFF), "Off");
+        Test.assertEqual(SettingsMenu.labelOf(DateField.PROPERTY, DateField.ON), "On");
         return true;
     }
 
@@ -93,6 +96,10 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.next(levels, AlwaysOnBrightness.BRIGHT), AlwaysOnBrightness.DIMMED);
         Test.assertEqual(SettingsMenu.next(levels, AlwaysOnBrightness.DIMMED), AlwaysOnBrightness.DIM);
         Test.assertEqual(SettingsMenu.next(levels, AlwaysOnBrightness.DIM), AlwaysOnBrightness.BRIGHT);
+
+        var dates = SettingsMenu.valuesOf(DateField.PROPERTY);
+        Test.assertEqual(SettingsMenu.next(dates, DateField.OFF), DateField.ON);
+        Test.assertEqual(SettingsMenu.next(dates, DateField.ON), DateField.OFF);
         return true;
     }
 

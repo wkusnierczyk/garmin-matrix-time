@@ -284,6 +284,41 @@ class DigitalRain {
         _timeJustify = TimeAlign.justifyOf(align);
     }
 
+    // Premium's date (#163): the font it is drawn in, or null while the date is off, so that
+    // a face with no date holds no date font; and where applyDate put it.
+    (:premium)
+    private var
+        _dateFont as Graphics.FontType or Null = null,
+        _dateX as Number = 0,
+        _dateY as Number = 0;
+
+    // Called at start-up and whenever the settings change, after applyTimeAlign: the date
+    // sits under the time's box, so its height moves it down, and follows the time's x.
+    (:premium)
+    function applyDate() as Void {
+        if (!DateField.shown()) {
+            _dateFont = null;
+            return;
+        }
+        // At time size S the time's own font is the date's. At any other size the date keeps
+        // the S it holds -- reloadTimeFont loads a new time font rather than changing the one
+        // the date shares -- or loads one.
+        if (TimeSize.selected() == TimeSize.SMALL) {
+            _dateFont = _timeFont;
+        } else if (_dateFont == null) {
+            _dateFont = DateField.load();
+        }
+        var dateHeight = Graphics.getFontHeight(_dateFont as Graphics.FontType);
+        _dateY = DateField.yOf(_height, Graphics.getFontHeight(_timeFont), dateHeight);
+        _dateX = DateField.xOf(TimeAlign.selected(), _timeX, _width, _height, _dateY, dateHeight);
+    }
+
+    // For DateFieldTest only; (:debug) for the reason timeFont gives.
+    (:debug :premium)
+    function dateFont() as Graphics.FontType or Null {
+        return _dateFont;
+    }
+
     // For TimeAlignTest only; (:debug) for the reason timeFont gives.
     (:debug :premium)
     function timePlacement() as Array<Number> {
@@ -353,7 +388,8 @@ class DigitalRain {
     }
 
     // Premium draws it on whatever the time style chose (#72), where the time alignment
-    // put it (#154).
+    // put it (#154), and the date under it when the date is on (#163), anchored the same way
+    // and always on a black box.
     (:premium)
     function draw(dc as Graphics.Dc) as DigitalRain {
 
@@ -363,6 +399,9 @@ class DigitalRain {
 
         _drawTrails(dc);
         _drawTime(dc, _timeX, _centerY, _timeFont, _timeColor, _timeBackground, _timeJustify);
+        if (_dateFont != null) {
+            _drawDate(dc, _dateFont);
+        }
 
         return self;
 
@@ -645,6 +684,17 @@ class DigitalRain {
         var time = RainMath.timeText(info.hour, info.min, System.getDeviceSettings().is24Hour);
         dc.setColor(color, background);
         dc.drawText(x, y, font, time, justify);
+
+    }
+
+
+    (:premium)
+    private function _drawDate(dc as Graphics.Dc, font as Graphics.FontType) as Void {
+
+        var info = Gregorian.info(_time, Time.FORMAT_SHORT);
+        var date = DateField.textOf(info.year, info.month as Number, info.day);
+        dc.setColor(_timeColor, Graphics.COLOR_BLACK);
+        dc.drawText(_dateX, _dateY, font, date, _timeJustify);
 
     }
 

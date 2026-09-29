@@ -39,4 +39,8 @@
          AlwaysOnBrightness.levelOf. -->
     <property id="alwaysOnBrightness" type="number">0</property>
 
+    <!-- date is the ISO date under the woken time, 0 off and 1 on, read by DateField
+         (#163). 0, off, is the default, and the fallback in DateField.showOf. -->
+    <property id="date" type="number">0</property>
+
 </properties>

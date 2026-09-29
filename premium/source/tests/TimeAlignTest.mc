@@ -9,8 +9,8 @@ import Toybox.Lang;
 
 
 // Stands in for the screen's Dc and records the last drawText, which is the time in both
-// scenes: draw paints the rain first and the time over it, and drawLowPower draws nothing
-// else. Everything else goes to a real Dc, which answers the font metrics the grid is built
+// scenes while the date is off: draw paints the rain first and the time over it, and
+// drawLowPower draws nothing else. With the date on (#163), draw's last drawText is the date. Everything else goes to a real Dc, which answers the font metrics the grid is built
 // from; that one is small, so the rain is clipped, for the reason DigitalRainTest gives.
 (:test)
 class RecordingDc {
@@ -18,7 +18,10 @@ class RecordingDc {
     private var _dc as Graphics.Dc;
 
     var x as Number = -1;
+    var y as Number = -1;
     var justify as Number = -1;
+    var text as String = "";
+    var font as Graphics.FontType or Null = null;
 
     function initialize() {
         var bitmap = Graphics.createBufferedBitmap({:width => 64, :height => 64}).get() as Graphics.BufferedBitmap;
@@ -31,7 +34,10 @@ class RecordingDc {
 
     function drawText(x as Numeric, y as Numeric, font as Graphics.FontType, text as String, justify as Number) as Void {
         self.x = x as Number;
+        self.y = y as Number;
         self.justify = justify;
+        self.text = text;
+        self.font = font;
         _dc.drawText(x, y, font, text, justify);
     }
 
@@ -52,8 +58,8 @@ class TimeAlignTest {
 
     // Applies an alignment, size and style the way Connect IQ does, draws one frame of the
     // woken or the always-on scene, and returns what the time was drawn with: [x, justify,
-    // the woken font's height]. Puts back what was stored, for the reason
-    // TimeSizeTest.selectedWith gives.
+    // the woken font's height]. The date is turned off, so that the last drawText is the
+    // time. Puts back what was stored, for the reason TimeSizeTest.selectedWith gives.
     private static function drawnWith(align as Number, size as Number, style as Number, lowPower as Boolean)
             as Array<Number> {
         var app = Application.getApp() as App;
@@ -61,12 +67,14 @@ class TimeAlignTest {
         var saved = [
             Properties.getValue(TimeAlign.PROPERTY),
             Properties.getValue(TimeSize.PROPERTY),
-            Properties.getValue(TimeStyle.PROPERTY)
+            Properties.getValue(TimeStyle.PROPERTY),
+            Properties.getValue(DateField.PROPERTY)
         ];
 
         Properties.setValue(TimeAlign.PROPERTY, align);
         Properties.setValue(TimeSize.PROPERTY, size);
         Properties.setValue(TimeStyle.PROPERTY, style);
+        Properties.setValue(DateField.PROPERTY, DateField.OFF);
         app.onSettingsChanged();
         var rain = view.digitalRain().forTime(new Time.Moment(0));
         var dc = new RecordingDc();
@@ -80,6 +88,7 @@ class TimeAlignTest {
         Properties.setValue(TimeAlign.PROPERTY, saved[0] as Number);
         Properties.setValue(TimeSize.PROPERTY, saved[1] as Number);
         Properties.setValue(TimeStyle.PROPERTY, saved[2] as Number);
+        Properties.setValue(DateField.PROPERTY, saved[3] as Number);
         app.onSettingsChanged();
         return drawn;
     }

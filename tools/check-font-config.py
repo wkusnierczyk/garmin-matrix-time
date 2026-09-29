@@ -341,6 +341,11 @@ PREMIUM_OVERRIDES = {'Time', 'TimeLarge'}
 HOLLOW_TWINS = {'TimeLargeHollow': 'TimeLarge', 'TimeExtraLargeHollow': 'TimeExtraLarge',
                 'TimeExtraExtraLargeHollow': 'TimeExtraExtraLarge'}
 STROKE_RE = re.compile(r'<font\s+id="(\w+)"[^>]*\sstroke="([^"]+)"')
+# Premium's S, Time, also draws the ISO date under the woken time at every time size (#163),
+# so it holds the date's one glyph that is not the time's. The date has no font of its own:
+# the scaler names a bitmap by face and size, so one at S's size would overwrite S's.
+DATE_FONT_ID = 'Time'
+DATE_EXTRA = '-'
 
 ok(open(f'{PDIR}/resolutions.json').read() == open('resources/fonts/resolutions.json').read(),
    f"{PDIR}/resolutions.json is identical to Lite's")
@@ -406,8 +411,9 @@ pcharsets = {c['fontId']: c['fontCharset'] for c in json.load(open(f'{PDIR}/char
 ok(set(pcharsets) == set(psize),
    f"premium charsets.json covers exactly the fonts premium fonts.xml declares "
    f"(charsets {sorted(pcharsets)}, fonts {sorted(psize)})")
-ok(all(c == charsets.get('Time') for c in pcharsets.values()),
-   "every Premium time font has Lite's Time charset, so each size can draw the same string")
+ok(all(c == charsets.get('Time') + (DATE_EXTRA if f == DATE_FONT_ID else '') for f, c in pcharsets.items()),
+   "every Premium time font has Lite's Time charset, so each size can draw the same string, "
+   f"and {DATE_FONT_ID} adds {DATE_EXTRA!r} for the date and nothing else")
 
 pjungle = open('premium.jungle').read()
 bad = 0
@@ -507,13 +513,15 @@ for w, h, shape in targets:
                 proportional.append((d, fid, 'missing')); continue
             glyphs = fnt_metrics(f'{d}/{fn}')[1]
             advances = {g['xadvance'] for g in glyphs.values()}
-            if set(glyphs) != time_glyphs or len(advances) != 1:
-                proportional.append((d, fid, sorted(advances), sorted(time_glyphs - set(glyphs))))
+            want = time_glyphs | ({str(ord(c)) for c in DATE_EXTRA}
+                                  if edition == 'premium' and fid == DATE_FONT_ID else set())
+            if set(glyphs) != want or len(advances) != 1:
+                proportional.append((d, fid, sorted(advances), sorted(want ^ set(glyphs))))
             examined += 1
 want_examined = len(targets) * (len(time_ids['lite']) + len(time_ids['premium']))
 ok(not proportional and examined == want_examined and time_glyphs,
-   f"every time font, Lite and Premium, holds exactly the Time charset (digits, space, colon) "
-   f"with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
+   f"every time font, Lite and Premium, holds exactly the Time charset (digits, space, colon), "
+   f"and Premium's {DATE_FONT_ID} the date's {DATE_EXTRA!r} too, with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
    + (f" (not {proportional[:3]})" if proportional else ""))
 
 # Premium's time alignment (#154) keeps the box drawText fills on the glass, and relies on
