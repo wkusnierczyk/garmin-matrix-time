@@ -47,7 +47,7 @@ module SettingsMenu {
     // The values offered, ascending, as next requires.
     function valuesOf(property as String) as Array<Number> {
         if (property.equals(TimeSize.PROPERTY)) {
-            return [TimeSize.SMALL, TimeSize.MEDIUM, TimeSize.LARGE, TimeSize.EXTRA_LARGE];
+            return [TimeSize.SMALL, TimeSize.MEDIUM, TimeSize.LARGE, TimeSize.EXTRA_LARGE, TimeSize.EXTRA_EXTRA_LARGE];
         }
         if (property.equals(TrailLength.PROPERTY)) {
             return [25, 50, 75];
@@ -71,7 +71,8 @@ module SettingsMenu {
                 Rez.Strings.TimeSizeSmall,
                 Rez.Strings.TimeSizeMedium,
                 Rez.Strings.TimeSizeLarge,
-                Rez.Strings.TimeSizeExtraLarge
+                Rez.Strings.TimeSizeExtraLarge,
+                Rez.Strings.TimeSizeExtraExtraLarge
             ];
         }
         if (property.equals(TrailLength.PROPERTY)) {

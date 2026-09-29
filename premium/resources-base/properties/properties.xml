@@ -5,8 +5,8 @@
          rather than replacing it (#91, #93). The two files merge: this one is on
          Premium's resource path only, so Lite's property table is unchanged.
 
-         timeSize is the time font on the woken screen, as an index into the S, M, L, XL
-         ladder in TimeSize (#32). 3, XL, is the default (#155), and agrees with the
+         timeSize is the time font on the woken screen, as an index into the S, M, L, XL,
+         XXL ladder in TimeSize (#32, #153). 3, XL, is the default (#155), and agrees with the
          fallback in TimeSize.sizeOf. 0, S, is Lite's size; Premium draws every size in
          ExtraBold where Lite draws Regular (#144). -->
     <property id="timeSize" type="number">3</property>
@@ -18,7 +18,7 @@
     <property id="trailLength" type="number">50</property>
 
     <!-- timeStyle is the woken time drawn filled or hollow, an index read by TimeStyle
-         (#72). 0, filled, is Lite's style, solid digits on a black box. Hollow applies to the L and XL sizes only. -->
+         (#72). 0, filled, is Lite's style, solid digits on a black box. Hollow applies to the L, XL and XXL sizes only. -->
     <property id="timeStyle" type="number">0</property>
 
     <!-- timeColor and rainColor are indices into the palettes in TimeColor and RainColor

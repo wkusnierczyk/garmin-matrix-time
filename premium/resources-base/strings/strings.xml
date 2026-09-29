@@ -10,6 +10,7 @@
     <string id="TimeSizeMedium">Medium</string>
     <string id="TimeSizeLarge">Large</string>
     <string id="TimeSizeExtraLarge">Extra large</string>
+    <string id="TimeSizeExtraExtraLarge">Extra extra large</string>
 
     <!-- The trail length setting (#53). -->
     <string id="TrailLengthTitle">Trail length</string>
@@ -20,7 +21,7 @@
     <!-- The time style setting (#72). -->
     <string id="TimeStyleTitle">Time style</string>
     <string id="TimeStyleFilled">Filled</string>
-    <string id="TimeStyleHollow">Hollow (Large and Extra large)</string>
+    <string id="TimeStyleHollow">Hollow (Large and above)</string>
 
     <!-- The time alignment setting (#154). -->
     <string id="TimeAlignTitle">Time alignment</string>

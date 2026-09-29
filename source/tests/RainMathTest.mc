@@ -251,6 +251,23 @@ class RainMathTest {
     }
 
 
+    // Each edition's own square (#153). Premium's always-on font, the hollow XXL, leaves
+    // pixels lit for three minutes at Lite's 16 and clears at 12; Lite, frozen, keeps 16.
+    // The other jitter tests read LOW_POWER_JITTER_DIVISOR and would pass whatever it was.
+    (:test :lite)
+    static function liteShiftsTheTimeASixteenthOfTheWidth(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(RainMath.jitter(0, 416)[0], -26, "416 / 16 = 26 px at 416x416");
+        return true;
+    }
+
+
+    (:test :premium)
+    static function premiumShiftsTheTimeATwelfthOfTheWidth(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(RainMath.jitter(0, 416)[0], -34, "416 / 12 = 34 px at 416x416");
+        return true;
+    }
+
+
     (:test)
     static function theCornerHoldsForAWholeMinuteAndThenMoves(logger as Test.Logger) as Boolean {
         var width = 416;

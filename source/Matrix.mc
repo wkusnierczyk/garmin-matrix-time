@@ -40,19 +40,33 @@ const
     // seven families shipped then: the threshold is the same for both weights, 20 or
     // below leaving no such pixel and 21 the first to leave one, so 16 still clears.
     //
-    // Premium's always-on font is now the hollow ExtraBold XL (#145), and that has no
-    // margin: measured the same way over a whole day, 12- and 24-hour, on the seven
-    // families, every divisor from 8 to 16 leaves no such pixel and 17 leaves 21 to 58.
-    // A hollow stroke is no help here -- what stays lit at 17 and above are pixels where
-    // one digit's outline lands on another's once shifted, not the middle of a stroke. So
-    // 16 still clears, but a larger always-on font, or a larger divisor, has to be
-    // measured again. The same run puts the most of the screen the time lights at 1.44%
-    // (360x360), against 10% allowed; Lite's filled Regular L is at 1.40% there.
+    // Premium's always-on font was then the hollow ExtraBold XL (#145), which cleared at
+    // 16 with no margin: measured the same way over a whole day, 12- and 24-hour, on the
+    // seven families, every divisor from 8 to 16 left no such pixel and 17 left 21 to 58.
+    // A hollow stroke is no help here -- what stays lit are pixels where one digit's
+    // outline lands on another's once shifted, not the middle of a stroke.
     //
-    // The two jitter constants are read by RainMath.jitter; the colour is used below.
+    // It is now the hollow XXL (#153), and that fails at 16: 21 to 34 pixels stay lit for
+    // three minutes, and at 15, 23 to 110. The count is not monotonic in the divisor, so
+    // every candidate was measured: 13 is the first to leave no such pixel on any family,
+    // and 12 clears with one step of margin. So Premium has its own divisor, 12, which
+    // shifts the time 34 px at 416x416, and Lite, which is frozen, keeps 16 -- the pair of
+    // annotated constants below, which leaves Lite's release PRG byte for byte as it was.
+    // At 12 the time's cell stays inside the screen at all four corners on every family,
+    // round and rectangular. The same run puts the most of the screen the time lights at
+    // 1.73% (360x360), against 10% allowed; Lite's filled Regular L is at 1.40% there.
+    // A larger always-on font, or another divisor, has to be measured again.
+    //
+    // LOW_POWER_POSITIONS and the edition's LOW_POWER_JITTER_DIVISOR, below, are read by
+    // RainMath.jitter; the colour is used below.
     LOW_POWER_TIME_COLOR = 0x00AA00,
-    LOW_POWER_POSITIONS = 4,
-    LOW_POWER_JITTER_DIVISOR = 16;
+    LOW_POWER_POSITIONS = 4;
+
+(:lite)
+const LOW_POWER_JITTER_DIVISOR = 16;
+
+(:premium)
+const LOW_POWER_JITTER_DIVISOR = 12;
 
 
 class DigitalRain {
@@ -72,8 +86,8 @@ class DigitalRain {
     // unreadable (#69). The two sizes are independent: time-rain alignment was abandoned
     // in #50, so Time is no longer tied to the Matrix glyph size and is free to be larger.
     //
-    // _timeLargeFont is the always-on font. In Premium that is the hollow XL rather than
-    // TimeLarge (#145); reloadTimeFont swaps it in, and says why it is not loaded here.
+    // _timeLargeFont is the always-on font. In Premium that is the hollow XXL rather than
+    // TimeLarge (#145, #153); reloadTimeFont swaps it in, and says why it is not loaded here.
     private var
         _timeFont as Graphics.FontType,
         _timeLargeFont as Graphics.FontType,
@@ -163,10 +177,10 @@ class DigitalRain {
     // have no hollow font and stay filled on their box.
     //
     // The first call also swaps the always-on font: Premium draws the always-on time in the
-    // hollow XL (#145). initialize is shared with Lite, which is frozen and still compiles
-    // byte for byte as it did, so it loads TimeLarge in Premium too; this drops that before
-    // loading the hollow XL, at the cost of one wasted load at start-up and nothing held.
-    // The hollow XL woken time is then that same font, not a second copy of it.
+    // hollow XXL (#145, #153). initialize is shared with Lite, which is frozen and still
+    // compiles byte for byte as it did, so it loads TimeLarge in Premium too; this drops that
+    // before loading the hollow XXL, at the cost of one wasted load at start-up and nothing
+    // held. The hollow XXL woken time is then that same font, not a second copy of it.
     (:premium)
     function reloadTimeFont() as Void {
         var alwaysOn = TimeStyle.alwaysOnFont();
@@ -377,9 +391,10 @@ class DigitalRain {
     }
 
     // Premium draws it in the time colour setting's own always-on colour (#143), and in the
-    // hollow ExtraBold XL whatever the time size and style (#145), which reloadTimeFont has
-    // put in _timeLargeFont. The outline is larger than Lite's filled L and lights about as
-    // many pixels; see LOW_POWER_JITTER_DIVISOR.
+    // hollow ExtraBold XXL whatever the time size and style (#145, #153), which
+    // reloadTimeFont has put in _timeLargeFont. The outline is larger than Lite's filled L
+    // and lights a little more of the screen, and it is shifted further, by Premium's own
+    // divisor; see LOW_POWER_JITTER_DIVISOR.
     //
     // Always centred, whatever the time alignment (#154), so that the burn-in measurement
     // stands: the jitter square was measured about the centre.

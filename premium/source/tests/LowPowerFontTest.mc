@@ -7,8 +7,8 @@ using Toybox.Time;
 import Toybox.Lang;
 
 
-// Premium's always-on font (#145): the hollow ExtraBold XL, whatever the woken time's size
-// and style. Premium only, like the font.
+// Premium's always-on font: the hollow ExtraBold XXL (#153; the hollow XL before it, #145),
+// whatever the woken time's size and style. Premium only, like the font.
 (:test)
 class LowPowerFontTest {
 
@@ -34,51 +34,51 @@ class LowPowerFontTest {
     }
 
 
-    // Every combination of the two settings leaves the always-on font at XL's height. A
-    // hollow font has its filled twin's metrics, so the height says XL and not which of
-    // the two; the next test says which.
+    // Every combination of the two settings, all ten, leaves the always-on font at XXL's
+    // height. A hollow font has its filled twin's metrics, so the height says XXL and not
+    // which of the two; the next test says which.
     (:test)
-    static function theAlwaysOnFontIsExtraLargeWhateverTheSettings(logger as Test.Logger) as Boolean {
-        var extraLarge = Graphics.getFontHeight(TimeSize.load(TimeSize.EXTRA_LARGE));
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+    static function theAlwaysOnFontIsExtraExtraLargeWhateverTheSettings(logger as Test.Logger) as Boolean {
+        var extraExtraLarge = Graphics.getFontHeight(TimeSize.load(TimeSize.EXTRA_EXTRA_LARGE));
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             for (var style = TimeStyle.FILLED; style <= TimeStyle.HOLLOW; ++style) {
                 var height = Graphics.getFontHeight(withSettings(size, style)[0]);
-                Test.assertEqualMessage(height, extraLarge,
-                    "size " + size + ", style " + style + ": the always-on time is XL");
+                Test.assertEqualMessage(height, extraExtraLarge,
+                    "size " + size + ", style " + style + ": the always-on time is XXL");
             }
         }
         return true;
     }
 
 
-    // The id DigitalRain loads the always-on font from. Filled and hollow XL share every
-    // metric, so no loaded font can show which of the two it is; the id can. Filled XL here
-    // would light more than twice the pixels (#145).
+    // The id DigitalRain loads the always-on font from. Filled and hollow XXL share every
+    // metric, so no loaded font can show which of the two it is; the id can. Filled XXL here
+    // would light more than twice the pixels, and fails the burn-in rule at 16 (#153).
     (:test)
     static function theAlwaysOnFontIsTheHollowOne(logger as Test.Logger) as Boolean {
-        Test.assertMessage(TimeStyle.alwaysOnFont() == Rez.Fonts.TimeExtraLargeHollow,
-            "the always-on font is TimeExtraLargeHollow");
+        Test.assertMessage(TimeStyle.alwaysOnFont() == Rez.Fonts.TimeExtraExtraLargeHollow,
+            "the always-on font is TimeExtraExtraLargeHollow");
         return true;
     }
 
 
-    // The hollow XL woken time is the always-on font itself, the one object, not a second
+    // The hollow XXL woken time is the always-on font itself, the one object, not a second
     // copy of the bitmap.
     (:test)
-    static function theHollowExtraLargeTimeSharesTheAlwaysOnFont(logger as Test.Logger) as Boolean {
-        var fonts = withSettings(TimeSize.EXTRA_LARGE, TimeStyle.HOLLOW);
-        Test.assertMessage(fonts[1] == fonts[0], "hollow XL is drawn in the always-on font");
+    static function theHollowExtraExtraLargeTimeSharesTheAlwaysOnFont(logger as Test.Logger) as Boolean {
+        var fonts = withSettings(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.HOLLOW);
+        Test.assertMessage(fonts[1] == fonts[0], "hollow XXL is drawn in the always-on font");
         return true;
     }
 
 
     // Any other combination loads its own font, so the always-on font is not what the
-    // woken time is drawn in -- in particular not filled XL, whose height it shares.
+    // woken time is drawn in -- in particular not filled XXL, whose height it shares.
     (:test)
     static function everyOtherTimeHasItsOwnFont(logger as Test.Logger) as Boolean {
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             for (var style = TimeStyle.FILLED; style <= TimeStyle.HOLLOW; ++style) {
-                if (size == TimeSize.EXTRA_LARGE && style == TimeStyle.HOLLOW) {
+                if (size == TimeSize.EXTRA_EXTRA_LARGE && style == TimeStyle.HOLLOW) {
                     continue;
                 }
                 var fonts = withSettings(size, style);

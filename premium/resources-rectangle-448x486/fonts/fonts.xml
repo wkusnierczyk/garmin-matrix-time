@@ -5,7 +5,9 @@
         <font id="TimeMedium" filename="SUSEMono-ExtraBold-43.fnt" antialias="true" />
         <font id="TimeLarge" filename="SUSEMono-ExtraBold-58.fnt" antialias="true" />
         <font id="TimeExtraLarge" filename="SUSEMono-ExtraBold-73.fnt" antialias="true" />
+        <font id="TimeExtraExtraLarge" filename="SUSEMono-ExtraBold-88.fnt" antialias="true" />
         <font id="TimeLargeHollow" filename="SUSEMono-ExtraBold-58-stroke1p29.fnt" antialias="true" />
         <font id="TimeExtraLargeHollow" filename="SUSEMono-ExtraBold-73-stroke1p29.fnt" antialias="true" />
+        <font id="TimeExtraExtraLargeHollow" filename="SUSEMono-ExtraBold-88-stroke1p29.fnt" antialias="true" />
     </fonts>
 </resources>

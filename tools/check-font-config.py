@@ -329,8 +329,8 @@ ok(bool(prose) and any('resolutions.json' in b for b in prose),
 # undefined symbol, or, where a monkeyc resource path is mistyped, not at all.
 print("\nPREMIUM")
 PDIR = 'premium/resources/fonts'
-PREMIUM_FONT_IDS = {'Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge',
-                    'TimeLargeHollow', 'TimeExtraLargeHollow'}
+PREMIUM_FONT_IDS = {'Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge',
+                    'TimeLargeHollow', 'TimeExtraLargeHollow', 'TimeExtraExtraLargeHollow'}
 # The Lite ids Premium redefines, to draw them in its own weight (#144). premium.jungle
 # appends premium/resources-<family> after resources-<family>, and a later resource
 # directory redefines an id rather than colliding with it: Premium compiles its own
@@ -338,7 +338,8 @@ PREMIUM_FONT_IDS = {'Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge',
 PREMIUM_OVERRIDES = {'Time', 'TimeLarge'}
 # Each hollow font is its filled twin drawn as an outline (#72): the same face at the same
 # size, so the same metrics, and swapping one for the other never moves the time.
-HOLLOW_TWINS = {'TimeLargeHollow': 'TimeLarge', 'TimeExtraLargeHollow': 'TimeExtraLarge'}
+HOLLOW_TWINS = {'TimeLargeHollow': 'TimeLarge', 'TimeExtraLargeHollow': 'TimeExtraLarge',
+                'TimeExtraExtraLargeHollow': 'TimeExtraExtraLarge'}
 STROKE_RE = re.compile(r'<font\s+id="(\w+)"[^>]*\sstroke="([^"]+)"')
 
 ok(open(f'{PDIR}/resolutions.json').read() == open('resources/fonts/resolutions.json').read(),
@@ -352,7 +353,7 @@ for fid, fn in pfonts.items():
         ok(False, f"premium fonts.xml {fid}: filename {fn!r} is not <name>-<size>.fnt")
         continue
     psize[fid] = (m.group(1), int(m.group(2)))
-    print(f"  fonts.xml         {fid:14} -> {fn}  (reference size {m.group(2)})")
+    print(f"  fonts.xml         {fid:25} -> {fn}  (reference size {m.group(2)})")
 
 ok(set(psize) == PREMIUM_FONT_IDS,
    f"premium fonts.xml declares exactly {sorted(PREMIUM_FONT_IDS)} (found {sorted(psize)})")
@@ -370,7 +371,8 @@ ok(set(psize) & set(refsize) == PREMIUM_OVERRIDES,
    f"(found {sorted(set(psize) & set(refsize))})")
 # An override changes the weight, never the size: S and L stay Lite's sizes. L is Lite's
 # always-on font, whose burn-in jitter and lit-pixel budget were measured at that size (#69);
-# Premium's always-on font is TimeExtraLargeHollow instead, measured on its own (#145).
+# Premium's always-on font is TimeExtraExtraLargeHollow instead, measured on its own (#145,
+# #153).
 for fid in sorted(PREMIUM_OVERRIDES & set(psize) & set(refsize)):
     ok(psize[fid][1] == refsize[fid][1],
        f"Premium {fid} keeps Lite's reference size ({psize[fid][1]} vs {refsize[fid][1]})")
@@ -382,11 +384,11 @@ for stem in sorted(ttfs):
     ok(os.path.exists(f'{PDIR}/{stem}.ttf'), f"{PDIR}/{stem}.ttf resolves")
 ok(os.path.exists(f'{PDIR}/OFL-SUSEMono.txt'), f"{PDIR}/OFL-SUSEMono.txt resolves")
 
-# The time size ladder, S M L XL, is Time, TimeMedium, TimeLarge, TimeExtraLarge: one
-# typeface, strictly growing at the reference. The scaler rounds per target, so the
-# order is checked at every target too -- two adjacent sizes rounding to the same
+# The time size ladder, S M L XL XXL, is Time, TimeMedium, TimeLarge, TimeExtraLarge,
+# TimeExtraExtraLarge: one typeface, strictly growing at the reference. The scaler rounds
+# per target, so the order is checked at every target too -- two adjacent sizes rounding to the same
 # point size would make one step of the setting do nothing.
-LADDER = ['Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge']
+LADDER = ['Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge']
 allsize = {**refsize, **psize}
 if set(LADDER) <= set(allsize):
     ok(len({allsize[f][0] for f in LADDER}) == 1,

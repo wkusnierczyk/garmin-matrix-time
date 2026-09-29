@@ -153,7 +153,7 @@ class TimeAlignTest {
         var height = settings.screenHeight;
         var radius = (width < height ? width : height) / 2;
         var dc = new RecordingDc();
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             for (var style = TimeStyle.FILLED; style <= TimeStyle.HOLLOW; ++style) {
                 var id = TimeStyle.hollowFont(size, style);
                 var font = id == null ? TimeSize.load(size) : Application.loadResource(id) as Graphics.FontType;
@@ -188,7 +188,7 @@ class TimeAlignTest {
         var width = System.getDeviceSettings().screenWidth;
         var height = System.getDeviceSettings().screenHeight;
         var filled = TimeStyle.FILLED;
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var left = drawnWith(TimeAlign.LEFT, size, filled, false);
             var center = drawnWith(TimeAlign.CENTER, size, filled, false);
             var right = drawnWith(TimeAlign.RIGHT, size, filled, false);
