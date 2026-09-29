@@ -115,6 +115,20 @@ class SettingsMenuView extends WatchUi.Menu2 {
         }
     }
 
+    // Shows the stored values again. App.onSettingsChanged calls this for a change from
+    // the phone made while the menu is open, which would otherwise leave it showing the
+    // old value, and the next select stepping from a value the menu never showed.
+    function refresh() as Void {
+        var properties = SettingsMenu.properties();
+        for (var i = 0; i < properties.size(); ++i) {
+            var property = properties[i];
+            var item = getItem(findItemById(property));
+            if (item != null) {
+                item.setSubLabel(SettingsMenu.labelOf(property, SettingsMenu.selected(property)));
+            }
+        }
+    }
+
 }
 
 
@@ -128,9 +142,8 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         var property = item.getId() as String;
         var value = SettingsMenu.next(SettingsMenu.valuesOf(property), SettingsMenu.selected(property));
         Properties.setValue(property, value);
-        item.setSubLabel(SettingsMenu.labelOf(property, value));
         // onSettingsChanged is for changes from the phone; one made here has to be
-        // passed on to the face by hand.
+        // passed on by hand. It updates the face, and this menu's sub-label with it.
         (Application.getApp() as App).onSettingsChanged();
     }
 

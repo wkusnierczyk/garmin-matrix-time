@@ -747,7 +747,8 @@ size was loaded cannot itself be observed from a test.
 
 `SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that every
 value it offers has a label and is kept as it is by the setting it belongs to, so the menu can never
-write a value the face would ignore, that each value is shown with its own label, that selecting steps
+write a value the face would ignore, that each value is shown with its own label, that the open menu
+shows a value changed from the phone, that selecting steps
 to the next value and wraps, and that a trail length the list does not offer steps to the next offered
 one.
 

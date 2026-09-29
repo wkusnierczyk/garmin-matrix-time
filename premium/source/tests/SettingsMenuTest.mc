@@ -1,4 +1,6 @@
+using Toybox.Application.Properties;
 using Toybox.Test;
+using Toybox.WatchUi;
 
 import Toybox.Lang;
 
@@ -54,6 +56,23 @@ class SettingsMenuTest {
         var styles = SettingsMenu.valuesOf(TimeStyle.PROPERTY);
         Test.assertEqual(SettingsMenu.next(styles, TimeStyle.FILLED), TimeStyle.HOLLOW);
         Test.assertEqual(SettingsMenu.next(styles, TimeStyle.HOLLOW), TimeStyle.FILLED);
+        return true;
+    }
+
+
+    // A change from the phone while the menu is open reaches the menu too: refresh shows
+    // the stored value, not the one the menu was built with.
+    (:test)
+    static function refreshShowsAValueChangedBehindTheMenu(logger as Test.Logger) as Boolean {
+        var saved = Properties.getValue(TimeSize.PROPERTY);
+        Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
+        var menu = new SettingsMenuView();
+        Properties.setValue(TimeSize.PROPERTY, TimeSize.EXTRA_LARGE);
+        menu.refresh();
+        var item = menu.getItem(menu.findItemById(TimeSize.PROPERTY));
+        Properties.setValue(TimeSize.PROPERTY, saved as Number);
+        Test.assert(item != null);
+        Test.assertEqual((item as WatchUi.MenuItem).getSubLabel() as String, "Extra large");
         return true;
     }
 
