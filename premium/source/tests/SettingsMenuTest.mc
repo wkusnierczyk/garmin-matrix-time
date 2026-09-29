@@ -38,6 +38,7 @@ class SettingsMenuTest {
                     : property.equals(TimeColor.PROPERTY) ? TimeColor.indexOf(value)
                     : property.equals(RainColor.PROPERTY) ? RainColor.indexOf(value)
                     : property.equals(TimeAlign.PROPERTY) ? TimeAlign.alignOf(value)
+                    : property.equals(AlwaysOnBrightness.PROPERTY) ? AlwaysOnBrightness.levelOf(value)
                     : TimeStyle.styleOf(value);
                 Test.assertEqualMessage(kept, value, property + " keeps the offered " + value);
             }
@@ -64,6 +65,9 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, 4), "Orange");
         Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, RainColor.GREEN), "Green");
         Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, 6), "White to green");
+        Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.BRIGHT), "Bright");
+        Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.DIMMED), "Dimmed");
+        Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.DIM), "Dim");
         return true;
     }
 
@@ -84,6 +88,11 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.next(aligns, TimeAlign.LEFT), TimeAlign.CENTER);
         Test.assertEqual(SettingsMenu.next(aligns, TimeAlign.CENTER), TimeAlign.RIGHT);
         Test.assertEqual(SettingsMenu.next(aligns, TimeAlign.RIGHT), TimeAlign.LEFT);
+
+        var levels = SettingsMenu.valuesOf(AlwaysOnBrightness.PROPERTY);
+        Test.assertEqual(SettingsMenu.next(levels, AlwaysOnBrightness.BRIGHT), AlwaysOnBrightness.DIMMED);
+        Test.assertEqual(SettingsMenu.next(levels, AlwaysOnBrightness.DIMMED), AlwaysOnBrightness.DIM);
+        Test.assertEqual(SettingsMenu.next(levels, AlwaysOnBrightness.DIM), AlwaysOnBrightness.BRIGHT);
         return true;
     }
 

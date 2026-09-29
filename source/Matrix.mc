@@ -23,10 +23,11 @@ const
 
 const
     // The always-on scene: TIME_COLOR at two thirds of its brightness -- Premium's time
-    // colour setting at two thirds of its, by the same arithmetic (#143) -- stepped round
-    // the four corners of a small square so that no pixel stays lit for more than
-    // one minute at a time. The offset is a fraction of the screen width so that it
-    // scales with the glyphs, which are themselves scaled per resolution.
+    // colour setting at the always-on brightness setting's share of it, of which two
+    // thirds is Dim (#143, #161) -- stepped round the four corners of a small square so
+    // that no pixel stays lit for more than one minute at a time. The offset is a
+    // fraction of the screen width so that it scales with the glyphs, which are
+    // themselves scaled per resolution.
     //
     // The jitter has to clear the stroke width, not merely be non-zero: a pixel down
     // the centre of a stroke that is still inside the stroke at all four positions
@@ -236,9 +237,10 @@ class DigitalRain {
 
     // Premium's time and rain colour settings (#143). _timeColor and _matrixColor were
     // kept as fields for this (#16); Premium writes them here, and adds the two colours
-    // Lite has as constants: the always-on time, which follows the time colour at two
-    // thirds, and the colour the rain's trail cools towards, which is the rain colour
-    // itself unless a gradient is chosen. Their defaults are Lite's.
+    // Lite has as constants: the always-on time, which follows the time colour at the
+    // always-on brightness setting's share of it (#161), and the colour the rain's trail
+    // cools towards, which is the rain colour itself unless a gradient is chosen. Their
+    // defaults are Lite's.
     (:premium)
     private var
         _lowPowerTimeColor as Number = LOW_POWER_TIME_COLOR,
@@ -250,7 +252,7 @@ class DigitalRain {
     (:premium)
     function applyColors() as Void {
         _timeColor = TimeColor.colorOf(TimeColor.selected());
-        _lowPowerTimeColor = TimeColor.lowPowerOf(_timeColor);
+        _lowPowerTimeColor = TimeColor.lowPowerOf(_timeColor, AlwaysOnBrightness.selected());
         var rain = RainColor.selected();
         _matrixColor = RainColor.headOf(rain);
         _matrixTailColor = RainColor.tailOf(rain);
@@ -370,8 +372,8 @@ class DigitalRain {
     // The always-on scene for an AMOLED product. The system blanks the screen in
     // low-power mode if more than 10% of the pixels are lit, or if any pixel stays
     // lit for three minutes, and a full-screen rain fails both tests. So the rain is
-    // dropped entirely: only the time is drawn, dimmed, and shifted to a different
-    // corner of a small square every minute.
+    // dropped entirely: only the time is drawn, dimmed in Lite, and shifted to a
+    // different corner of a small square every minute.
     //
     // No black box is painted behind the time here, unlike the high-power scene: a
     // lit rectangle is exactly what the burn-in protector counts, and with no rain
@@ -390,11 +392,12 @@ class DigitalRain {
 
     }
 
-    // Premium draws it in the time colour setting's own always-on colour (#143), and in the
-    // hollow ExtraBold XXL whatever the time size and style (#145, #153), which
-    // reloadTimeFont has put in _timeLargeFont. The outline is larger than Lite's filled L
-    // and lights a little more of the screen, and it is shifted further, by Premium's own
-    // divisor; see LOW_POWER_JITTER_DIVISOR.
+    // Premium draws it in the time colour setting's own always-on colour (#143), at the
+    // always-on brightness setting's share of it (#161), and in the hollow ExtraBold XXL
+    // whatever the time size and style (#145, #153), which reloadTimeFont has put in
+    // _timeLargeFont. The outline is larger than Lite's filled L and lights a little more of
+    // the screen, and it is shifted further, by Premium's own divisor; see
+    // LOW_POWER_JITTER_DIVISOR.
     //
     // Always centred, whatever the time alignment (#154), so that the burn-in measurement
     // stands: the jitter square was measured about the centre.
