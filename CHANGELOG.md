@@ -24,6 +24,9 @@ each change is recorded in full.
   digits, with the black box behind it gone, so the rain falls through the digits. It applies to the
   Large and Extra large time sizes; Small and Medium stay solid. Filled, Lite's look, is the default.
   (#72)
+* **Premium: the settings on the watch.** The face's Customize menu lists all three settings with
+  their current values, and selecting one steps to the next value. They were in the Connect IQ app
+  only, which also left a sideloaded face with no way to change them. (#148)
 
 ## 0.2.1 -- 2026-09-21
 
