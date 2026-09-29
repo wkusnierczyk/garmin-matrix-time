@@ -65,7 +65,7 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds three settings. They can be changed in the Connect IQ app, and on the watch from the
+Premium adds five settings. They can be changed in the Connect IQ app, and on the watch from the
 face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
 the next value. The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
@@ -89,6 +89,20 @@ there the watch is the only way to change them.
   Medium the outline is too fine to read against the rain, so those stay filled whichever style is
   chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with the screen, like the
   font sizes; see [Fonts](#fonts). The always-on screen is not affected.
+* **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
+  colour Lite draws, and is the default. The always-on screen follows it, at two thirds of its
+  brightness, as Lite's always-on green is two thirds of its woken green. The burn-in protector counts
+  lit pixels, not their brightness, so the always-on figures above hold for every colour.
+* **Rain colour** -- Green, Cyan, Blue, Amber, Red, White, White to green or Green to teal: the colour
+  of the rain. Green is the colour Lite draws, and is the default. The first six fade along the trail in
+  their own hue, as Lite's green does. The last two also change hue as they fade: White to green has a
+  white-hot head that cools to green within a few glyphs, and Green to teal cools from green to teal.
+  Every colour stays a visibly stepped fade at the shortest trail length. A change applies from the next
+  frame without restarting the rain.
+
+  Any time colour can be paired with any rain colour. Behind a filled time the black box keeps the two
+  apart, but a hollow time has no box, and in the same colour as the rain it is hard to read: pick a
+  time colour that differs from the rain, such as White on the default green.
 
 ## Editions
 
@@ -98,8 +112,8 @@ Matrix Time comes in two editions, built from this one source tree:
   2026-09-24: it gets defect fixes only, and new features go to Premium.
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
-  It is not published yet. Its features so far are its settings -- time size, trail length and time
-  style, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
+  It is not published yet. Its features so far are its settings -- time size, trail length, time
+  style, and time and rain colours, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
   than Regular, see [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
@@ -769,6 +783,19 @@ and 100 falls back to 50%, that 50% is exactly Lite's half screen on every ring,
 keeps at least one lit row and, on any ring of two rows or more, one black one, and that a settings
 change reaches the ramp a falling rain draws.
 
+`TimeColorTest`, also in `premium/source/tests/`, covers the time colour setting: that the property is
+declared, that anything but an index into the palette falls back to Green, that Green is Lite's colour
+both woken and always-on, that the always-on colour is two thirds of each channel, and that a settings
+change reaches both colours the face draws the time in.
+
+`RainColorTest`, also in `premium/source/tests/`, covers the rain colour setting and the two-colour ramp
+it builds, `RainMath.gradient`: that the property is declared, that anything but an index into the
+palette falls back to Green, that a plain colour gives exactly Lite's one-colour ramp at every trail
+length, that every gradient starts at its head colour and has cooled to its tail colour by the last lit row,
+that every palette entry fades in distinct, lit steps at the shortest trail length and is no darker than
+pure red, and that a settings
+change reaches the ramp a falling rain draws.
+
 `TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property is
 declared, that anything but Hollow falls back to Filled, that hollow Large and Extra large map to their
 hollow fonts and every other size and style maps to none, that a hollow font is exactly as tall and as
@@ -788,8 +815,8 @@ Run No Evil strips every `(:test)` function from ordinary builds, so none of thi
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds four, `TimeSizeTest`, `TrailLengthTest`,
-`TimeStyleTest` and `SettingsMenuTest`.
+since none of them is ever instantiated. Premium adds six, `TimeSizeTest`, `TrailLengthTest`,
+`TimeColorTest`, `RainColorTest`, `TimeStyleTest` and `SettingsMenuTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is

@@ -22,4 +22,17 @@
     <string id="TimeStyleFilled">Filled</string>
     <string id="TimeStyleHollow">Hollow (Large and Extra large)</string>
 
+    <!-- The time and rain colour settings (#143). The colour names are shared by both. -->
+    <string id="TimeColorTitle">Time colour</string>
+    <string id="RainColorTitle">Rain colour</string>
+    <string id="ColorGreen">Green</string>
+    <string id="ColorWhite">White</string>
+    <string id="ColorCyan">Cyan</string>
+    <string id="ColorBlue">Blue</string>
+    <string id="ColorAmber">Amber</string>
+    <string id="ColorOrange">Orange</string>
+    <string id="ColorRed">Red</string>
+    <string id="RainColorWhiteToGreen">White to green</string>
+    <string id="RainColorGreenToTeal">Green to teal</string>
+
 </resources>

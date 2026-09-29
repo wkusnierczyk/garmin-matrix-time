@@ -82,6 +82,50 @@ module RainMath {
     }
 
 
+    // Premium's two-colour ramp, for the rain colour setting (#143): `shades`, with the hue
+    // moving from `head` to `tail` along the trail as well as dimming. Each row mixes the two
+    // colours and then dims the mix exactly as `shades` dims its one colour.
+    //
+    // The head's share of the mix falls with the square of the remaining trail, not linearly,
+    // so the hue leaves the head quickly: white to green reads as a white-hot head cooling to
+    // green within a few rows, where a linear mix left the whole trail a washed-out pale green.
+    //
+    // Two divisions rather than one so no product outgrows a Number: the mix is at most
+    // 255 * steps * steps, and the dimming then multiplies a channel, not the mix's numerator.
+    //
+    // With `head == tail` the mix is that colour exactly, and the ramp is `shades` row for
+    // row -- which is what lets a plain colour and a gradient share one code path, and
+    // RainColorTest checks it. Lite has no rain colour setting and keeps calling `shades`.
+    (:premium)
+    function gradient(rowCount as Number, steps as Number, head as Number, tail as Number) as Array<Graphics.ColorType> {
+
+        if (steps < 1) {
+            steps = 1;
+        }
+
+        var full = steps * steps;
+        var ramp = new [rowCount] as Array<Graphics.ColorType>;
+        for (var i = 0; i < rowCount; ++i) {
+            var scale = steps - i;
+            if (scale < 0) {
+                scale = 0;
+            }
+            var weight = scale * scale;
+            ramp[i] = ((mixChannel(head, tail, RED_SHIFT, weight, full) * scale / steps) << RED_SHIFT) |
+                      ((mixChannel(head, tail, GREEN_SHIFT, weight, full) * scale / steps) << GREEN_SHIFT) |
+                      ((mixChannel(head, tail, BLUE_SHIFT, weight, full) * scale / steps) << BLUE_SHIFT);
+        }
+        return ramp;
+
+    }
+
+    // One channel of `head` and `tail` mixed, `head` taking `weight` parts in `full`.
+    (:premium)
+    function mixChannel(head as Number, tail as Number, shift as Number, weight as Number, full as Number) as Number {
+        return (((head >> shift) & MASK) * weight + ((tail >> shift) & MASK) * (full - weight)) / full;
+    }
+
+
     // How many cells the grid steps from the centre to the edge along one axis, given the
     // distance from the centre to that edge and the cell pitch.
     //
