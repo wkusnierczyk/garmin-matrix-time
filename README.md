@@ -65,7 +65,7 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds a settings screen, in Connect IQ and on the watch, with two settings:
+Premium adds a settings screen, in Connect IQ and on the watch, with three settings:
 
 * **Time size** -- Small, Medium, Large or Extra large: the size of the time on the woken screen.
   Small is the size Lite draws, and is the default, so Premium looks like Lite until the setting is
@@ -79,6 +79,12 @@ Premium adds a settings screen, in Connect IQ and on the watch, with two setting
   control: the face only draws the lit part of each trail, so 25% draws about half the glyphs of 50%
   each frame, and 75% about half again as many. A change applies from the next frame without
   restarting the rain.
+* **Time style** -- Filled or Hollow: the time on the woken screen drawn as solid digits on a black
+  box, or as an outline with no box, so the rain falls through the digits. Filled is the look Lite
+  draws, and is the default. Hollow applies to the Large and Extra large sizes only; at Small and
+  Medium the outline is too fine to read against the rain, so those stay filled whichever style is
+  chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with the screen, like the
+  font sizes; see [Fonts](#fonts). The always-on screen is not affected.
 
 ## Editions
 
@@ -88,8 +94,8 @@ Matrix Time comes in two editions, built from this one source tree:
   2026-09-24: it gets defect fixes only, and new features go to Premium.
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
-  It is not published yet. Its one feature so far is a choice of time size; see
-  [Premium settings](#premium-settings).
+  It is not published yet. Its features so far are its settings: time size, trail length and time
+  style; see [Premium settings](#premium-settings).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
 has goes in `premium/`: code in `premium/source/`, resources for every product in
@@ -147,28 +153,45 @@ The table below lists all font sizes provided for the supported screen resolutio
 |  448 x 486 | rectangle | Time       | SUSEMono regular |   29 |
 |  448 x 486 | rectangle | Time large | SUSEMono regular |   58 |
 
-The Premium time sizes add two fonts to these. Small and Large, of the
+The Premium time sizes add four fonts to these. Small and Large, of the
 [time size setting](#premium-settings), are Lite's Time and Time large; Medium and Extra large are
-Premium's own, configured in `premium/resources/fonts/` and generated into `premium/resources-<family>/`
-by `garmin-font-scaler --project-dir premium`, from the same reference resolution. The table is a copy of
+Premium's own. The other two are the hollow time of the [time style setting](#premium-settings): Large
+and Extra large again, drawn as an outline. Their stroke is 1.2 pixels at the reference, scaled per
+resolution like the size, which is the Stroke column. All four are configured in
+`premium/resources/fonts/` and generated into `premium/resources-<family>/` by
+`garmin-font-scaler --project-dir premium`, from the same reference resolution. The table is a copy of
 [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
 
-| Resolution |   Shape   |     Element      |       Font       | Size |
-| ---------: | :-------- | :--------------- | :--------------- | ---: |
-|  320 x 360 | rectangle | Time extra large | SUSEMono regular |   52 |
-|  320 x 360 | rectangle | Time medium      | SUSEMono regular |   31 |
-|  360 x 360 | round     | Time extra large | SUSEMono regular |   59 |
-|  360 x 360 | round     | Time medium      | SUSEMono regular |   35 |
-|  390 x 390 | round     | Time extra large | SUSEMono regular |   64 |
-|  390 x 390 | round     | Time medium      | SUSEMono regular |   38 |
-|  416 x 416 | round     | Time extra large | SUSEMono regular |   68 |
-|  416 x 416 | round     | Time medium      | SUSEMono regular |   40 |
-|  454 x 454 | round     | Time extra large | SUSEMono regular |   74 |
-|  454 x 454 | round     | Time medium      | SUSEMono regular |   44 |
-|  466 x 466 | round     | Time extra large | SUSEMono regular |   76 |
-|  466 x 466 | round     | Time medium      | SUSEMono regular |   45 |
-|  448 x 486 | rectangle | Time extra large | SUSEMono regular |   73 |
-|  448 x 486 | rectangle | Time medium      | SUSEMono regular |   43 |
+| Resolution |   Shape   |         Element         |           Font           | Size | Stroke |
+| ---------: | :-------- | :---------------------- | :----------------------- | ---: | -----: |
+|  320 x 360 | rectangle | Time extra large        | SUSEMono regular         |   52 |        |
+|  320 x 360 | rectangle | Time extra large hollow | SUSEMono regular, hollow |   52 |   0.92 |
+|  320 x 360 | rectangle | Time large hollow       | SUSEMono regular, hollow |   42 |   0.92 |
+|  320 x 360 | rectangle | Time medium             | SUSEMono regular         |   31 |        |
+|  360 x 360 | round     | Time extra large        | SUSEMono regular         |   59 |        |
+|  360 x 360 | round     | Time extra large hollow | SUSEMono regular, hollow |   59 |   1.04 |
+|  360 x 360 | round     | Time large hollow       | SUSEMono regular, hollow |   47 |   1.04 |
+|  360 x 360 | round     | Time medium             | SUSEMono regular         |   35 |        |
+|  390 x 390 | round     | Time extra large        | SUSEMono regular         |   64 |        |
+|  390 x 390 | round     | Time extra large hollow | SUSEMono regular, hollow |   64 |   1.12 |
+|  390 x 390 | round     | Time large hollow       | SUSEMono regular, hollow |   51 |   1.12 |
+|  390 x 390 | round     | Time medium             | SUSEMono regular         |   38 |        |
+|  416 x 416 | round     | Time extra large        | SUSEMono regular         |   68 |        |
+|  416 x 416 | round     | Time extra large hollow | SUSEMono regular, hollow |   68 |    1.2 |
+|  416 x 416 | round     | Time large hollow       | SUSEMono regular, hollow |   54 |    1.2 |
+|  416 x 416 | round     | Time medium             | SUSEMono regular         |   40 |        |
+|  454 x 454 | round     | Time extra large        | SUSEMono regular         |   74 |        |
+|  454 x 454 | round     | Time extra large hollow | SUSEMono regular, hollow |   74 |   1.31 |
+|  454 x 454 | round     | Time large hollow       | SUSEMono regular, hollow |   59 |   1.31 |
+|  454 x 454 | round     | Time medium             | SUSEMono regular         |   44 |        |
+|  466 x 466 | round     | Time extra large        | SUSEMono regular         |   76 |        |
+|  466 x 466 | round     | Time extra large hollow | SUSEMono regular, hollow |   76 |   1.34 |
+|  466 x 466 | round     | Time large hollow       | SUSEMono regular, hollow |   60 |   1.34 |
+|  466 x 466 | round     | Time medium             | SUSEMono regular         |   45 |        |
+|  448 x 486 | rectangle | Time extra large        | SUSEMono regular         |   73 |        |
+|  448 x 486 | rectangle | Time extra large hollow | SUSEMono regular, hollow |   73 |   1.29 |
+|  448 x 486 | rectangle | Time large hollow       | SUSEMono regular, hollow |   58 |   1.29 |
+|  448 x 486 | rectangle | Time medium             | SUSEMono regular         |   43 |        |
 
 To regenerate them, from the repository root:
 
@@ -176,6 +199,9 @@ To regenerate them, from the repository root:
 garmin-font-scaler --project-dir premium
 garmin-font-scaler --project-dir premium --table fonts.md    # writes premium/fonts.md
 ```
+
+The hollow fonts need `garmin-font-scaler` 0.3.0 and `ttf2bmp` 0.3.0 or later, the first versions with
+`stroke`.
 
 The scaler writes under `--project-dir` whatever `--resources-dir` says, which is why Premium's fonts are
 generated with `--project-dir premium` and not by pointing the scaler at Premium's configuration from the

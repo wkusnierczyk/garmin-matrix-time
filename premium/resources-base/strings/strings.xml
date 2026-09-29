@@ -17,4 +17,9 @@
     <string id="TrailLength50">50% of the screen</string>
     <string id="TrailLength75">75% of the screen</string>
 
+    <!-- The time style setting (#72). -->
+    <string id="TimeStyleTitle">Time style</string>
+    <string id="TimeStyleFilled">Filled</string>
+    <string id="TimeStyleHollow">Hollow (Large and Extra large)</string>
+
 </resources>
