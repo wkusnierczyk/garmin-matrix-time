@@ -54,27 +54,45 @@ class TimeStyleTest {
     }
 
 
-    // S and M have no hollow font; L and XL do.
+    // The choice the draw follows, for every size and style: hollow L and XL are drawn in
+    // their hollow fonts, and everything else is drawn filled, which is null here.
     (:test)
-    static function onlyLargeAndExtraLargeHaveAHollowFont(logger as Test.Logger) as Boolean {
-        Test.assertMessage(TimeStyle.loadHollow(TimeSize.SMALL) == null, "S has no hollow font");
-        Test.assertMessage(TimeStyle.loadHollow(TimeSize.MEDIUM) == null, "M has no hollow font");
-        Test.assertMessage(TimeStyle.loadHollow(TimeSize.LARGE) != null, "L has a hollow font");
-        Test.assertMessage(TimeStyle.loadHollow(TimeSize.EXTRA_LARGE) != null, "XL has a hollow font");
+    static function hollowIsLargeAndExtraLargeOnly(logger as Test.Logger) as Boolean {
+        var filled = TimeStyle.FILLED;
+        var hollow = TimeStyle.HOLLOW;
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.LARGE, hollow) == Rez.Fonts.TimeLargeHollow,
+            "hollow L is drawn in TimeLargeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_LARGE, hollow) == Rez.Fonts.TimeExtraLargeHollow,
+            "hollow XL is drawn in TimeExtraLargeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.SMALL, hollow) == null, "hollow S is drawn filled");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.MEDIUM, hollow) == null, "hollow M is drawn filled");
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_LARGE; ++size) {
+            Test.assertMessage(TimeStyle.hollowFont(size, filled) == null, "filled size " + size + " is drawn filled");
+        }
         return true;
     }
 
 
     // A hollow font is its filled twin with the interior taken out, so swapping one for the
-    // other must not move the time: the same height, on every resolution the suite runs on.
+    // other must not move the time: the same height and the same width of the drawn time,
+    // which is what centres it. tools/check-font-config.py compares every glyph's metrics
+    // in every family; this checks the fonts as the device loads them.
     (:test)
     static function aHollowFontHasItsFilledTwinsMetrics(logger as Test.Logger) as Boolean {
         var large = Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
+        var dc = (Graphics.createBufferedBitmap({:width => 1, :height => 1}).get() as Graphics.BufferedBitmap).getDc();
         for (var size = TimeSize.LARGE; size <= TimeSize.EXTRA_LARGE; ++size) {
-            var filled = Graphics.getFontHeight(TimeSize.load(size, large));
-            var hollow = Graphics.getFontHeight(TimeStyle.loadHollow(size) as Graphics.FontType);
-            logger.debug("size " + size + ": filled " + filled + " px, hollow " + hollow + " px");
-            Test.assertEqualMessage(hollow, filled, "size " + size + ": hollow is as tall as filled");
+            var filled = TimeSize.load(size, large);
+            var hollow = Application.loadResource(
+                TimeStyle.hollowFont(size, TimeStyle.HOLLOW) as ResourceId) as Graphics.FontType;
+            var text = "12:34";
+            logger.debug("size " + size + ": filled " + Graphics.getFontHeight(filled) + " x "
+                + dc.getTextWidthInPixels(text, filled) + " px, hollow " + Graphics.getFontHeight(hollow)
+                + " x " + dc.getTextWidthInPixels(text, hollow) + " px");
+            Test.assertEqualMessage(Graphics.getFontHeight(hollow), Graphics.getFontHeight(filled),
+                "size " + size + ": hollow is as tall as filled");
+            Test.assertEqualMessage(dc.getTextWidthInPixels(text, hollow), dc.getTextWidthInPixels(text, filled),
+                "size " + size + ": hollow is as wide as filled");
         }
         return true;
     }

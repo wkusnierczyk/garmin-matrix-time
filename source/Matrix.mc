@@ -149,9 +149,9 @@ class DigitalRain {
     function reloadTimeFont() as Void {
         _timeFont = Graphics.FONT_XTINY;
         var size = TimeSize.selected();
-        var hollow = (TimeStyle.selected() == TimeStyle.HOLLOW) ? TimeStyle.loadHollow(size) : null;
+        var hollow = TimeStyle.hollowFont(size, TimeStyle.selected());
         if (hollow != null) {
-            _timeFont = hollow;
+            _timeFont = Application.loadResource(hollow) as Graphics.FontType;
             _timeBackground = Graphics.COLOR_TRANSPARENT;
         } else {
             _timeFont = TimeSize.load(size, _timeLargeFont);
