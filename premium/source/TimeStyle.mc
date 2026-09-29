@@ -1,6 +1,4 @@
-using Toybox.Application;
 using Toybox.Application.Properties;
-using Toybox.Graphics;
 
 import Toybox.Lang;
 
@@ -37,14 +35,22 @@ module TimeStyle {
         return FILLED;
     }
 
-    // The hollow font for a time size, or null for a size that has none, S and M. Loaded
-    // only when asked for: the two are Premium's largest time bitmaps after XL itself.
-    function loadHollow(size as Number) as Graphics.FontType or Null {
+    // The hollow font a size is drawn in under the given style, or null where the time is
+    // drawn filled: the filled style, or a size with no hollow font, S and M.
+    //
+    // An id rather than a loaded font, because it is the one decision the draw follows:
+    // DigitalRain loads this font and drops the box together, from this value, so the two
+    // cannot disagree. Two loaded fonts cannot be told apart from Monkey C, but two ids can,
+    // which is what lets TimeStyleTest check the choice itself.
+    function hollowFont(size as Number, style as Number) as ResourceId or Null {
+        if (style != HOLLOW) {
+            return null;
+        }
         switch (size) {
             case TimeSize.LARGE:
-                return Application.loadResource(Rez.Fonts.TimeLargeHollow) as Graphics.FontType;
+                return Rez.Fonts.TimeLargeHollow;
             case TimeSize.EXTRA_LARGE:
-                return Application.loadResource(Rez.Fonts.TimeExtraLargeHollow) as Graphics.FontType;
+                return Rez.Fonts.TimeExtraLargeHollow;
             default:
                 return null;
         }
