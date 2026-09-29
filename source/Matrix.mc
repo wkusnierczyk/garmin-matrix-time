@@ -236,9 +236,10 @@ class DigitalRain {
 
     // Premium's time and rain colour settings (#143). _timeColor and _matrixColor were
     // kept as fields for this (#16); Premium writes them here, and adds the two colours
-    // Lite has as constants: the always-on time, which follows the time colour at two
-    // thirds, and the colour the rain's trail cools towards, which is the rain colour
-    // itself unless a gradient is chosen. Their defaults are Lite's.
+    // Lite has as constants: the always-on time, which follows the time colour at the
+    // always-on brightness setting's share of it (#161), and the colour the rain's trail
+    // cools towards, which is the rain colour itself unless a gradient is chosen. Their
+    // defaults are Lite's.
     (:premium)
     private var
         _lowPowerTimeColor as Number = LOW_POWER_TIME_COLOR,
@@ -250,7 +251,7 @@ class DigitalRain {
     (:premium)
     function applyColors() as Void {
         _timeColor = TimeColor.colorOf(TimeColor.selected());
-        _lowPowerTimeColor = TimeColor.lowPowerOf(_timeColor);
+        _lowPowerTimeColor = TimeColor.lowPowerOf(_timeColor, AlwaysOnBrightness.selected());
         var rain = RainColor.selected();
         _matrixColor = RainColor.headOf(rain);
         _matrixTailColor = RainColor.tailOf(rain);
@@ -390,11 +391,12 @@ class DigitalRain {
 
     }
 
-    // Premium draws it in the time colour setting's own always-on colour (#143), and in the
-    // hollow ExtraBold XXL whatever the time size and style (#145, #153), which
-    // reloadTimeFont has put in _timeLargeFont. The outline is larger than Lite's filled L
-    // and lights a little more of the screen, and it is shifted further, by Premium's own
-    // divisor; see LOW_POWER_JITTER_DIVISOR.
+    // Premium draws it in the time colour setting's own always-on colour (#143), at the
+    // always-on brightness setting's share of it (#161), and in the hollow ExtraBold XXL
+    // whatever the time size and style (#145, #153), which reloadTimeFont has put in
+    // _timeLargeFont. The outline is larger than Lite's filled L and lights a little more of
+    // the screen, and it is shifted further, by Premium's own divisor; see
+    // LOW_POWER_JITTER_DIVISOR.
     //
     // Always centred, whatever the time alignment (#154), so that the burn-in measurement
     // stands: the jitter square was measured about the centre.

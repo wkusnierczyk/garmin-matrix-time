@@ -42,4 +42,10 @@
     <string id="RainColorWhiteToGreen">White to green</string>
     <string id="RainColorGreenToTeal">Green to teal</string>
 
+    <!-- The always-on brightness setting (#161). -->
+    <string id="AlwaysOnBrightnessTitle">Always-on brightness</string>
+    <string id="AlwaysOnBrightnessBright">Bright</string>
+    <string id="AlwaysOnBrightnessDimmed">Dimmed</string>
+    <string id="AlwaysOnBrightnessDim">Dim</string>
+
 </resources>

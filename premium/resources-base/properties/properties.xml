@@ -33,4 +33,10 @@
          TimeAlign.alignOf. The always-on time stays centred whatever this holds. -->
     <property id="timeAlign" type="number">1</property>
 
+    <!-- alwaysOnBrightness is how bright the always-on time is drawn, an index read by
+         AlwaysOnBrightness (#161): 0 bright, the full time colour; 1 dimmed, five sixths
+         of it; 2 dim, two thirds, as Lite draws it. 0 is the default, and the fallback in
+         AlwaysOnBrightness.levelOf. -->
+    <property id="alwaysOnBrightness" type="number">0</property>
+
 </properties>
