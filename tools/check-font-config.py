@@ -425,8 +425,8 @@ if not bad:
 
 
 # A hollow font must draw the time exactly where its filled twin does: the same line
-# height and base, and every glyph the same width, advance and offsets. Only the glyph's
-# place in the atlas, x, may differ. Compared on the generated files, in every family,
+# height and base, and every glyph the same size, offsets and advance. Where a glyph sits
+# in the atlas image -- x, y, the atlas size -- does not affect drawing and is not compared. Compared on the generated files, in every family,
 # since that is what the device loads -- the configuration alone cannot see a ttf2bmp
 # that pads outlined glyphs differently (#72).
 def fnt_metrics(path):
@@ -434,9 +434,10 @@ def fnt_metrics(path):
     for line in open(path):
         fields = dict(re.findall(r'(\w+)=("[^"]*"|\S+)', line))
         if line.startswith('common '):
-            common = {kk: v for kk, v in fields.items() if kk in ('lineHeight', 'base', 'scaleH')}
+            common = {kk: fields.get(kk) for kk in ('lineHeight', 'base')}
         elif line.startswith('char '):
-            chars[fields['id']] = {kk: v for kk, v in fields.items() if kk != 'x'}
+            chars[fields['id']] = {kk: fields.get(kk)
+                                   for kk in ('width', 'height', 'xoffset', 'yoffset', 'xadvance')}
     return common, chars
 
 
@@ -458,7 +459,9 @@ for w, h, shape in targets:
         a, b = family_font(hollow, fam), family_font(filled, fam)
         if not (a and b and os.path.exists(a) and os.path.exists(b)):
             twin_bad.append((fam, hollow, 'missing')); continue
-        if fnt_metrics(a) != fnt_metrics(b):
+        ma, mb = fnt_metrics(a), fnt_metrics(b)
+        if not (ma[0] and ma[1]) or ma != mb:
+            # Two empty or truncated files would otherwise compare equal.
             twin_bad.append((fam, hollow, os.path.basename(a), os.path.basename(b)))
 ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(targets)} families"
    + (f" (not {twin_bad[:3]})" if twin_bad else ""))

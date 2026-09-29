@@ -732,10 +732,12 @@ keeps at least one lit row and, on any ring of two rows or more, one black one, 
 change reaches the ramp a falling rain draws.
 
 `TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property is
-declared, that anything but Hollow falls back to Filled, that hollow Large and Extra large are drawn in
-their hollow fonts and every other size and style is drawn filled, that a hollow font is exactly as tall
-and as wide as its filled twin, so switching style never moves the time, that a settings change drops
-the black box at hollow Large and Extra large only, and that the style never changes the size.
+declared, that anything but Hollow falls back to Filled, that hollow Large and Extra large map to their
+hollow fonts and every other size and style maps to none, that a hollow font is exactly as tall and as
+wide as its filled twin, so switching style never moves the time, that a settings change drops the black
+box at hollow Large and Extra large only, and that the style never changes the size. The mapping is the
+one value `reloadTimeFont` both loads the font from and drops the box by; which of two fonts of the same
+size was loaded cannot itself be observed from a test.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
