@@ -57,8 +57,8 @@ each change is recorded in full.
 * **Premium: the date.** A date setting shows today's date under the time on the woken screen, as
   2026-09-29, at the Extra extra small time size and in the time colour. It follows the time
   alignment, lining up with the time's edge, and stays clear of a round screen's edge. Off, Lite's
-  look, is the default. It is drawn on a black box, which the time no longer has, since text that
-  small does not read over the rain. The always-on screen shows the time alone. (#163, #174)
+  look, is the default. It is drawn on a black box, since text that small does not read over the
+  rain; the time no longer has one. The always-on screen shows the time alone. (#163, #174)
 
 ## 0.2.1 -- 2026-09-21
 

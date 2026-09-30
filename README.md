@@ -95,9 +95,10 @@ there the watch is the only way to change them.
   the default. Neither is drawn on a box: Lite draws its time as solid digits on a black box that
   keeps the rain out of the whole time field, and that look is Lite's alone. Hollow applies to Small
   and the sizes above it only; at Extra extra small and Extra small the outline is too fine to read
-  against the rain, so those stay filled whichever style is chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with
-  the screen, like the font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is
-  drawn filled at Extra large whichever style is chosen here.
+  against the rain, so those stay filled whichever style is chosen. The outline is 1.2 pixels wide
+  at the 416x416 reference and scales with the screen, like the font sizes; see [Fonts](#fonts). The
+  always-on screen is not affected: it is drawn filled at Extra large whichever style is chosen
+  here.
 * **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
   is where Lite draws it, and is the default. At the left or right the time keeps its fixed width of
   five characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a
@@ -106,7 +107,8 @@ there the watch is the only way to change them.
   character, so no digit is cut off by a round screen's edge at any time size. At the 416x416
   reference that puts the time 9 pixels in at Extra extra small, 26 at Medium, 33 at Large and 47 at
   Extra extra large. A rectangular screen gets the same margin as the circle that fits it, so the
-  time sits the same way on every shape. The always-on screen is not affected: it stays centred, so its burn-in figures above hold.
+  time sits the same way on every shape. The always-on screen is not affected: it stays centred, so
+  its burn-in figures above hold.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
@@ -132,12 +134,13 @@ there the watch is the only way to change them.
   the default, so the face looks as Lite does until it is turned on. The date is drawn at the Extra
   extra small time size whatever the time size, in the time colour, on a black box, so it stays
   legible over the rain whichever time style is chosen. The time itself has no box; the date keeps
-  one because it is always drawn that small. It follows the **Time alignment** setting: at the left or right it lines up with the edge of the time, unless the circle
-  that fits the screen is already narrower at the date's height, in which case it sits further in,
-  so no digit is cut off. That happens under the smaller time sizes, by a few pixels. Like the time,
-  it is a fixed width, ten characters every day. The time's blank padding character before 10:00 on
-  a 12-hour clock therefore leaves a left-aligned date one character further out than the hour. The
-  always-on screen is not affected: it shows the time alone, so its burn-in figures above hold.
+  one because it is always drawn that small. It follows the **Time alignment** setting: at the left
+  or right it lines up with the edge of the time, unless the circle that fits the screen is already
+  narrower at the date's height, in which case it sits further in, so no digit is cut off. That
+  happens under the smaller time sizes, by a few pixels. Like the time, it is a fixed width, ten
+  characters every day. The time's blank padding character before 10:00 on a 12-hour clock therefore
+  leaves a left-aligned date one character further out than the hour. The always-on screen is not
+  affected: it shows the time alone, so its burn-in figures above hold.
 
 ## Editions
 

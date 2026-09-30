@@ -17,8 +17,7 @@ import Toybox.Lang;
 // edges of the box drawText fills, which is the font height tall and centred on the
 // screen: there those two corners touch the circle and the rest of the box is inside it.
 // Every time font's glyph cell is that whole box -- tools/check-font-config.py holds the
-// fonts to it -- so no digit can reach past the glass. (It also kept the black box a filled
-// time was drawn on, until #174 dropped it.)
+// fonts to it -- so no digit can reach past the glass.
 //
 // That alone puts the digits against the bezel, 1 pixel in at XXS and 5 at M on 416x416,
 // so the box moves a further GAP in: a quarter of the font height, which in SUSE Mono is

@@ -370,7 +370,7 @@ class DigitalRain {
 
 
     // Lite always draws the time on its black box. Two definitions rather than a shared
-    // one reading a field, so that Lite, which is frozen, compiles exactly as before.
+    // one, so that Lite, which is frozen, compiles exactly as before.
     (:lite)
     function draw(dc as Graphics.Dc) as DigitalRain {
 
@@ -413,7 +413,7 @@ class DigitalRain {
     // dropped entirely: only the time is drawn, dimmed in Lite, and shifted to a
     // different corner of a small square every minute.
     //
-    // No black box is painted behind the time here, unlike the high-power scene: a
+    // No black box is painted behind the time here, unlike Lite's woken scene: a
     // lit rectangle is exactly what the burn-in protector counts, and with no rain
     // behind it there is nothing for it to mask anyway.
     //
