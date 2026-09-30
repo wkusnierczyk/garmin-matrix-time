@@ -181,9 +181,9 @@ class DigitalRain {
     // The outgoing font is dropped before the new one is loaded, by pointing the field at
     // a system font for the moment in between, so the two bitmaps are never held at once.
     //
-    // The time style setting (#72) picks between a size's filled font and its hollow one.
-    // Hollow is drawn with no box behind it, so the rain shows through the digits; XXS and XS
-    // have no hollow font and stay filled on their box.
+    // The time style setting (#72) picks between a size's filled font and its hollow one;
+    // XXS and XS have no hollow font and stay filled. Neither is drawn on a box (#174): the
+    // rain falls through a hollow time's digits, and around a filled time's.
     //
     // The first call also swaps the always-on font: Premium draws the always-on time in the
     // filled XL (#164). initialize is shared with Lite, which is frozen and still compiles
@@ -203,17 +203,13 @@ class DigitalRain {
         var hollow = TimeStyle.hollowFont(size, TimeStyle.selected());
         if (hollow != null) {
             _timeFont = Application.loadResource(hollow) as Graphics.FontType;
-            _timeBackground = Graphics.COLOR_TRANSPARENT;
         } else if (size == TimeSize.EXTRA_EXTRA_SMALL && _dateFont != null) {
             // The date's font is XXS (#163): share it rather than hold XXS twice.
             _timeFont = _dateFont as Graphics.FontType;
-            _timeBackground = Graphics.COLOR_BLACK;
         } else if (TimeSize.fontOf(size) == alwaysOn) {
             _timeFont = _timeLargeFont;
-            _timeBackground = Graphics.COLOR_BLACK;
         } else {
             _timeFont = TimeSize.load(size);
-            _timeBackground = Graphics.COLOR_BLACK;
         }
     }
 
@@ -223,11 +219,6 @@ class DigitalRain {
     // on the watch. A DigitalRain built directly, as DigitalRainTest builds one, still does.
     (:premium)
     private var _lowPowerFontLoaded as Boolean = false;
-
-    // What the woken time is drawn on: the opaque box that masks the rain behind a filled
-    // time, or nothing, for a hollow one (#72). Lite always draws the box, and has no field.
-    (:premium)
-    private var _timeBackground as Graphics.ColorType = Graphics.COLOR_BLACK;
 
     // Premium's trail length setting (#53), as a percentage of the screen height. Held
     // here rather than applied at once, because the ramp is built from _rowCount and that
@@ -365,12 +356,6 @@ class DigitalRain {
         return _timeLargeFont;
     }
 
-    // For TimeStyleTest only; (:debug) for the reason timeFont gives.
-    (:debug :premium)
-    function timeBackground() as Graphics.ColorType {
-        return _timeBackground;
-    }
-
 
     // The one caller, View.onUpdate, always has a Moment in hand, so the parameter is
     // not nullable and there is no "now" default to fall back to. Deciding what time it
@@ -400,9 +385,10 @@ class DigitalRain {
 
     }
 
-    // Premium draws it on whatever the time style chose (#72), where the time alignment
-    // put it (#154), and the date under it when the date is on (#163), anchored the same way
-    // and always on a black box.
+    // Premium draws it with no box, whatever the time style (#174), so the rain falls around
+    // a filled time and through a hollow one (#72); where the time alignment put it (#154);
+    // and the date under it when the date is on (#163), anchored the same way and always on
+    // a black box.
     (:premium)
     function draw(dc as Graphics.Dc) as DigitalRain {
 
@@ -411,7 +397,7 @@ class DigitalRain {
         }
 
         _drawTrails(dc);
-        _drawTime(dc, _timeX, _centerY, _timeFont, _timeColor, _timeBackground, _timeJustify);
+        _drawTime(dc, _timeX, _centerY, _timeFont, _timeColor, _timeJustify);
         if (_dateFont != null) {
             _drawDate(dc, _dateFont);
         }
@@ -457,7 +443,7 @@ class DigitalRain {
 
         var offset = RainMath.jitter(_time.value(), _width);
 
-        _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, _lowPowerTimeColor, Graphics.COLOR_TRANSPARENT, JUSTIFY);
+        _drawTime(dc, _centerX + offset[0], _centerY + offset[1], _timeLargeFont, _lowPowerTimeColor, JUSTIFY);
 
         return self;
 
@@ -688,13 +674,13 @@ class DigitalRain {
     }
 
     // Premium anchors it where the time alignment says (#154); the always-on screen passes
-    // JUSTIFY.
+    // JUSTIFY. It never draws a box, on either screen (#174).
     (:premium)
-    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, background as Graphics.ColorType, justify as Number) as Void {
+    private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, justify as Number) as Void {
 
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var time = RainMath.timeText(info.hour, info.min, System.getDeviceSettings().is24Hour);
-        dc.setColor(color, background);
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
         dc.drawText(x, y, font, time, justify);
 
     }

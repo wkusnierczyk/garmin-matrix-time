@@ -26,10 +26,11 @@ each change is recorded in full.
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
   saves battery; a longer one fades more smoothly. (#53)
-* **Premium: a hollow time.** A time style setting draws the time as an outline instead of solid
-  digits, with the black box behind it gone, so the rain falls through the digits. It applies to the
-  Small time size and every size above it; Extra extra small and Extra small stay solid. Filled,
-  Lite's look, is the default. (#72)
+* **Premium: a hollow time, and no box.** A time style setting draws the time as an outline instead
+  of solid digits, so the rain falls through the digits. It applies to the Small time size and every
+  size above it; Extra extra small and Extra small stay solid. Filled is the default. In either style
+  the time is drawn without the black box Lite draws it on, so the rain falls right up to the digits
+  rather than leaving out the whole time field. (#72, #174)
 * **Premium: a bolder time.** Premium draws the time in SUSE Mono ExtraBold, the same typeface as
   Lite at a heavier weight, at every size, filled and hollow, woken and always-on. The digits read
   more strongly against the rain, and the outline of the hollow time has room to show it through. The
@@ -56,7 +57,8 @@ each change is recorded in full.
 * **Premium: the date.** A date setting shows today's date under the time on the woken screen, as
   2026-09-29, at the Extra extra small time size and in the time colour. It follows the time
   alignment, lining up with the time's edge, and stays clear of a round screen's edge. Off, Lite's
-  look, is the default. The always-on screen shows the time alone. (#163)
+  look, is the default. It is drawn on a black box, which the time no longer has, since text that
+  small does not read over the rain. The always-on screen shows the time alone. (#163, #174)
 
 ## 0.2.1 -- 2026-09-21
 
