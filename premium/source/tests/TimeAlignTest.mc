@@ -23,6 +23,10 @@ class RecordingDc {
     var justify as Number = -1;
     var text as String = "";
     var font as Graphics.FontType or Null = null;
+    // The background set when the last text was drawn, for TimeStyleTest (#174).
+    var background as Graphics.ColorType = -2;
+
+    private var _background as Graphics.ColorType = -2;
 
     function initialize() {
         var bitmap = Graphics.createBufferedBitmap({:width => 64, :height => 64}).get() as Graphics.BufferedBitmap;
@@ -30,6 +34,7 @@ class RecordingDc {
     }
 
     function setColor(foreground as Graphics.ColorType, background as Graphics.ColorType) as Void {
+        _background = background;
         _dc.setColor(foreground, background);
     }
 
@@ -39,6 +44,7 @@ class RecordingDc {
         self.justify = justify;
         self.text = text;
         self.font = font;
+        self.background = _background;
         _dc.drawText(x, y, font, text, justify);
     }
 

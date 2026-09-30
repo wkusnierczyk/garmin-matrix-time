@@ -16,9 +16,11 @@ import Toybox.Lang;
 // entry in premium/resources/fonts/charsets.json adds "-" to the time's glyphs for it.
 //
 // The date sits under the time's box and follows the time alignment (#154), so the two
-// read as one block; see xOf. It is drawn on a black box, like a filled time (#50), since
-// text this small is not legible over the rain. The always-on screen draws no date, so
-// the burn-in measurement on #164 stands.
+// read as one block; see xOf. It is drawn on a black box, as Lite's time is (#50), since
+// text this small is not legible over the rain. The time lost its box in #174 and the date
+// kept it: a boxless date reads as the boxless XXS time does, with rain glyphs touching its
+// ends, and the date has no larger size to escape to. The always-on screen draws no date,
+// so the burn-in measurement on #164 stands.
 module DateField {
 
     const
