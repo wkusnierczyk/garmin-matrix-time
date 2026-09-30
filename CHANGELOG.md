@@ -47,6 +47,10 @@ each change is recorded in full.
   the full time colour, Dimmed, five sixths of it, or Dim, the two thirds Lite draws. Bright is the
   default, since the dimmer always-on time was hard to read. The burn-in figures hold at every level.
   (#161)
+* **Premium: the date.** A date setting shows today's date under the time on the woken screen, as
+  2026-09-29, at the Small time size and in the time colour. It follows the time alignment, lining up
+  with the time's edge, and stays clear of a round screen's edge. Off, Lite's look, is the default.
+  The always-on screen shows the time alone. (#163)
 
 ## 0.2.1 -- 2026-09-21
 

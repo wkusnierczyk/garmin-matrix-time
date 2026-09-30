@@ -16,14 +16,14 @@ import Toybox.Lang;
 // them together: a value added there and not here can be picked on the phone but is never
 // offered here, and is shown here as whatever the face makes of it -- by its number for a
 // trail length, which TrailLength keeps, and as the default for a size, style, alignment,
-// colour or always-on brightness, which TimeSize, TimeStyle, TimeAlign, TimeColor, RainColor
-// and AlwaysOnBrightness clamp.
+// colour, always-on brightness or date, which TimeSize, TimeStyle, TimeAlign, TimeColor,
+// RainColor, AlwaysOnBrightness and DateField clamp.
 module SettingsMenu {
 
     // The settings, in the order the menu lists them and settings.xml declares them.
     function properties() as Array<String> {
         return [TimeSize.PROPERTY, TrailLength.PROPERTY, TimeStyle.PROPERTY, TimeAlign.PROPERTY, TimeColor.PROPERTY,
-            RainColor.PROPERTY, AlwaysOnBrightness.PROPERTY];
+            RainColor.PROPERTY, AlwaysOnBrightness.PROPERTY, DateField.PROPERTY];
     }
 
     function titleOf(property as String) as ResourceId {
@@ -44,6 +44,9 @@ module SettingsMenu {
         }
         if (property.equals(AlwaysOnBrightness.PROPERTY)) {
             return Rez.Strings.AlwaysOnBrightnessTitle;
+        }
+        if (property.equals(DateField.PROPERTY)) {
+            return Rez.Strings.DateTitle;
         }
         return Rez.Strings.TimeStyleTitle;
     }
@@ -67,6 +70,9 @@ module SettingsMenu {
         }
         if (property.equals(AlwaysOnBrightness.PROPERTY)) {
             return [AlwaysOnBrightness.BRIGHT, AlwaysOnBrightness.DIMMED, AlwaysOnBrightness.DIM];
+        }
+        if (property.equals(DateField.PROPERTY)) {
+            return [DateField.OFF, DateField.ON];
         }
         return [TimeStyle.FILLED, TimeStyle.HOLLOW];
     }
@@ -117,6 +123,9 @@ module SettingsMenu {
                 Rez.Strings.AlwaysOnBrightnessDim
             ];
         }
+        if (property.equals(DateField.PROPERTY)) {
+            return [Rez.Strings.DateOff, Rez.Strings.DateOn];
+        }
         return [Rez.Strings.TimeStyleFilled, Rez.Strings.TimeStyleHollow];
     }
 
@@ -140,6 +149,9 @@ module SettingsMenu {
         }
         if (property.equals(AlwaysOnBrightness.PROPERTY)) {
             return AlwaysOnBrightness.selected();
+        }
+        if (property.equals(DateField.PROPERTY)) {
+            return DateField.shown() ? DateField.ON : DateField.OFF;
         }
         return TimeStyle.selected();
     }

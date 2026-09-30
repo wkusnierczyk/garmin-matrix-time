@@ -65,7 +65,7 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds seven settings. They can be changed in the Connect IQ app, and on the watch from the
+Premium adds eight settings. They can be changed in the Connect IQ app, and on the watch from the
 face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
 the next value. The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
@@ -121,6 +121,16 @@ there the watch is the only way to change them.
   screen further on its own, so Dim can be hard to read. The burn-in protector counts lit pixels, not
   their brightness, so the always-on figures above hold at every level; a brighter time costs some
   battery in always-on, and nothing else. The woken screen is not affected.
+* **Date** -- Off or On: today's date under the time on the woken screen, as `2026-09-29`. Off is
+  the default, so the face looks as Lite does until it is turned on. The date is drawn at the Small
+  time size whatever the time size, in the time colour, on a black box like a filled time's, so it
+  stays legible over the rain whichever time style is chosen. It follows the **Time alignment**
+  setting: at the left or right it lines up with the edge of the time, unless the circle that fits
+  the screen is already narrower at the date's height, in which case it sits further in, so no
+  digit is cut off. That happens under the smaller time sizes, by a few pixels. Like the time, it is
+  a fixed width, ten characters every day. The time's blank padding character before 10:00 on a
+  12-hour clock therefore leaves a left-aligned date one character further out than the hour. The always-on screen is not
+  affected: it shows the time alone, so its burn-in figures above hold.
 
 ## Editions
 
@@ -131,8 +141,9 @@ Matrix Time comes in two editions, built from this one source tree:
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
   It is not published yet. Its features so far are its settings -- time size, trail length, time
-  style, time alignment, and time and rain colours, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather
-  than Regular, see [Fonts](#fonts).
+  style, time alignment, time and rain colours, always-on brightness and the date, see [Premium
+  settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
+  [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
 has goes in `premium/`: code in `premium/source/`, resources for every product in
@@ -211,6 +222,9 @@ Their stroke is 1.2 pixels at the reference, scaled per resolution like the size
 Stroke column. All eight are configured in `premium/resources/fonts/` and generated into
 `premium/resources-<family>/` by `garmin-font-scaler --project-dir premium`, from the same reference
 resolution. The table is a copy of [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
+The date of the [date setting](#premium-settings) is drawn in the Small font, which holds a hyphen
+for it besides the time's digits, space and colon; it has no font of its own, because the scaler
+names a bitmap by typeface and size, and a date font at Small's size would overwrite Small's bitmap.
 
 | Resolution |   Shape   |            Element            |            Font            | Size | Stroke |
 | ---------: | :-------- | :---------------------------- | :------------------------- | ---: | -----: |
@@ -681,9 +695,9 @@ against `premium/resources/fonts/` and `premium/fonts.md`, and also that Premium
 `resolutions.json` is Lite's, that `premium.jungle` adds the Premium font directory for every
 family, that the five time sizes grow at every resolution, and that the only Lite font ids Premium
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
-that every time font, Lite's and Premium's, holds the full time charset, digits, space and colon,
-with one advance in every family, since the fixed-width time depends on it, and that every glyph of
-a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
+that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
+and Premium's Small the date's `-` as well, with one advance in every family, since the fixed-width
+time depends on it, and that every glyph of a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
 time alignment setting keeps that box on the glass and counts on no digit reaching outside it. For
 the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
 family, that the size tables give the same strokes and label exactly those fonts hollow, that no
@@ -859,9 +873,16 @@ is declared, that anything but Left, Centre or Right falls back to Centre, the m
 worked by hand, that the box every time font fills stays on the glass at the left and the right and
 keeps a gap from the edge, that a settings change reaches the `drawText` the woken time is drawn
 with, and that the always-on time stays centred under every alignment. The last two draw a frame into
-`RecordingDc`, a stand-in for the screen's `Dc` that records where the time was drawn. CI runs the suite
+`RecordingDc`, a stand-in for the screen's `Dc` that records the last text drawn and where. CI runs the suite
 on one product; the margin was checked on one product per supported resolution when the setting
 landed.
+
+`DateFieldTest`, also in `premium/source/tests/`, covers the date setting: that the property is
+declared, that anything but On falls back to Off, that the date is ISO and zero-padded, its position
+against values worked by hand, that at every time size and alignment the date's box stays on the
+glass under the time's and never sits outside the time's edge, that a settings change reaches the
+`drawText` the date is drawn with, that no date is drawn when it is off or on the always-on screen,
+and that the date font is held only while the date is on, and is the time's own font at Small.
 
 `SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that
 every value it offers has a label and is kept as it is by the setting it belongs to, so the menu can
@@ -874,9 +895,9 @@ Run No Evil strips every `(:test)` function from ordinary builds, so none of thi
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds ten, `TimeSizeTest`, `LowPowerFontTest`,
+since none of them is ever instantiated. Premium adds eleven, `TimeSizeTest`, `LowPowerFontTest`,
 `TrailLengthTest`, `TimeColorTest`, `RainColorTest`, `TimeStyleTest`, `TimeAlignTest`, `RecordingDc`,
-`AlwaysOnBrightnessTest` and `SettingsMenuTest`.
+`AlwaysOnBrightnessTest`, `DateFieldTest` and `SettingsMenuTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
