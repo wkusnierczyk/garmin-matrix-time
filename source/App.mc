@@ -34,6 +34,10 @@ class App extends Application.AppBase {
 
     (:premium)
     function getInitialView() {
+        // A preset picked on the phone while the face was not running arrives with no
+        // onSettingsChanged; left pending, it would fire at the next change made on the
+        // watch and undo it (#172).
+        Presets.applyRequests();
         var view = new View();
         view.applySettings();
         _view = view;
@@ -51,6 +55,9 @@ class App extends Application.AppBase {
 
     (:premium)
     function onSettingsChanged() as Void {
+        // A preset loaded or saved from the phone (#172), before the settings it may set
+        // are applied.
+        Presets.applyRequests();
         var view = _view;
         if (view != null) {
             view.applySettings();

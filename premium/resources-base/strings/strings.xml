@@ -55,4 +55,22 @@
     <string id="DateOff">Off</string>
     <string id="DateOn">On</string>
 
+    <!-- The presets (#172). PresetDefaultName is a slot's name when none is set, followed
+         by its number. -->
+    <string id="PresetLoadTitle">Load preset</string>
+    <string id="PresetSaveTitle">Save look as preset</string>
+    <string id="PresetNone">None</string>
+    <string id="PresetEmpty">Empty</string>
+    <string id="PresetDefaultName">Preset</string>
+    <string id="PresetSlot1">Slot 1</string>
+    <string id="PresetSlot2">Slot 2</string>
+    <string id="PresetSlot3">Slot 3</string>
+    <string id="PresetSlot4">Slot 4</string>
+    <string id="PresetSlot5">Slot 5</string>
+    <string id="PresetName1Title">Slot 1 name</string>
+    <string id="PresetName2Title">Slot 2 name</string>
+    <string id="PresetName3Title">Slot 3 name</string>
+    <string id="PresetName4Title">Slot 4 name</string>
+    <string id="PresetName5Title">Slot 5 name</string>
+
 </resources>

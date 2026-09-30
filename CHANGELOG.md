@@ -59,6 +59,10 @@ each change is recorded in full.
   alignment, lining up with the time's edge, and stays clear of a round screen's edge. Off, Lite's
   look, is the default. It is drawn on a black box, since text that small does not read over the
   rain; the time no longer has one. The always-on screen shows the time alone. (#163, #174)
+* **Premium: presets.** Five slots, each a saved look that can be loaded back in one step: time size,
+  trail length, time style, time alignment, time colour and rain colour. Load and save are at the top
+  of the watch's Customize menu and in the Connect IQ app, where the slots can also be renamed.
+  Loading a preset leaves always-on brightness and the date as they are. (#172)
 
 ## 0.2.1 -- 2026-09-21
 
