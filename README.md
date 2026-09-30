@@ -695,6 +695,9 @@ make graphics
 # ... on an arm64 machine, where the simulator container runs emulated
 make graphics PLATFORM=linux/amd64
 
+# a labelled contact sheet of the face across its settings, for review
+make preview EDITION=premium
+
 # check that the font and launcher icon configurations are consistent
 make check-fonts
 make check-icons
@@ -765,6 +768,63 @@ give up with a message after 60 seconds. The simulator port is assumed to be 123
 app session to relay the app's console output to your terminal, so the command sits in the
 foreground while the watch face runs; press Ctrl-C when you are done. `make test` also uses
 `monkeydo`, but captures its output and does return.
+
+### Previewing the settings
+
+`make preview` captures the face once per combination of its settings and lays the frames out as one
+labelled contact sheet, which is how a setting is reviewed before it merges (#140). It is for review,
+not for the store: the output goes to `.dev/scratchpad/preview/<edition>/`, which is gitignored, as
+`contact-sheet.png`, one directory of frames per build, and an `index.json` naming the settings each
+directory holds.
+
+```bash
+# every Premium setting, one at a time, the others at their defaults
+make preview EDITION=premium
+
+# only the settings named
+make preview EDITION=premium VARY="timeSize timeStyle"
+
+# every pair of values of two settings: styles across, sizes down
+make preview EDITION=premium GRID="timeStyle timeSize"
+
+# only the combinations a JSON list names, e.g. [{"timeSize": "6", "timeStyle": "1"}, {}]
+make preview EDITION=premium CASES=cases.json
+
+# the woken screen only
+make preview EDITION=premium VARY=timeColor SCENES=woken
+
+# anything else garmin-graphics-generator shots takes, such as a narrower list of values
+make preview EDITION=premium PREVIEW_FLAGS="--set timeSize=0,6"
+```
+
+Every combination is captured in two scenes, each a block of the sheet under its own heading, so every
+tile says which screen it shows: `woken`, and `always-on`, from the same forced build `make graphics`
+captures `MatrixTime5.png` from (see [Store and README images](#store-and-readme-images)). The time
+colour and the always-on brightness reach the always-on screen, and a preview of the woken screen
+alone would not show them. The time size, style and alignment deliberately do not: the always-on time
+is the filled Extra large, centred, whatever they hold, so for those `SCENES=woken` halves the wait.
+`SCENES=woken` or `SCENES=always-on` keeps one.
+
+Lite has no settings, so `make preview` without `EDITION=premium` captures Lite's defaults, one build
+per scene, and refuses `VARY`, `GRID` and `CASES`.
+
+A setting is applied by rewriting its property's default in a copy of the tree inside the container
+and building that, so the tree is never written to, and nothing about the simulator's saved settings
+can leak into a tile. It is slow: each combination is a build of its own, compiled and then captured
+on a freshly started simulator, and on an arm64 Mac, where the image runs emulated, that is about a
+minute a build: one setting of three values, in both scenes, took six minutes. The full Premium sweep
+is 27 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what
+changed. Tiles taken a minute apart show different times, and the rain differs in every frame;
+neither is a difference between settings.
+
+It needs what `make graphics` needs -- Docker, and no SDK -- and
+[`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.6.0 or
+newer, the first release that captures across settings. `PLATFORM`, `TZ_NAME` and `DEVICE` apply as
+they do to the other targets.
+
+```bash
+pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.6.0'
+```
 
 ### Editions in the build
 
