@@ -41,22 +41,23 @@ const
     // seven families shipped then: the threshold is the same for both weights, 20 or
     // below leaving no such pixel and 21 the first to leave one, so 16 still clears.
     //
-    // Premium's always-on font was then the hollow ExtraBold XL (#145), which cleared at
-    // 16 with no margin: measured the same way over a whole day, 12- and 24-hour, on the
-    // seven families, every divisor from 8 to 16 left no such pixel and 17 left 21 to 58.
-    // A hollow stroke is no help here -- what stays lit are pixels where one digit's
-    // outline lands on another's once shifted, not the middle of a stroke.
+    // Premium's always-on font was then the hollow ExtraBold XL (#145), 68 at the reference
+    // and called M since the sizes were renamed (#166), which cleared at 16 with no margin:
+    // measured the same way over a whole day, 12- and 24-hour, on the seven families, every
+    // divisor from 8 to 16 left no such pixel and 17 left 21 to 58. A hollow stroke is no help
+    // here -- what stays lit are pixels where one digit's outline lands on another's once
+    // shifted, not the middle of a stroke.
     //
-    // It is now the hollow XXL (#153), and that fails at 16: 21 to 34 pixels stay lit for
-    // three minutes, and at 15, 23 to 110. The count is not monotonic in the divisor, so
-    // every candidate was measured: 13 is the first to leave no such pixel on any family,
-    // and 12 clears with one step of margin. So Premium has its own divisor, 12, which
-    // shifts the time 34 px at 416x416, and Lite, which is frozen, keeps 16 -- the pair of
-    // annotated constants below, which leaves Lite's release PRG byte for byte as it was.
-    // At 12 the time's cell stays inside the screen at all four corners on every family,
-    // round and rectangular. The same run puts the most of the screen the time lights at
-    // 1.73% (360x360), against 10% allowed; Lite's filled Regular L is at 1.40% there.
-    // A larger always-on font, or another divisor, has to be measured again.
+    // It is now the hollow XXL (#153), 82, called L since #166, and that fails at 16: 21 to 34
+    // pixels stay lit for three minutes, and at 15, 23 to 110. The count is not monotonic in
+    // the divisor, so every candidate was measured: 13 is the first to leave no such pixel on
+    // any family, and 12 clears with one step of margin. So Premium has its own divisor, 12,
+    // which shifts the time 34 px at 416x416, and Lite, which is frozen, keeps 16 -- the pair
+    // of annotated constants below, which leaves Lite's release PRG byte for byte as it was.
+    // At 12 the time's cell stays inside the screen at all four corners on every family, round
+    // and rectangular. The same run puts the most of the screen the time lights at 1.73%
+    // (360x360), against 10% allowed; Lite's filled Regular TimeLarge is at 1.40% there. A
+    // larger always-on font, or another divisor, has to be measured again.
     //
     // LOW_POWER_POSITIONS and the edition's LOW_POWER_JITTER_DIVISOR, below, are read by
     // RainMath.jitter; the colour is used below.
@@ -87,7 +88,7 @@ class DigitalRain {
     // unreadable (#69). The two sizes are independent: time-rain alignment was abandoned
     // in #50, so Time is no longer tied to the Matrix glyph size and is free to be larger.
     //
-    // _timeLargeFont is the always-on font. In Premium that is the hollow XXL rather than
+    // _timeLargeFont is the always-on font. In Premium that is the hollow L rather than
     // TimeLarge (#145, #153); reloadTimeFont swaps it in, and says why it is not loaded here.
     private var
         _timeFont as Graphics.FontType,
@@ -174,14 +175,14 @@ class DigitalRain {
     // a system font for the moment in between, so the two bitmaps are never held at once.
     //
     // The time style setting (#72) picks between a size's filled font and its hollow one.
-    // Hollow is drawn with no box behind it, so the rain shows through the digits; S and M
+    // Hollow is drawn with no box behind it, so the rain shows through the digits; XXS and XS
     // have no hollow font and stay filled on their box.
     //
     // The first call also swaps the always-on font: Premium draws the always-on time in the
-    // hollow XXL (#145, #153). initialize is shared with Lite, which is frozen and still
+    // hollow L (#145, #153, #166). initialize is shared with Lite, which is frozen and still
     // compiles byte for byte as it did, so it loads TimeLarge in Premium too; this drops that
-    // before loading the hollow XXL, at the cost of one wasted load at start-up and nothing
-    // held. The hollow XXL woken time is then that same font, not a second copy of it.
+    // before loading the hollow L, at the cost of one wasted load at start-up and nothing
+    // held. The hollow L woken time is then that same font, not a second copy of it.
     (:premium)
     function reloadTimeFont() as Void {
         var alwaysOn = TimeStyle.alwaysOnFont();
@@ -199,8 +200,8 @@ class DigitalRain {
         } else if (hollow != null) {
             _timeFont = Application.loadResource(hollow) as Graphics.FontType;
             _timeBackground = Graphics.COLOR_TRANSPARENT;
-        } else if (size == TimeSize.SMALL && _dateFont != null) {
-            // The date's font is S (#163): share it rather than hold S twice.
+        } else if (size == TimeSize.EXTRA_EXTRA_SMALL && _dateFont != null) {
+            // The date's font is XXS (#163): share it rather than hold XXS twice.
             _timeFont = _dateFont as Graphics.FontType;
             _timeBackground = Graphics.COLOR_BLACK;
         } else {
@@ -304,11 +305,11 @@ class DigitalRain {
             _dateFont = null;
             return;
         }
-        // At time size S the time's own font is the date's; reloadTimeFont reuses the date's S
-        // for the time when it has one. At any other size the date keeps the S it holds --
+        // At time size XXS the time's own font is the date's; reloadTimeFont reuses the date's
+        // XXS for the time when it has one. At any other size the date keeps the XXS it holds --
         // reloadTimeFont loads a new time font rather than changing the one the date shares --
         // or loads one.
-        if (TimeSize.selected() == TimeSize.SMALL) {
+        if (TimeSize.selected() == TimeSize.EXTRA_EXTRA_SMALL) {
             _dateFont = _timeFont;
         } else if (_dateFont == null) {
             _dateFont = DateField.load();
@@ -437,9 +438,9 @@ class DigitalRain {
     }
 
     // Premium draws it in the time colour setting's own always-on colour (#143), at the
-    // always-on brightness setting's share of it (#161), and in the hollow ExtraBold XXL
-    // whatever the time size and style (#145, #153), which reloadTimeFont has put in
-    // _timeLargeFont. The outline is larger than Lite's filled L and lights a little more of
+    // always-on brightness setting's share of it (#161), and in the hollow ExtraBold L
+    // whatever the time size and style (#145, #153, #166), which reloadTimeFont has put in
+    // _timeLargeFont. The outline is larger than Lite's filled TimeLarge and lights a little more of
     // the screen, and it is shifted further, by Premium's own divisor; see
     // LOW_POWER_JITTER_DIVISOR.
     //

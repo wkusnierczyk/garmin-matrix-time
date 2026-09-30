@@ -12,7 +12,7 @@ import Toybox.Lang;
 // tried and dropped. In a monospace face the letters are spaced as widely as the digits,
 // and they would have added some thirty glyphs to the font.
 //
-// It is drawn at S, the smallest time size, whatever the time size, in S's own font. Its
+// It is drawn at XXS, the smallest time size, whatever the time size, in XXS's own font. Its
 // entry in premium/resources/fonts/charsets.json adds "-" to the time's glyphs for it.
 //
 // The date sits under the time's box and follows the time alignment (#154), so the two
@@ -69,7 +69,7 @@ module DateField {
     }
 
     function load() as Graphics.FontType {
-        return TimeSize.load(TimeSize.SMALL);
+        return TimeSize.load(TimeSize.EXTRA_EXTRA_SMALL);
     }
 
 }

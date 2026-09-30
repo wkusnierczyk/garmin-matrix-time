@@ -89,32 +89,38 @@ class DateFieldTest {
     }
 
 
-    // Worked by hand at 416x416, radius 208, with S's 35-pixel line under a time of the
-    // given height. Under an S time (35 px, at x 9 when left-aligned) the date's box is
+    // Worked by hand at 416x416, radius 208, with XXS's 35-pixel line under a time of the
+    // given height. Under an XXS time (35 px, at x 9 when left-aligned) the date's box is
     // centred at 244 and reaches 54 below the centre, where the inset is 8 and the gap a
     // quarter of 35 more, 16: the glass is narrower there, so the date sits further in than
-    // the time. Under an XXL time (104 px, at x 33) it reaches 88 below, needs only 28, and
-    // sits flush with the time.
+    // the time. Under an L time (104 px, at x 33) it reaches 88 below, needs only 28, and
+    // sits flush with the time. Under an XXL time (139 px, at x 47), the largest (#166), it
+    // is centred at 296 and reaches 106 below, needs 38, and is flush too, its bottom at 314.
     (:test)
     static function theDateIsFlushWithTheTimeWhereTheGlassAllows(logger as Test.Logger) as Boolean {
         Test.assertEqual(TimeAlign.insetAt(208, 54), 8);
         Test.assertEqual(TimeAlign.insetAt(208, 88), 20);
+        Test.assertEqual(TimeAlign.insetAt(208, 106), 30);
         Test.assertEqual(TimeAlign.insetAt(208, 208), 208);
         Test.assertEqual(DateField.yOf(416, 35, 35), 244);
         Test.assertEqual(DateField.yOf(416, 104, 35), 278);
+        Test.assertEqual(DateField.yOf(416, 139, 35), 296);
+        Test.assertEqual(TimeAlign.xOf(TimeAlign.LEFT, 416, 416, 139), 47);
 
         Test.assertEqual(DateField.xOf(TimeAlign.LEFT, 9, 416, 416, 244, 35), 16);
         Test.assertEqual(DateField.xOf(TimeAlign.RIGHT, 407, 416, 416, 244, 35), 400);
         Test.assertEqual(DateField.xOf(TimeAlign.LEFT, 33, 416, 416, 278, 35), 33);
         Test.assertEqual(DateField.xOf(TimeAlign.RIGHT, 383, 416, 416, 278, 35), 383);
         Test.assertEqual(DateField.xOf(TimeAlign.CENTER, 208, 416, 416, 278, 35), 208);
+        Test.assertEqual(DateField.xOf(TimeAlign.LEFT, 47, 416, 416, 296, 35), 47);
+        Test.assertEqual(DateField.xOf(TimeAlign.RIGHT, 369, 416, 416, 296, 35), 369);
         return true;
     }
 
 
     // The date's box, for every time size and alignment on this product: all four corners
     // on the glass, its top no higher than the time's box's bottom, and its bottom on the
-    // screen. The date is drawn in S whatever the time size, and ISO is the same ten cells
+    // screen. The date is drawn in XXS whatever the time size, and ISO is the same ten cells
     // at every date. CI runs this on one product; the other families are run by hand.
     (:test)
     static function theDateStaysOnTheGlassUnderTheTime(logger as Test.Logger) as Boolean {
@@ -125,7 +131,7 @@ class DateFieldTest {
         var date = DateField.load();
         var dateHeight = Graphics.getFontHeight(date);
         var boxWidth = dc.getTextWidthInPixels("2026-09-29", date);
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var timeHeight = Graphics.getFontHeight(TimeSize.load(size));
             var y = DateField.yOf(height, timeHeight, dateHeight);
             // Assumes drawText puts a vertically centred box's top half its height above y,
@@ -158,14 +164,14 @@ class DateFieldTest {
 
 
     // The whole path a change takes, App.onSettingsChanged to the drawText: on, the date is
-    // the last thing drawn, in S, anchored as the time is and where DateField puts it. At S,
-    // where the date shares the time's font, and at XL, where it does not.
+    // the last thing drawn, in XXS, anchored as the time is and where DateField puts it. At
+    // XXS, where the date shares the time's font, and at M, where it does not.
     (:test)
     static function theDateIsDrawnUnderTheTimeWhenOn(logger as Test.Logger) as Boolean {
         var width = System.getDeviceSettings().screenWidth;
         var height = System.getDeviceSettings().screenHeight;
         var dateHeight = Graphics.getFontHeight(DateField.load());
-        var sizes = [TimeSize.SMALL, TimeSize.EXTRA_LARGE];
+        var sizes = [TimeSize.EXTRA_EXTRA_SMALL, TimeSize.MEDIUM];
         for (var i = 0; i < 6; ++i) {
             var align = i % 3;
             var size = sizes[i / 3];
@@ -180,7 +186,7 @@ class DateFieldTest {
             Test.assertEqualMessage(dc.y, y, "align " + align + ": the date's y");
             Test.assertEqualMessage(dc.justify, TimeAlign.justifyOf(align), "align " + align + ": anchored as the time");
             Test.assertMessage(dc.font != null && Graphics.getFontHeight(dc.font as Graphics.FontType) == dateHeight,
-                "size " + size + ", align " + align + ": the date is drawn in S");
+                "size " + size + ", align " + align + ": the date is drawn in XXS");
         }
         return true;
     }
@@ -189,9 +195,9 @@ class DateFieldTest {
     // Off, and on the always-on screen whatever the switch, the time is the last thing drawn.
     (:test)
     static function noDateIsDrawnWhenOffOrAlwaysOn(logger as Test.Logger) as Boolean {
-        var off = drawnWith(DateField.OFF, TimeAlign.CENTER, TimeSize.EXTRA_LARGE, false)[0];
+        var off = drawnWith(DateField.OFF, TimeAlign.CENTER, TimeSize.MEDIUM, false)[0];
         Test.assertEqualMessage(off.text.length(), 5, "off: the time is drawn last, got " + off.text);
-        var alwaysOn = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.EXTRA_LARGE, true)[0];
+        var alwaysOn = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.MEDIUM, true)[0];
         Test.assertEqualMessage(alwaysOn.text.length(), 5, "always-on: the time is drawn last, got " + alwaysOn.text);
         Test.assertEqualMessage(alwaysOn.x, System.getDeviceSettings().screenWidth / 2
             + RainMath.jitter(0, System.getDeviceSettings().screenWidth)[0], "always-on: the time is centred");
@@ -199,18 +205,18 @@ class DateFieldTest {
     }
 
 
-    // The date font is held only while the date is on, and at time size S it is the time's
+    // The date font is held only while the date is on, and at time size XXS it is the time's
     // own font rather than a second copy of it.
     (:test)
     static function theDateFontIsHeldOnlyWhenNeeded(logger as Test.Logger) as Boolean {
-        var off = drawnWith(DateField.OFF, TimeAlign.CENTER, TimeSize.SMALL, false);
+        var off = drawnWith(DateField.OFF, TimeAlign.CENTER, TimeSize.EXTRA_EXTRA_SMALL, false);
         Test.assertMessage(off[1] == null, "off: no date font is held");
-        var small = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.SMALL, false);
-        Test.assertMessage(small[1] == small[2], "S: the date shares the time's font");
-        var large = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.EXTRA_LARGE, false);
-        Test.assertMessage(large[1] != null && large[1] != large[2], "XL: the date has S's font, not the time's");
-        Test.assertEqualMessage(Graphics.getFontHeight(large[1] as Graphics.FontType),
-            Graphics.getFontHeight(DateField.load()), "XL: the date is drawn at S");
+        var smallest = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.EXTRA_EXTRA_SMALL, false);
+        Test.assertMessage(smallest[1] == smallest[2], "XXS: the date shares the time's font");
+        var medium = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.MEDIUM, false);
+        Test.assertMessage(medium[1] != null && medium[1] != medium[2], "M: the date has XXS's font, not the time's");
+        Test.assertEqualMessage(Graphics.getFontHeight(medium[1] as Graphics.FontType),
+            Graphics.getFontHeight(DateField.load()), "M: the date is drawn at XXS");
         return true;
     }
 

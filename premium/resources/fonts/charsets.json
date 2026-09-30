@@ -21,6 +21,14 @@
     },
     {
         "fontCharset": "0123456789 :",
+        "fontId": "TimeHuge"
+    },
+    {
+        "fontCharset": "0123456789 :",
+        "fontId": "TimeExtraHuge"
+    },
+    {
+        "fontCharset": "0123456789 :",
         "fontId": "TimeLargeHollow"
     },
     {
@@ -30,5 +38,13 @@
     {
         "fontCharset": "0123456789 :",
         "fontId": "TimeExtraExtraLargeHollow"
+    },
+    {
+        "fontCharset": "0123456789 :",
+        "fontId": "TimeHugeHollow"
+    },
+    {
+        "fontCharset": "0123456789 :",
+        "fontId": "TimeExtraHugeHollow"
     }
 ]
