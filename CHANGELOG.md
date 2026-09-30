@@ -48,8 +48,7 @@ each change is recorded in full.
 * **Premium: a larger always-on time.** The always-on screen draws the time filled at the Extra
   large size, whatever the settings for the woken screen. It is bigger and bolder than Lite's, and
   moves further each minute than Lite's does, which keeps it well inside the burn-in limits on every
-  supported watch. An earlier build drew it as an outline, which all but disappeared on the dimmed
-  always-on screen. (#145, #153, #164)
+  supported watch. (#145, #153, #164)
 * **Premium: a choice of always-on brightness.** The time on the always-on screen can be Bright,
   the full time colour, Dimmed, five sixths of it, or Dim, the two thirds Lite draws. Bright is the
   default, since the dimmer always-on time was hard to read. The burn-in figures hold at every level.

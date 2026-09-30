@@ -78,8 +78,8 @@ there the watch is the only way to change them.
   [Fonts](#fonts) for every resolution. Large is about 60% of the screen width on every resolution,
   and Extra extra large about 80%, which still fits the round screen with the time at the left or
   right. The always-on screen is not affected: it is always drawn filled at Extra large; see
-  **Always-on display** above. A change applies at once, and reloads the time font only -- the rain is sized
-  from its own font and does not move.
+  **Always-on display** above. A change applies at once, and reloads the time font only -- the rain
+  is sized from its own font and does not move.
 
   The sizes were renamed when Extra large and Extra extra large were added: the five sizes offered
   before, Small to Extra extra large, are now Extra extra small to Large. A face that had a size
