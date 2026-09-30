@@ -16,8 +16,11 @@
         </settingConfig>
     </setting>
 
-    <!-- The values are percentages of the screen height, used as they are (#53). -->
-    <setting propertyKey="@Properties.trailLength" title="@Strings.TrailLengthTitle">
+    <!-- The values are percentages of the screen height, used as they are (#53). The labels
+         leave out the battery trade, which would make them hard to read on the watch;
+         helpUrl links the Connect IQ app to the README's explanation instead (#142). -->
+    <setting propertyKey="@Properties.trailLength" title="@Strings.TrailLengthTitle"
+        helpUrl="https://github.com/wkusnierczyk/garmin-matrix-time#trail-length">
         <settingConfig type="list">
             <listEntry value="25">@Strings.TrailLength25</listEntry>
             <listEntry value="50">@Strings.TrailLength50</listEntry>

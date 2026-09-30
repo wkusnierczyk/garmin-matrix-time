@@ -25,7 +25,8 @@ each change is recorded in full.
   new name, and the default is the same size as before.
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
-  saves battery; a longer one fades more smoothly. (#53)
+  saves battery; a longer one fades more smoothly. In the Connect IQ app the setting links to the
+  README's explanation of that trade. (#53, #142)
 * **Premium: a hollow time.** A time style setting draws the time as an outline instead of solid
   digits, with the black box behind it gone, so the rain falls through the digits. It applies to the
   Small time size and every size above it; Extra extra small and Extra small stay solid. Filled,

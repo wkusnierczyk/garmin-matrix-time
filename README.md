@@ -84,12 +84,13 @@ there the watch is the only way to change them.
   The sizes were renamed when Extra large and Extra extra large were added: the five sizes offered
   before, Small to Extra extra large, are now Extra extra small to Large. A face that had a size
   chosen keeps drawing it at the same size, under its new name.
-* **Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
+* <a id="trail-length"></a>**Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
   fades to black. 50% is the length Lite draws, and is the default. Being a share of the screen height
   rather than a count of glyphs, a setting looks the same on every resolution. It is also a battery
   control: the face only draws the lit part of each trail, so 25% draws about half the glyphs of 50%
   each frame, and 75% about half again as many. A change applies from the next frame without
-  restarting the rain.
+  restarting the rain. In the Connect IQ app the setting carries a help link to this paragraph,
+  since the labels are kept short enough to read on the watch and do not mention the battery.
 * **Time style** -- Filled or Hollow: the time on the woken screen drawn as solid digits on a black
   box, or as an outline with no box, so the rain falls through the digits. Filled is the look Lite
   draws, and is the default. Hollow applies to Small and the sizes above it only; at Extra extra
