@@ -32,7 +32,7 @@ import Toybox.Lang;
 // that fits it, so that the time sits the same way on every shape.
 //
 // The always-on screen ignores the setting and stays centred, with its jitter, so the
-// burn-in measurements on #145 and #153 stand as they were.
+// burn-in measurement on #164 stands.
 module TimeAlign {
 
     const
