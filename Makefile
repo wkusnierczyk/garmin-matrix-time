@@ -382,10 +382,11 @@ graphics:
 #
 # Two scenes, always, so every tile says which screen it shows: woken, and always-on
 # from the build graphics.jungle forces into the low-power branch, as make graphics
-# captures it. Several settings reach the always-on screen -- the time size, colour
-# and brightness -- and a preview of the woken screen alone would not show them.
-# SCENES=woken, or SCENES=always-on, keeps one. The edition jungle comes last in
-# both lists, as in every build.
+# captures it. The time colour and the always-on brightness reach the always-on
+# screen, and a preview of the woken screen alone would not show them; the time
+# size, style and alignment do not, since the always-on time is the filled XL,
+# centred, whatever they hold (#164, #154). SCENES=woken, or SCENES=always-on, keeps
+# one. The edition jungle comes last in both lists, as in every build.
 #
 # Premium sweeps every setting, one at a time with the others at their defaults.
 # The resource directories are named, not discovered: the settings are in
@@ -417,12 +418,14 @@ else
 endif
 
 preview:
-	@python3 -c 'from importlib.metadata import version; import sys; \
-v = tuple(int(p) for p in version("garmin-graphics-generator").split(".")[:2]); \
-sys.exit(v < (0, 6))' 2>/dev/null || { \
-	  echo "make preview needs garmin-graphics-generator 0.6.0 or newer; see README.md."; exit 1; }
+	@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
+	  found = 1; old = v[1] + 0 == 0 && v[2] + 0 < 6 } END { exit !found || old }' || { \
+	  echo "make preview needs garmin-graphics-generator 0.6.0 or newer on PATH; see README.md."; exit 1; }
+	@test -n "$(strip $(SCENES))" || { echo "SCENES is empty; name woken, always-on or both."; exit 1; }
 	@$(foreach scene,$(SCENES),test -n "$(SCENE_JUNGLE_$(scene))" || { \
 	  echo "SCENES takes woken and always-on, not \"$(scene)\"."; exit 1; };)
+	@test -z "$(strip $(GRID))" -o -z "$(strip $(CASES))" || { \
+	  echo "GRID and CASES are two different plans; name one."; exit 1; }
 	@test "$(EDITION)" = premium -o -z "$(VARY)$(GRID)$(CASES)" || { \
 	  echo "Lite has no settings to vary; drop VARY, GRID and CASES."; exit 1; }
 	@mkdir -p $(PREVIEW_DIR)

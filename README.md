@@ -800,8 +800,10 @@ make preview EDITION=premium PREVIEW_FLAGS="--set timeSize=0,6"
 Every combination is captured in two scenes, each a block of the sheet under its own heading, so every
 tile says which screen it shows: `woken`, and `always-on`, from the same forced build `make graphics`
 captures `MatrixTime5.png` from (see [Store and README images](#store-and-readme-images)). The time
-size, colour and brightness all reach the always-on screen, and a preview of the woken screen alone
-would not show them. `SCENES=woken` or `SCENES=always-on` keeps one.
+colour and the always-on brightness reach the always-on screen, and a preview of the woken screen
+alone would not show them. The time size, style and alignment deliberately do not: the always-on time
+is the filled Extra large, centred, whatever they hold, so for those `SCENES=woken` halves the wait.
+`SCENES=woken` or `SCENES=always-on` keeps one.
 
 Lite has no settings, so `make preview` without `EDITION=premium` captures Lite's defaults, one build
 per scene, and refuses `VARY`, `GRID` and `CASES`.
@@ -811,8 +813,9 @@ and building that, so the tree is never written to, and nothing about the simula
 can leak into a tile. It is slow: each combination is a build of its own, compiled and then captured
 on a freshly started simulator, and on an arm64 Mac, where the image runs emulated, that is about a
 minute a build: one setting of three values, in both scenes, took six minutes. The full Premium sweep
-is 27 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what changed. Tiles taken a minute apart show different times, and the rain
-differs in every frame; neither is a difference between settings.
+is 27 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what
+changed. Tiles taken a minute apart show different times, and the rain differs in every frame;
+neither is a difference between settings.
 
 It needs what `make graphics` needs -- Docker, and no SDK -- and
 [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.6.0 or
