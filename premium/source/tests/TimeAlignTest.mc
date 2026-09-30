@@ -217,7 +217,7 @@ class TimeAlignTest {
 
 
     // The always-on time ignores the setting: centred at every alignment, shifted by the
-    // jitter alone, so the burn-in measurement stands (#145, #153).
+    // jitter alone, so the burn-in measurement stands (#164).
     (:test)
     static function theAlwaysOnTimeStaysCentred(logger as Test.Logger) as Boolean {
         var width = System.getDeviceSettings().screenWidth;

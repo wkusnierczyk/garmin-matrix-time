@@ -43,8 +43,7 @@ module TimeStyle {
     // DigitalRain picks this font and drops the box together, from this value, so the two
     // cannot disagree. Two loaded fonts cannot be told apart by what they hold -- only
     // whether they are the same object -- but two ids can, which is what lets TimeStyleTest
-    // check the choice itself. For the hollow L, DigitalRain reuses the always-on font
-    // rather than loading it again; that is alwaysOnFont, below, so the same id.
+    // check the choice itself.
     function hollowFont(size as Number, style as Number) as ResourceId or Null {
         if (style != HOLLOW) {
             return null;
@@ -65,15 +64,16 @@ module TimeStyle {
         }
     }
 
-    // Premium's always-on font: the hollow L, 82 at the reference, whatever the size and
-    // style chosen for the woken screen. It was chosen as the hollow XXL (#153; the hollow XL,
-    // 68, before it, #145), and is the same font under the name #166 gave it. Defined through
-    // hollowFont so that it is the woken hollow L by construction, which is what lets
-    // DigitalRain draw both from one loaded font. An id for the reason hollowFont gives:
-    // LowPowerFontTest checks it is the hollow one, which a loaded font could not show, since
-    // filled and hollow L share every metric.
+    // Premium's always-on font: the filled XL, 96 at the reference, whatever the size and
+    // style chosen for the woken screen (#164). It was hollow before, the hollow L (#153; the
+    // hollow M before it, #145), but a thin outline lights so few pixels that it all but
+    // vanished on the panel the watch dims in always-on. Defined through TimeSize.fontOf so
+    // that it is the woken filled XL by construction, which is what lets DigitalRain draw
+    // both from one loaded font. An id for the reason hollowFont gives: LowPowerFontTest
+    // checks it is the filled one, which a loaded font could not show, since filled and
+    // hollow XL share every metric.
     function alwaysOnFont() as ResourceId {
-        return hollowFont(TimeSize.LARGE, HOLLOW) as ResourceId;
+        return TimeSize.fontOf(TimeSize.EXTRA_LARGE);
     }
 
 }

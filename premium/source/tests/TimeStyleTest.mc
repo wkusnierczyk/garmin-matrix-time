@@ -117,6 +117,7 @@ class TimeStyleTest {
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_SMALL, TimeStyle.HOLLOW)[1], box, "hollow XS: filled, on the box");
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_SMALL, TimeStyle.HOLLOW)[1], box, "hollow XXS: filled, on the box");
         Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.FILLED)[1], box, "filled M: on the box");
+        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XL, the always-on font: on the box");
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XXL: on the box");
         return true;
     }

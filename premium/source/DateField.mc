@@ -18,7 +18,7 @@ import Toybox.Lang;
 // The date sits under the time's box and follows the time alignment (#154), so the two
 // read as one block; see xOf. It is drawn on a black box, like a filled time (#50), since
 // text this small is not legible over the rain. The always-on screen draws no date, so
-// the burn-in measurements on #145, #153 and #161 stand as they were.
+// the burn-in measurement on #164 stands.
 module DateField {
 
     const

@@ -23,8 +23,7 @@ import Toybox.Lang;
 //
 // Time and TimeLarge cannot be renamed, since they redefine Lite's ids (#144). All seven are
 // Premium fonts, generated from premium/resources/fonts in SUSE Mono ExtraBold (#144). The
-// always-on scene is not affected: it draws the hollow L at every size and style (#145,
-// #153).
+// always-on scene is not affected: it draws the filled XL at every size and style (#164).
 //
 // The time font is independent of the rain (#50), so a change of size reloads one
 // font and nothing else -- the grid is derived from the Matrix font alone.
@@ -57,24 +56,31 @@ module TimeSize {
         return MEDIUM;
     }
 
-    // Loads the selected font, and only that one.
-    function load(size as Number) as Graphics.FontType {
+    // The id of a size's font. An id rather than a loaded font for the reason
+    // TimeStyle.hollowFont gives: it is what lets DigitalRain see that the filled XL is the
+    // always-on font, and draw both from one bitmap (#164).
+    function fontOf(size as Number) as ResourceId {
         switch (size) {
             case EXTRA_SMALL:
-                return Application.loadResource(Rez.Fonts.TimeMedium) as Graphics.FontType;
+                return Rez.Fonts.TimeMedium;
             case SMALL:
-                return Application.loadResource(Rez.Fonts.TimeLarge) as Graphics.FontType;
+                return Rez.Fonts.TimeLarge;
             case MEDIUM:
-                return Application.loadResource(Rez.Fonts.TimeExtraLarge) as Graphics.FontType;
+                return Rez.Fonts.TimeExtraLarge;
             case LARGE:
-                return Application.loadResource(Rez.Fonts.TimeExtraExtraLarge) as Graphics.FontType;
+                return Rez.Fonts.TimeExtraExtraLarge;
             case EXTRA_LARGE:
-                return Application.loadResource(Rez.Fonts.TimeHuge) as Graphics.FontType;
+                return Rez.Fonts.TimeHuge;
             case EXTRA_EXTRA_LARGE:
-                return Application.loadResource(Rez.Fonts.TimeExtraHuge) as Graphics.FontType;
+                return Rez.Fonts.TimeExtraHuge;
             default:
-                return Application.loadResource(Rez.Fonts.Time) as Graphics.FontType;
+                return Rez.Fonts.Time;
         }
+    }
+
+    // Loads the selected font, and only that one.
+    function load(size as Number) as Graphics.FontType {
+        return Application.loadResource(fontOf(size)) as Graphics.FontType;
     }
 
 }
