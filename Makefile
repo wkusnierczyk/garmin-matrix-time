@@ -389,6 +389,8 @@ graphics:
 # one. The edition jungle comes last in both lists, as in every build.
 #
 # Premium sweeps every setting, one at a time with the others at their defaults.
+# PREVIEW_SETTINGS names them, so that the preset lists (#172), which are actions
+# and draw nothing of their own, are not swept too.
 # The resource directories are named, not discovered: the settings are in
 # premium/resources-base, and a directory off the build's path would be varied and
 # then ignored. VARY narrows the sweep, GRID="ACROSS DOWN" crosses two settings,
@@ -410,8 +412,9 @@ CASES ?=
 PREVIEW_FLAGS ?=
 ifeq ($(EDITION),premium)
   PREVIEW_RESOURCES := --resources resources --resources premium/resources-base
+  PREVIEW_SETTINGS := timeSize trailLength timeStyle timeAlign timeColor rainColor alwaysOnBrightness date
   PREVIEW_PLAN := $(if $(GRID),--grid $(GRID),$(if $(CASES),--cases $(CASES),--sweep)) \
-                  $(foreach key,$(VARY),--vary $(key))
+                  $(foreach key,$(if $(GRID)$(CASES),$(VARY),$(or $(VARY),$(PREVIEW_SETTINGS))),--vary $(key))
 else
   PREVIEW_RESOURCES := --resources resources
   PREVIEW_PLAN := --cases $(PREVIEW_DIR)/defaults.json

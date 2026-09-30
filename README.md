@@ -65,7 +65,7 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 ### Premium settings
 
-Premium adds eight settings. They can be changed in the Connect IQ app, and on the watch from the
+Premium adds eight settings, and [presets](#presets) of them. They can be changed in the Connect IQ app, and on the watch from the
 face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
 the next value. The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
@@ -142,6 +142,27 @@ there the watch is the only way to change them.
   leaves a left-aligned date one character further out than the hour. The always-on screen is not
   affected: it shows the time alone, so its burn-in figures above hold.
 
+#### Presets
+
+A preset is a saved look that can be brought back in one step. There are five slots. A preset holds
+the look: time size, trail length, time style, time alignment, time colour and rain colour. Always-on
+brightness and the date are not part of it, and loading a preset leaves them as they are.
+
+On the watch, **Load preset** and **Save look as preset** are at the top of the Customize menu. Each
+opens the five slots by name. A slot that has never been saved says Empty, and loading it does
+nothing. Saving overwrites the slot.
+
+In the Connect IQ app, **Load preset** and **Save look as preset** are lists of Slot 1 to Slot 5.
+Pick a slot and save the settings, and the watch loads or saves it and sets the list back to None.
+The lists say Slot 1 to Slot 5 rather than the slots' names because a Connect IQ settings screen
+cannot label a list from another setting. The five **Slot N name** fields below them rename the
+slots, which are called Preset 1 to Preset 5 until renamed. Names show in the watch's menu.
+
+Loading a preset and then changing a setting changes the current look only. A preset changes only
+when it is saved over. A setting added in a later version is not in a preset saved before it, and
+loading that preset leaves the new setting as it is. The presets themselves are stored on the watch,
+not in the Connect IQ app's settings, so a save made on the watch is never overwritten from the phone.
+
 ## Editions
 
 Matrix Time comes in two editions, built from this one source tree:
@@ -151,8 +172,8 @@ Matrix Time comes in two editions, built from this one source tree:
 * **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
   It is not published yet. Its features so far are its settings -- time size, trail length, time
-  style, time alignment, time and rain colours, always-on brightness and the date, see [Premium
-  settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
+  style, time alignment, time and rain colours, always-on brightness and the date, and presets of
+  them, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
   [Fonts](#fonts).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
@@ -782,7 +803,8 @@ not for the store: the output goes to `.dev/scratchpad/preview/<edition>/`, whic
 directory holds.
 
 ```bash
-# every Premium setting, one at a time, the others at their defaults
+# every Premium setting, one at a time, the others at their defaults; the preset lists
+# are actions, not a look, and are left out
 make preview EDITION=premium
 
 # only the settings named
@@ -1006,13 +1028,19 @@ open menu shows a value changed from the phone, that selecting steps to the next
 Extra extra large back to Extra extra small, and that a trail length the list does not offer steps
 to the next offered one.
 
+`PresetsTest`, also in `premium/source/tests/`, covers the presets: that a load brings back every
+setting of the saved look and leaves always-on brightness and the date alone, that an empty slot loads
+nothing and a setting missing from a saved preset is left as it is, that a load or save picked on the
+phone is acted on and the list set back to None, that only a slot number counts as a request, and
+that a slot with no name is Preset N.
+
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds eleven, `TimeSizeTest`, `LowPowerFontTest`,
+since none of them is ever instantiated. Premium adds twelve, `TimeSizeTest`, `LowPowerFontTest`,
 `TrailLengthTest`, `TimeColorTest`, `RainColorTest`, `TimeStyleTest`, `TimeAlignTest`, `RecordingDc`,
-`AlwaysOnBrightnessTest`, `DateFieldTest` and `SettingsMenuTest`.
+`AlwaysOnBrightnessTest`, `DateFieldTest`, `SettingsMenuTest` and `PresetsTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is

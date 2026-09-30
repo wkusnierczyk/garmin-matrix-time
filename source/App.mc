@@ -51,6 +51,9 @@ class App extends Application.AppBase {
 
     (:premium)
     function onSettingsChanged() as Void {
+        // A preset loaded or saved from the phone (#172), before the settings it may set
+        // are applied.
+        Presets.applyRequests();
         var view = _view;
         if (view != null) {
             view.applySettings();
