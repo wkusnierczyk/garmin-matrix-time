@@ -48,16 +48,23 @@ const
     // here -- what stays lit are pixels where one digit's outline lands on another's once
     // shifted, not the middle of a stroke.
     //
-    // It is now the hollow XXL (#153), 82, called L since #166, and that fails at 16: 21 to 34
+    // It was then the hollow XXL (#153), 82, called L since #166, and that fails at 16: 21 to 34
     // pixels stay lit for three minutes, and at 15, 23 to 110. The count is not monotonic in
     // the divisor, so every candidate was measured: 13 is the first to leave no such pixel on
-    // any family, and 12 clears with one step of margin. So Premium has its own divisor, 12,
-    // which shifts the time 34 px at 416x416, and Lite, which is frozen, keeps 16 -- the pair
-    // of annotated constants below, which leaves Lite's release PRG byte for byte as it was.
-    // At 12 the time's cell stays inside the screen at all four corners on every family, round
-    // and rectangular. The same run puts the most of the screen the time lights at 1.73%
-    // (360x360), against 10% allowed; Lite's filled Regular TimeLarge is at 1.40% there. A
-    // larger always-on font, or another divisor, has to be measured again.
+    // any family, and 12 cleared with one step of margin. So Premium has its own divisor, and
+    // Lite, which is frozen, keeps 16 -- the pair of annotated constants below, which leaves
+    // Lite's release PRG byte for byte as it was.
+    //
+    // It is now the filled XL (#164), 96, because the thin hollow outline all but vanished on
+    // the panel the watch dims in always-on. Filled, it fails at 12: 4 to 44 pixels stay lit
+    // for three minutes, on six of the seven families, and at 13, 234 to 537. 11 is the first
+    // to leave no such pixel, and 10 clears with one step of margin, so Premium's divisor is
+    // 10, which shifts the time 41 px at 416x416. 9 and 8 clear as well, but at 8 the ink of
+    // "7:22" leaves the glass on every round family. At 10 the ink stays at least 10 px inside
+    // the circle, or the rectangle, at all four corners, for every time of the day. The same
+    // run puts the most of the screen the time lights at 5.97% (360x360), against 10% allowed;
+    // Lite's filled Regular TimeLarge is at 1.40% there. A larger always-on font, or another
+    // divisor, has to be measured again.
     //
     // LOW_POWER_POSITIONS and the edition's LOW_POWER_JITTER_DIVISOR, below, are read by
     // RainMath.jitter; the colour is used below.
@@ -68,7 +75,7 @@ const
 const LOW_POWER_JITTER_DIVISOR = 16;
 
 (:premium)
-const LOW_POWER_JITTER_DIVISOR = 12;
+const LOW_POWER_JITTER_DIVISOR = 10;
 
 
 class DigitalRain {
@@ -88,8 +95,8 @@ class DigitalRain {
     // unreadable (#69). The two sizes are independent: time-rain alignment was abandoned
     // in #50, so Time is no longer tied to the Matrix glyph size and is free to be larger.
     //
-    // _timeLargeFont is the always-on font. In Premium that is the hollow L rather than
-    // TimeLarge (#145, #153); reloadTimeFont swaps it in, and says why it is not loaded here.
+    // _timeLargeFont is the always-on font. In Premium that is the filled XL rather than
+    // TimeLarge (#164); reloadTimeFont swaps it in, and says why it is not loaded here.
     private var
         _timeFont as Graphics.FontType,
         _timeLargeFont as Graphics.FontType,
@@ -179,10 +186,10 @@ class DigitalRain {
     // have no hollow font and stay filled on their box.
     //
     // The first call also swaps the always-on font: Premium draws the always-on time in the
-    // hollow L (#145, #153, #166). initialize is shared with Lite, which is frozen and still
-    // compiles byte for byte as it did, so it loads TimeLarge in Premium too; this drops that
-    // before loading the hollow L, at the cost of one wasted load at start-up and nothing
-    // held. The hollow L woken time is then that same font, not a second copy of it.
+    // filled XL (#164). initialize is shared with Lite, which is frozen and still compiles
+    // byte for byte as it did, so it loads TimeLarge in Premium too; this drops that before
+    // loading the filled XL, at the cost of one wasted load at start-up and nothing held. The
+    // filled XL woken time is then that same font, not a second copy of it.
     (:premium)
     function reloadTimeFont() as Void {
         var alwaysOn = TimeStyle.alwaysOnFont();
@@ -194,15 +201,15 @@ class DigitalRain {
         _timeFont = Graphics.FONT_XTINY;
         var size = TimeSize.selected();
         var hollow = TimeStyle.hollowFont(size, TimeStyle.selected());
-        if (hollow == alwaysOn) {
-            _timeFont = _timeLargeFont;
-            _timeBackground = Graphics.COLOR_TRANSPARENT;
-        } else if (hollow != null) {
+        if (hollow != null) {
             _timeFont = Application.loadResource(hollow) as Graphics.FontType;
             _timeBackground = Graphics.COLOR_TRANSPARENT;
         } else if (size == TimeSize.EXTRA_EXTRA_SMALL && _dateFont != null) {
             // The date's font is XXS (#163): share it rather than hold XXS twice.
             _timeFont = _dateFont as Graphics.FontType;
+            _timeBackground = Graphics.COLOR_BLACK;
+        } else if (TimeSize.fontOf(size) == alwaysOn) {
+            _timeFont = _timeLargeFont;
             _timeBackground = Graphics.COLOR_BLACK;
         } else {
             _timeFont = TimeSize.load(size);
@@ -438,11 +445,10 @@ class DigitalRain {
     }
 
     // Premium draws it in the time colour setting's own always-on colour (#143), at the
-    // always-on brightness setting's share of it (#161), and in the hollow ExtraBold L
-    // whatever the time size and style (#145, #153, #166), which reloadTimeFont has put in
-    // _timeLargeFont. The outline is larger than Lite's filled TimeLarge and lights a little more of
-    // the screen, and it is shifted further, by Premium's own divisor; see
-    // LOW_POWER_JITTER_DIVISOR.
+    // always-on brightness setting's share of it (#161), and in the filled ExtraBold XL
+    // whatever the time size and style (#164), which reloadTimeFont has put in _timeLargeFont.
+    // It is larger and heavier than Lite's filled TimeLarge and lights more of the screen, and
+    // it is shifted further, by Premium's own divisor; see LOW_POWER_JITTER_DIVISOR.
     //
     // Always centred, whatever the time alignment (#154), so that the burn-in measurement
     // stands: the jitter square was measured about the centre.

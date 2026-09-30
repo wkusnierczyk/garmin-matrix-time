@@ -50,7 +50,7 @@ The rain glyphs sit on a fixed grid rather than being set as text. Matrix Code N
 The rain is laid out on a rectangular grid, so on a round watch the corners of that grid fall off the glass and are never drawn. A cell is kept when the cell itself overlaps the visible disc, not merely when its centre does, so the rain reaches the rim at every round resolution instead of stopping a cell short of it.
 
 **Always-on display**  
-Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, shifted to a different corner of a small square every minute. Lite dims it to two thirds of its normal brightness; Premium draws it at full brightness by default, and its **Always-on brightness** setting can dim it the same way. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it as an outline at the Large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at the four sizes below Large, the same size at Large, and smaller at Extra large and Extra extra large. Premium's larger time also moves further each minute: it is shifted a twelfth of the screen width each way from the centre, where Lite's is shifted a sixteenth, because at a sixteenth a few pixels of the Large outline stay lit for three minutes. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 1.73% for Premium. A filled Large time would also pass at Premium's shift, at 4.44%; the outline keeps the lit area near Lite's. Raising the wrist wakes the watch face and brings the rain back.
+Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, shifted to a different corner of a small square every minute. Lite dims it to two thirds of its normal brightness; Premium draws it at full brightness by default, and its **Always-on brightness** setting can dim it the same way. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it filled at the Extra large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at the five sizes below Extra large, the same size at Extra large, and smaller at Extra extra large. Premium's larger, heavier time also moves further each minute: it is shifted a tenth of the screen width each way from the centre, where Lite's is shifted a sixteenth, because at a twelfth a few pixels of the Extra large time stay lit for three minutes. At a tenth the time still stays well inside the glass at every corner of the square. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 5.97% for Premium. Raising the wrist wakes the watch face and brings the rain back.
 
 ## Features
 
@@ -59,7 +59,7 @@ The Matrix Time watch face supports the following features:
 |Screenshot|Description|
 |-|:-|
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
-|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it as an outline at Large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
+|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it filled at Extra large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
 
 Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
@@ -77,9 +77,9 @@ there the watch is the only way to change them.
   typeface. At the 416x416 reference the seven are 27, 40, 54, 68, 82, 96 and 110; see
   [Fonts](#fonts) for every resolution. Large is about 60% of the screen width on every resolution,
   and Extra extra large about 80%, which still fits the round screen with the time at the left or
-  right. The always-on screen is not affected: it is always drawn hollow at Large; see **Always-on
-  display** above. A change applies at once, and reloads the time font only -- the rain is sized
-  from its own font and does not move.
+  right. The always-on screen is not affected: it is always drawn filled at Extra large; see
+  **Always-on display** above. A change applies at once, and reloads the time font only -- the rain
+  is sized from its own font and does not move.
 
   The sizes were renamed when Extra large and Extra extra large were added: the five sizes offered
   before, Small to Extra extra large, are now Extra extra small to Large. A face that had a size
@@ -96,7 +96,7 @@ there the watch is the only way to change them.
   small and Extra small the outline is too fine to read against the rain, so those stay filled
   whichever style is chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with
   the screen, like the font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is
-  drawn hollow at Large whichever style is chosen here.
+  drawn filled at Extra large whichever style is chosen here.
 * **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
   is where Lite draws it, and is the default. At the left or right the time keeps its fixed width of
   five characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a
@@ -880,9 +880,9 @@ it drew before the sizes were renamed, that a settings change reaches the font t
 that the seven fonts really do grow in height on the product under test.
 
 `LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is
-Large under all fourteen combinations of time size and style, that it is loaded from the
-hollow font's id and not the filled one's (which share every metric, so only the id can tell them
-apart), that a hollow Large woken time is drawn in that same font rather than a second
+Extra large under all fourteen combinations of time size and style, that it is loaded from the
+filled font's id and not the hollow one's (which share every metric, so only the id can tell them
+apart), that a filled Extra large woken time is drawn in that same font rather than a second
 copy of it, that every other combination loads a font of its own, and that the always-on scene draws
 in it at every corner of the jitter square.
 
