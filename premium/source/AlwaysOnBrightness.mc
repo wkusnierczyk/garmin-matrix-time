@@ -12,7 +12,7 @@ import Toybox.Lang;
 // between the two as well. Dim is the old two thirds, and what Lite still draws.
 //
 // The burn-in protector counts lit pixels, not their brightness, so every level leaves the
-// always-on figures measured on #145 and #153 as they were. A brighter time costs some
+// always-on figures measured on #164 as they were. A brighter time costs some
 // battery in always-on, and nothing else.
 module AlwaysOnBrightness {
 
