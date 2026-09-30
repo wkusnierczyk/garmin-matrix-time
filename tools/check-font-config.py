@@ -378,9 +378,8 @@ ok(set(psize) & set(refsize) == PREMIUM_OVERRIDES,
    f"(found {sorted(set(psize) & set(refsize))})")
 # An override changes the weight, never the size: Time and TimeLarge, Premium's XXS and S, stay
 # Lite's sizes. TimeLarge is Lite's always-on font, whose burn-in jitter and lit-pixel budget
-# were measured at that size (#69);
-# Premium's always-on font is TimeExtraExtraLargeHollow instead, measured on its own (#145,
-# #153).
+# were measured at that size (#69); Premium's always-on font is TimeExtraExtraLargeHollow
+# instead, measured on its own (#145, #153).
 for fid in sorted(PREMIUM_OVERRIDES & set(psize) & set(refsize)):
     ok(psize[fid][1] == refsize[fid][1],
        f"Premium {fid} keeps Lite's reference size ({psize[fid][1]} vs {refsize[fid][1]})")
@@ -394,9 +393,9 @@ ok(os.path.exists(f'{PDIR}/OFL-SUSEMono.txt'), f"{PDIR}/OFL-SUSEMono.txt resolve
 
 # The time size ladder, XXS XS S M L XL XXL, is Time, TimeMedium, TimeLarge, TimeExtraLarge,
 # TimeExtraExtraLarge, TimeHuge, TimeExtraHuge (#166; the ids predate the names, and override
-# Lite's where they repeat them, so they stay): one typeface, strictly growing at the reference. The scaler rounds
-# per target, so the order is checked at every target too -- two adjacent sizes rounding to the same
-# point size would make one step of the setting do nothing.
+# Lite's where they repeat them, so they stay): one typeface, strictly growing at the
+# reference. The scaler rounds per target, so the order is checked at every target too -- two
+# adjacent sizes rounding to the same point size would make one step of the setting do nothing.
 LADDER = ['Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge', 'TimeHuge', 'TimeExtraHuge']
 allsize = {**refsize, **psize}
 if set(LADDER) <= set(allsize):

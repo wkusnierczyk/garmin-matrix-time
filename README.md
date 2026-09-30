@@ -105,8 +105,8 @@ there the watch is the only way to change them.
   character, so no digit is cut off by a round screen's edge at any time size, and the black box
   behind a filled time stays on the glass too. At the 416x416 reference that puts the time 9 pixels
   in at Extra extra small, 26 at Medium, 33 at Large and 47 at Extra extra large. A rectangular
-  screen gets the same margin as the circle that fits it, so the time sits the same way on every shape. The always-on
-  screen is not affected: it stays centred, so its burn-in figures above hold.
+  screen gets the same margin as the circle that fits it, so the time sits the same way on every
+  shape. The always-on screen is not affected: it stays centred, so its burn-in figures above hold.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
@@ -129,14 +129,14 @@ there the watch is the only way to change them.
   battery in always-on, and nothing else. The woken screen is not affected.
 * **Date** -- Off or On: today's date under the time on the woken screen, as `2026-09-29`. Off is
   the default, so the face looks as Lite does until it is turned on. The date is drawn at the Extra
-  extra small time size whatever the time size, in the time colour, on a black box like a filled time's, so it
-  stays legible over the rain whichever time style is chosen. It follows the **Time alignment**
-  setting: at the left or right it lines up with the edge of the time, unless the circle that fits
-  the screen is already narrower at the date's height, in which case it sits further in, so no
-  digit is cut off. That happens under the smaller time sizes, by a few pixels. Like the time, it is
-  a fixed width, ten characters every day. The time's blank padding character before 10:00 on a
-  12-hour clock therefore leaves a left-aligned date one character further out than the hour. The always-on screen is not
-  affected: it shows the time alone, so its burn-in figures above hold.
+  extra small time size whatever the time size, in the time colour, on a black box like a filled
+  time's, so it stays legible over the rain whichever time style is chosen. It follows the **Time
+  alignment** setting: at the left or right it lines up with the edge of the time, unless the circle
+  that fits the screen is already narrower at the date's height, in which case it sits further in,
+  so no digit is cut off. That happens under the smaller time sizes, by a few pixels. Like the time,
+  it is a fixed width, ten characters every day. The time's blank padding character before 10:00 on
+  a 12-hour clock therefore leaves a left-aligned date one character further out than the hour. The
+  always-on screen is not affected: it shows the time alone, so its burn-in figures above hold.
 
 ## Editions
 
@@ -218,20 +218,20 @@ weight is a static instance of the variable font Google Fonts publishes, made wi
 fonttools varLib.instancer "SUSEMono[wght].ttf" wght=800 --update-name-table -o SUSEMono-ExtraBold.ttf
 ```
 
-Premium's twelve time fonts are therefore all its own. The table names them by font id, and the
-ids predate the names the [time size setting](#premium-settings) gives the sizes, which moved two
-steps down when Extra large and Extra extra large were added. The ids stayed, since two of them
-override Lite's:
+Premium's twelve time fonts are therefore all its own. The generated size table below names them
+by font id, and the ids predate the names the [time size setting](#premium-settings) gives the
+sizes, which moved two steps down when Extra large and Extra extra large were added. The ids
+stayed, since two of them override Lite's. This mapping is written by hand, and so carries no sizes:
 
-| Time size | Reference size | Element |
-| :-- | --: | :-- |
-| Extra extra small | 27 | Time |
-| Extra small | 40 | Time medium |
-| Small | 54 | Time large |
-| Medium | 68 | Time extra large |
-| Large | 82 | Time extra extra large |
-| Extra large | 96 | Time huge |
-| Extra extra large | 110 | Time extra huge |
+| Time size | Element |
+| :-- | :-- |
+| Extra extra small | Time |
+| Extra small | Time medium |
+| Small | Time large |
+| Medium | Time extra large |
+| Large | Time extra extra large |
+| Extra large | Time huge |
+| Extra extra large | Time extra huge |
 
 Extra extra small and Small are Lite's Time and Time large at the same sizes and under the same
 ids, so Premium's bitmaps replace Lite's rather than joining them, and Lite's Regular bitmaps are
@@ -241,7 +241,8 @@ large again, drawn as an outline, and named as their filled twins with *hollow* 
 Their stroke is 1.2 pixels at the reference, scaled per resolution like the size, which is the
 Stroke column. All twelve are configured in `premium/resources/fonts/` and generated into
 `premium/resources-<family>/` by `garmin-font-scaler --project-dir premium`, from the same reference
-resolution. The table is a copy of [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
+resolution. The size table below is a copy of [`premium/fonts.md`](premium/fonts.md), which the
+scaler writes.
 The date of the [date setting](#premium-settings) is drawn in the Extra extra small font, which
 holds a hyphen for it besides the time's digits, space and colon; it has no font of its own, because
 the scaler names a bitmap by typeface and size, and a date font at that size would overwrite the
@@ -745,15 +746,15 @@ against `premium/resources/fonts/` and `premium/fonts.md`, and also that Premium
 family, that the seven time sizes grow at every resolution, and that the only Lite font ids Premium
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
 that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
-and Premium's Extra extra small the date's `-` as well, with one advance in every family, since the fixed-width
-time depends on it, and that every glyph of a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
-time alignment setting keeps that box on the glass and counts on no digit reaching outside it. For
-the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
-family, that the size tables give the same strokes and label exactly those fonts hollow, that no
-generated `fonts.xml` keeps the `stroke` attribute, and that every hollow `.fnt` has its filled
-twin's metrics in every family, so switching style never moves the time. `check-icons` does the same
-for the launcher icons and their per-product mapping in `monkey.jungle`; see [Launcher
-icon](#launcher-icon).
+and Premium's Extra extra small the date's `-` as well, with one advance in every family, since the
+fixed-width time depends on it, and that every glyph of a Premium time font fills its whole cell, as
+wide as its advance and as tall as the line, since the time alignment setting keeps that box on the
+glass and counts on no digit reaching outside it. For the hollow fonts it also checks that each file
+carries the stroke the scaler's rule gives for its family, that the size tables give the same
+strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the `stroke`
+attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so switching
+style never moves the time. `check-icons` does the same for the launcher icons and their per-product
+mapping in `monkey.jungle`; see [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
 accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both
@@ -873,10 +874,10 @@ taking the app down with an error no `catch` clause sees (#91, #93). Remove the 
 out, and both tests report an error rather than a failure.
 
 `TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
-property joins Lite's table instead of replacing it, that each of the seven sizes is kept and anything
-else, of any type, falls back to Medium, the default, that each stored value draws the font it drew
-before the sizes were renamed, that a settings change reaches the font the face draws, and that the
-seven fonts really do grow in height on the product under test.
+property joins Lite's table instead of replacing it, that each of the seven sizes is kept and
+anything else, of any type, falls back to Medium, the default, that each stored value draws the font
+it drew before the sizes were renamed, that a settings change reaches the font the face draws, and
+that the seven fonts really do grow in height on the product under test.
 
 `LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is
 Large under all fourteen combinations of time size and style, that it is loaded from the
@@ -939,8 +940,8 @@ small.
 every value it offers has a label and is kept as it is by the setting it belongs to, so the menu can
 never write a value the face would ignore, that each value is shown with its own label, that the
 open menu shows a value changed from the phone, that selecting steps to the next value and wraps,
-Extra extra large back to Extra extra small, and that a trail length the list does not offer steps to the next
-offered one.
+Extra extra large back to Extra extra small, and that a trail length the list does not offer steps
+to the next offered one.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
