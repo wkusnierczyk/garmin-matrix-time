@@ -189,6 +189,11 @@ class SettingsMenuView extends WatchUi.Menu2 {
 
     function initialize() {
         Menu2.initialize({:title => Application.loadResource(Rez.Strings.AppName) as String});
+        // The presets first (#172): each opens a PresetsMenuView of the slots.
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.PresetLoadTitle) as String, null,
+            Presets.LOAD_PROPERTY, null));
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.PresetSaveTitle) as String, null,
+            Presets.SAVE_PROPERTY, null));
         var properties = SettingsMenu.properties();
         for (var i = 0; i < properties.size(); ++i) {
             var property = properties[i];
@@ -226,6 +231,11 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item as WatchUi.MenuItem) as Void {
         var property = item.getId() as String;
+        if (property.equals(Presets.LOAD_PROPERTY) || property.equals(Presets.SAVE_PROPERTY)) {
+            var saving = property.equals(Presets.SAVE_PROPERTY);
+            WatchUi.pushView(new PresetsMenuView(saving), new PresetsMenuDelegate(saving), WatchUi.SLIDE_LEFT);
+            return;
+        }
         var value = SettingsMenu.next(SettingsMenu.valuesOf(property), SettingsMenu.selected(property));
         Properties.setValue(property, value);
         // onSettingsChanged is for changes from the phone; one made here has to be
@@ -235,6 +245,51 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onBack() as Void {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+    }
+
+}
+
+
+// The five preset slots, to load from or save to (#172), each by its name, with Empty under a
+// slot that has never been saved.
+class PresetsMenuView extends WatchUi.Menu2 {
+
+    function initialize(saving as Boolean) {
+        Menu2.initialize({:title => Application.loadResource(
+            saving ? Rez.Strings.PresetSaveTitle : Rez.Strings.PresetLoadTitle) as String});
+        var empty = Application.loadResource(Rez.Strings.PresetEmpty) as String;
+        for (var slot = 1; slot <= Presets.SLOTS; ++slot) {
+            addItem(new WatchUi.MenuItem(Presets.nameOf(slot), Presets.isSaved(slot) ? null : empty, slot, null));
+        }
+    }
+
+}
+
+
+class PresetsMenuDelegate extends WatchUi.Menu2InputDelegate {
+
+    private var _saving as Boolean;
+
+    function initialize(saving as Boolean) {
+        Menu2InputDelegate.initialize();
+        _saving = saving;
+    }
+
+    // A save overwrites the slot; a load of an empty slot does nothing and stays here.
+    // Either way back to the settings menu, which onSettingsChanged has refreshed.
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        var slot = item.getId() as Number;
+        if (_saving) {
+            Presets.save(slot);
+        } else if (!Presets.load(slot)) {
+            return;
+        }
+        (Application.getApp() as App).onSettingsChanged();
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
+    }
+
+    function onBack() as Void {
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
     }
 
 }

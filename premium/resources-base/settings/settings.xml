@@ -88,4 +88,49 @@
         </settingConfig>
     </setting>
 
+    <!-- The presets (#172). The lists are actions, not settings: the face acts on a slot
+         picked here and sets the list back to None. They name the slots by number, since a
+         list's labels are fixed at build time and cannot show the names below. -->
+    <setting propertyKey="@Properties.presetLoad" title="@Strings.PresetLoadTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.PresetNone</listEntry>
+            <listEntry value="1">@Strings.PresetSlot1</listEntry>
+            <listEntry value="2">@Strings.PresetSlot2</listEntry>
+            <listEntry value="3">@Strings.PresetSlot3</listEntry>
+            <listEntry value="4">@Strings.PresetSlot4</listEntry>
+            <listEntry value="5">@Strings.PresetSlot5</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.presetSave" title="@Strings.PresetSaveTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.PresetNone</listEntry>
+            <listEntry value="1">@Strings.PresetSlot1</listEntry>
+            <listEntry value="2">@Strings.PresetSlot2</listEntry>
+            <listEntry value="3">@Strings.PresetSlot3</listEntry>
+            <listEntry value="4">@Strings.PresetSlot4</listEntry>
+            <listEntry value="5">@Strings.PresetSlot5</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.presetName1" title="@Strings.PresetName1Title">
+        <settingConfig type="alphaNumeric" maxLength="16" />
+    </setting>
+
+    <setting propertyKey="@Properties.presetName2" title="@Strings.PresetName2Title">
+        <settingConfig type="alphaNumeric" maxLength="16" />
+    </setting>
+
+    <setting propertyKey="@Properties.presetName3" title="@Strings.PresetName3Title">
+        <settingConfig type="alphaNumeric" maxLength="16" />
+    </setting>
+
+    <setting propertyKey="@Properties.presetName4" title="@Strings.PresetName4Title">
+        <settingConfig type="alphaNumeric" maxLength="16" />
+    </setting>
+
+    <setting propertyKey="@Properties.presetName5" title="@Strings.PresetName5Title">
+        <settingConfig type="alphaNumeric" maxLength="16" />
+    </setting>
+
 </settings>
