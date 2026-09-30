@@ -36,3 +36,6 @@ Thumbs.db
 developer_key*
 # Python bytecode
 __pycache__/
+
+# make preview's contact sheets, for review and never committed (#140)
+/.dev/scratchpad/preview/

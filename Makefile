@@ -121,7 +121,7 @@ TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f "$(JUNGLES)" --unit-test
 EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f "$(JUNGLES)"
 
 .PHONY: all build sim run test sideload export check-fonts check-manifests check-lite \
-        icons check-icons graphics clean
+        icons check-icons graphics preview clean
 
 all: build
 
@@ -369,6 +369,71 @@ graphics:
 	@echo "Regenerating resources/graphics..."
 	@python3 tools/make-graphics.py $(if $(PLATFORM),--platform $(PLATFORM),) \
 	                                $(if $(TZ_NAME),--timezone $(TZ_NAME),)
+
+# A labelled contact sheet of the face across its settings, for review before a
+# setting merges (#140). Not store artwork: it goes to .dev/scratchpad/preview/<edition>/,
+# which is gitignored, as contact-sheet.png with one directory of frames per build
+# and an index.json saying which settings each holds.
+#
+# The survey is garmin-graphics-generator's (0.6.0 or newer), shared with the sibling
+# faces; what is here is Matrix Time's choice of builds. Each combination of settings
+# is a build whose property defaults are rewritten in a copy of the tree inside the
+# container, so the tree itself is never written to.
+#
+# Two scenes, always, so every tile says which screen it shows: woken, and always-on
+# from the build graphics.jungle forces into the low-power branch, as make graphics
+# captures it. Several settings reach the always-on screen -- the time size, colour
+# and brightness -- and a preview of the woken screen alone would not show them.
+# SCENES=woken, or SCENES=always-on, keeps one. The edition jungle comes last in
+# both lists, as in every build.
+#
+# Premium sweeps every setting, one at a time with the others at their defaults.
+# The resource directories are named, not discovered: the settings are in
+# premium/resources-base, and a directory off the build's path would be varied and
+# then ignored. VARY narrows the sweep, GRID="ACROSS DOWN" crosses two settings,
+# CASES=file.json lists the combinations; PREVIEW_FLAGS passes anything else through,
+# such as --set timeSize=0,6. Lite has no settings, so it captures its defaults,
+# one build per scene.
+#
+# Expect it to be slow. Every build is compiled in the one container, then captured
+# on a fresh simulator: about a minute a build on an arm64 Mac, where the image
+# runs emulated. The full Premium sweep is 27 builds a scene, about an hour; one
+# setting of three values in both scenes took six minutes.
+PREVIEW_DIR := .dev/scratchpad/preview/$(EDITION)
+SCENES ?= woken always-on
+SCENE_JUNGLE_woken := monkey.jungle;$(EDITION).jungle
+SCENE_JUNGLE_always-on := monkey.jungle;graphics.jungle;$(EDITION).jungle
+VARY ?=
+GRID ?=
+CASES ?=
+PREVIEW_FLAGS ?=
+ifeq ($(EDITION),premium)
+  PREVIEW_RESOURCES := --resources resources --resources premium/resources-base
+  PREVIEW_PLAN := $(if $(GRID),--grid $(GRID),$(if $(CASES),--cases $(CASES),--sweep)) \
+                  $(foreach key,$(VARY),--vary $(key))
+else
+  PREVIEW_RESOURCES := --resources resources
+  PREVIEW_PLAN := --cases $(PREVIEW_DIR)/defaults.json
+endif
+
+preview:
+	@python3 -c 'from importlib.metadata import version; import sys; \
+v = tuple(int(p) for p in version("garmin-graphics-generator").split(".")[:2]); \
+sys.exit(v < (0, 6))' 2>/dev/null || { \
+	  echo "make preview needs garmin-graphics-generator 0.6.0 or newer; see README.md."; exit 1; }
+	@$(foreach scene,$(SCENES),test -n "$(SCENE_JUNGLE_$(scene))" || { \
+	  echo "SCENES takes woken and always-on, not \"$(scene)\"."; exit 1; };)
+	@test "$(EDITION)" = premium -o -z "$(VARY)$(GRID)$(CASES)" || { \
+	  echo "Lite has no settings to vary; drop VARY, GRID and CASES."; exit 1; }
+	@mkdir -p $(PREVIEW_DIR)
+	@$(if $(filter lite,$(EDITION)),echo '[{}]' > $(PREVIEW_DIR)/defaults.json,:)
+	@echo "Capturing the $(EDITION) preview into $(PREVIEW_DIR)..."
+	@garmin-graphics-generator shots -p . -d $(DEVICE) -o $(PREVIEW_DIR) \
+	  $(PREVIEW_RESOURCES) $(PREVIEW_PLAN) \
+	  $(foreach scene,$(SCENES),--scene "$(scene)=$(SCENE_JUNGLE_$(scene))") \
+	  $(if $(PLATFORM),--platform $(PLATFORM),) $(if $(TZ_NAME),--timezone $(TZ_NAME),) \
+	  $(PREVIEW_FLAGS)
+	@echo "Contact sheet: $(PREVIEW_DIR)/contact-sheet.png"
 
 clean:
 	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
