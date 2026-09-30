@@ -7,9 +7,13 @@
 | Time large                    | SUSEMono extrabold             |                54 |                47 |                51 |                59 |                60 |                    42 |                    58 |
 | Time extra large              | SUSEMono extrabold             |                68 |                59 |                64 |                74 |                76 |                    52 |                    73 |
 | Time extra extra large        | SUSEMono extrabold             |                82 |                71 |                77 |                89 |                92 |                    63 |                    88 |
+| Time huge                     | SUSEMono extrabold             |                96 |                83 |                90 |               105 |               108 |                    74 |                   103 |
+| Time extra huge               | SUSEMono extrabold             |               110 |                95 |               103 |               120 |               123 |                    85 |                   118 |
 | Time large hollow             | SUSEMono extrabold, hollow 1.2 |                54 |                47 |                51 |                59 |                60 |                    42 |                    58 |
 | Time extra large hollow       | SUSEMono extrabold, hollow 1.2 |                68 |                59 |                64 |                74 |                76 |                    52 |                    73 |
 | Time extra extra large hollow | SUSEMono extrabold, hollow 1.2 |                82 |                71 |                77 |                89 |                92 |                    63 |                    88 |
+| Time huge hollow              | SUSEMono extrabold, hollow 1.2 |                96 |                83 |                90 |               105 |               108 |                    74 |                   103 |
+| Time extra huge hollow        | SUSEMono extrabold, hollow 1.2 |               110 |                95 |               103 |               120 |               123 |                    85 |                   118 |
 
 # Font sizes by resolution
 
@@ -18,56 +22,84 @@
 |  320 x 360 | rectangle | Time                          | SUSEMono extrabold         |   21 |        |
 |  320 x 360 | rectangle | Time extra extra large        | SUSEMono extrabold         |   63 |        |
 |  320 x 360 | rectangle | Time extra extra large hollow | SUSEMono extrabold, hollow |   63 |   0.92 |
+|  320 x 360 | rectangle | Time extra huge               | SUSEMono extrabold         |   85 |        |
+|  320 x 360 | rectangle | Time extra huge hollow        | SUSEMono extrabold, hollow |   85 |   0.92 |
 |  320 x 360 | rectangle | Time extra large              | SUSEMono extrabold         |   52 |        |
 |  320 x 360 | rectangle | Time extra large hollow       | SUSEMono extrabold, hollow |   52 |   0.92 |
+|  320 x 360 | rectangle | Time huge                     | SUSEMono extrabold         |   74 |        |
+|  320 x 360 | rectangle | Time huge hollow              | SUSEMono extrabold, hollow |   74 |   0.92 |
 |  320 x 360 | rectangle | Time large                    | SUSEMono extrabold         |   42 |        |
 |  320 x 360 | rectangle | Time large hollow             | SUSEMono extrabold, hollow |   42 |   0.92 |
 |  320 x 360 | rectangle | Time medium                   | SUSEMono extrabold         |   31 |        |
 |  360 x 360 | round     | Time                          | SUSEMono extrabold         |   23 |        |
 |  360 x 360 | round     | Time extra extra large        | SUSEMono extrabold         |   71 |        |
 |  360 x 360 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   71 |   1.04 |
+|  360 x 360 | round     | Time extra huge               | SUSEMono extrabold         |   95 |        |
+|  360 x 360 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |   95 |   1.04 |
 |  360 x 360 | round     | Time extra large              | SUSEMono extrabold         |   59 |        |
 |  360 x 360 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   59 |   1.04 |
+|  360 x 360 | round     | Time huge                     | SUSEMono extrabold         |   83 |        |
+|  360 x 360 | round     | Time huge hollow              | SUSEMono extrabold, hollow |   83 |   1.04 |
 |  360 x 360 | round     | Time large                    | SUSEMono extrabold         |   47 |        |
 |  360 x 360 | round     | Time large hollow             | SUSEMono extrabold, hollow |   47 |   1.04 |
 |  360 x 360 | round     | Time medium                   | SUSEMono extrabold         |   35 |        |
 |  390 x 390 | round     | Time                          | SUSEMono extrabold         |   25 |        |
 |  390 x 390 | round     | Time extra extra large        | SUSEMono extrabold         |   77 |        |
 |  390 x 390 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   77 |   1.12 |
+|  390 x 390 | round     | Time extra huge               | SUSEMono extrabold         |  103 |        |
+|  390 x 390 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  103 |   1.12 |
 |  390 x 390 | round     | Time extra large              | SUSEMono extrabold         |   64 |        |
 |  390 x 390 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   64 |   1.12 |
+|  390 x 390 | round     | Time huge                     | SUSEMono extrabold         |   90 |        |
+|  390 x 390 | round     | Time huge hollow              | SUSEMono extrabold, hollow |   90 |   1.12 |
 |  390 x 390 | round     | Time large                    | SUSEMono extrabold         |   51 |        |
 |  390 x 390 | round     | Time large hollow             | SUSEMono extrabold, hollow |   51 |   1.12 |
 |  390 x 390 | round     | Time medium                   | SUSEMono extrabold         |   38 |        |
 |  416 x 416 | round     | Time                          | SUSEMono extrabold         |   27 |        |
 |  416 x 416 | round     | Time extra extra large        | SUSEMono extrabold         |   82 |        |
 |  416 x 416 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   82 |    1.2 |
+|  416 x 416 | round     | Time extra huge               | SUSEMono extrabold         |  110 |        |
+|  416 x 416 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  110 |    1.2 |
 |  416 x 416 | round     | Time extra large              | SUSEMono extrabold         |   68 |        |
 |  416 x 416 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   68 |    1.2 |
+|  416 x 416 | round     | Time huge                     | SUSEMono extrabold         |   96 |        |
+|  416 x 416 | round     | Time huge hollow              | SUSEMono extrabold, hollow |   96 |    1.2 |
 |  416 x 416 | round     | Time large                    | SUSEMono extrabold         |   54 |        |
 |  416 x 416 | round     | Time large hollow             | SUSEMono extrabold, hollow |   54 |    1.2 |
 |  416 x 416 | round     | Time medium                   | SUSEMono extrabold         |   40 |        |
 |  454 x 454 | round     | Time                          | SUSEMono extrabold         |   29 |        |
 |  454 x 454 | round     | Time extra extra large        | SUSEMono extrabold         |   89 |        |
 |  454 x 454 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   89 |   1.31 |
+|  454 x 454 | round     | Time extra huge               | SUSEMono extrabold         |  120 |        |
+|  454 x 454 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  120 |   1.31 |
 |  454 x 454 | round     | Time extra large              | SUSEMono extrabold         |   74 |        |
 |  454 x 454 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   74 |   1.31 |
+|  454 x 454 | round     | Time huge                     | SUSEMono extrabold         |  105 |        |
+|  454 x 454 | round     | Time huge hollow              | SUSEMono extrabold, hollow |  105 |   1.31 |
 |  454 x 454 | round     | Time large                    | SUSEMono extrabold         |   59 |        |
 |  454 x 454 | round     | Time large hollow             | SUSEMono extrabold, hollow |   59 |   1.31 |
 |  454 x 454 | round     | Time medium                   | SUSEMono extrabold         |   44 |        |
 |  466 x 466 | round     | Time                          | SUSEMono extrabold         |   30 |        |
 |  466 x 466 | round     | Time extra extra large        | SUSEMono extrabold         |   92 |        |
 |  466 x 466 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   92 |   1.34 |
+|  466 x 466 | round     | Time extra huge               | SUSEMono extrabold         |  123 |        |
+|  466 x 466 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  123 |   1.34 |
 |  466 x 466 | round     | Time extra large              | SUSEMono extrabold         |   76 |        |
 |  466 x 466 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   76 |   1.34 |
+|  466 x 466 | round     | Time huge                     | SUSEMono extrabold         |  108 |        |
+|  466 x 466 | round     | Time huge hollow              | SUSEMono extrabold, hollow |  108 |   1.34 |
 |  466 x 466 | round     | Time large                    | SUSEMono extrabold         |   60 |        |
 |  466 x 466 | round     | Time large hollow             | SUSEMono extrabold, hollow |   60 |   1.34 |
 |  466 x 466 | round     | Time medium                   | SUSEMono extrabold         |   45 |        |
 |  448 x 486 | rectangle | Time                          | SUSEMono extrabold         |   29 |        |
 |  448 x 486 | rectangle | Time extra extra large        | SUSEMono extrabold         |   88 |        |
 |  448 x 486 | rectangle | Time extra extra large hollow | SUSEMono extrabold, hollow |   88 |   1.29 |
+|  448 x 486 | rectangle | Time extra huge               | SUSEMono extrabold         |  118 |        |
+|  448 x 486 | rectangle | Time extra huge hollow        | SUSEMono extrabold, hollow |  118 |   1.29 |
 |  448 x 486 | rectangle | Time extra large              | SUSEMono extrabold         |   73 |        |
 |  448 x 486 | rectangle | Time extra large hollow       | SUSEMono extrabold, hollow |   73 |   1.29 |
+|  448 x 486 | rectangle | Time huge                     | SUSEMono extrabold         |  103 |        |
+|  448 x 486 | rectangle | Time huge hollow              | SUSEMono extrabold, hollow |  103 |   1.29 |
 |  448 x 486 | rectangle | Time large                    | SUSEMono extrabold         |   58 |        |
 |  448 x 486 | rectangle | Time large hollow             | SUSEMono extrabold, hollow |   58 |   1.29 |
 |  448 x 486 | rectangle | Time medium                   | SUSEMono extrabold         |   43 |        |

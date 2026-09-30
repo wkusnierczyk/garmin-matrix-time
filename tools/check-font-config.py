@@ -329,8 +329,9 @@ ok(bool(prose) and any('resolutions.json' in b for b in prose),
 # undefined symbol, or, where a monkeyc resource path is mistyped, not at all.
 print("\nPREMIUM")
 PDIR = 'premium/resources/fonts'
-PREMIUM_FONT_IDS = {'Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge',
-                    'TimeLargeHollow', 'TimeExtraLargeHollow', 'TimeExtraExtraLargeHollow'}
+PREMIUM_FONT_IDS = {'Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge', 'TimeHuge',
+                    'TimeExtraHuge', 'TimeLargeHollow', 'TimeExtraLargeHollow', 'TimeExtraExtraLargeHollow',
+                    'TimeHugeHollow', 'TimeExtraHugeHollow'}
 # The Lite ids Premium redefines, to draw them in its own weight (#144). premium.jungle
 # appends premium/resources-<family> after resources-<family>, and a later resource
 # directory redefines an id rather than colliding with it: Premium compiles its own
@@ -339,11 +340,12 @@ PREMIUM_OVERRIDES = {'Time', 'TimeLarge'}
 # Each hollow font is its filled twin drawn as an outline (#72): the same face at the same
 # size, so the same metrics, and swapping one for the other never moves the time.
 HOLLOW_TWINS = {'TimeLargeHollow': 'TimeLarge', 'TimeExtraLargeHollow': 'TimeExtraLarge',
-                'TimeExtraExtraLargeHollow': 'TimeExtraExtraLarge'}
+                'TimeExtraExtraLargeHollow': 'TimeExtraExtraLarge', 'TimeHugeHollow': 'TimeHuge',
+                'TimeExtraHugeHollow': 'TimeExtraHuge'}
 STROKE_RE = re.compile(r'<font\s+id="(\w+)"[^>]*\sstroke="([^"]+)"')
-# Premium's S, Time, also draws the ISO date under the woken time at every time size (#163),
+# Premium's XXS, Time, also draws the ISO date under the woken time at every time size (#163),
 # so it holds the date's one glyph that is not the time's. The date has no font of its own:
-# the scaler names a bitmap by face and size, so one at S's size would overwrite S's.
+# the scaler names a bitmap by face and size, so one at XXS's size would overwrite XXS's.
 DATE_FONT_ID = 'Time'
 DATE_EXTRA = '-'
 
@@ -374,8 +376,9 @@ for hollow, filled in sorted(HOLLOW_TWINS.items()):
 ok(set(psize) & set(refsize) == PREMIUM_OVERRIDES,
    f"Premium repeats exactly the Lite font ids it overrides, {sorted(PREMIUM_OVERRIDES)} "
    f"(found {sorted(set(psize) & set(refsize))})")
-# An override changes the weight, never the size: S and L stay Lite's sizes. L is Lite's
-# always-on font, whose burn-in jitter and lit-pixel budget were measured at that size (#69);
+# An override changes the weight, never the size: Time and TimeLarge, Premium's XXS and S, stay
+# Lite's sizes. TimeLarge is Lite's always-on font, whose burn-in jitter and lit-pixel budget
+# were measured at that size (#69);
 # Premium's always-on font is TimeExtraExtraLargeHollow instead, measured on its own (#145,
 # #153).
 for fid in sorted(PREMIUM_OVERRIDES & set(psize) & set(refsize)):
@@ -389,11 +392,12 @@ for stem in sorted(ttfs):
     ok(os.path.exists(f'{PDIR}/{stem}.ttf'), f"{PDIR}/{stem}.ttf resolves")
 ok(os.path.exists(f'{PDIR}/OFL-SUSEMono.txt'), f"{PDIR}/OFL-SUSEMono.txt resolves")
 
-# The time size ladder, S M L XL XXL, is Time, TimeMedium, TimeLarge, TimeExtraLarge,
-# TimeExtraExtraLarge: one typeface, strictly growing at the reference. The scaler rounds
+# The time size ladder, XXS XS S M L XL XXL, is Time, TimeMedium, TimeLarge, TimeExtraLarge,
+# TimeExtraExtraLarge, TimeHuge, TimeExtraHuge (#166; the ids predate the names, and override
+# Lite's where they repeat them, so they stay): one typeface, strictly growing at the reference. The scaler rounds
 # per target, so the order is checked at every target too -- two adjacent sizes rounding to the same
 # point size would make one step of the setting do nothing.
-LADDER = ['Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge']
+LADDER = ['Time', 'TimeMedium', 'TimeLarge', 'TimeExtraLarge', 'TimeExtraExtraLarge', 'TimeHuge', 'TimeExtraHuge']
 allsize = {**refsize, **psize}
 if set(LADDER) <= set(allsize):
     ok(len({allsize[f][0] for f in LADDER}) == 1,

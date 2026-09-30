@@ -50,7 +50,7 @@ The rain glyphs sit on a fixed grid rather than being set as text. Matrix Code N
 The rain is laid out on a rectangular grid, so on a round watch the corners of that grid fall off the glass and are never drawn. A cell is kept when the cell itself overlaps the visible disc, not merely when its centre does, so the rain reaches the rim at every round resolution instead of stopping a cell short of it.
 
 **Always-on display**  
-Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, shifted to a different corner of a small square every minute. Lite dims it to two thirds of its normal brightness; Premium draws it at full brightness by default, and its **Always-on brightness** setting can dim it the same way. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it as an outline at the Extra extra large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at every size but Extra extra large, where the two are the same size. Premium's larger time also moves further each minute: it is shifted a twelfth of the screen width each way from the centre, where Lite's is shifted a sixteenth, because at a sixteenth a few pixels of the Extra extra large outline stay lit for three minutes. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 1.73% for Premium. A filled Extra extra large time would also pass at Premium's shift, at 4.44%; the outline keeps the lit area near Lite's. Raising the wrist wakes the watch face and brings the rain back.
+Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, shifted to a different corner of a small square every minute. Lite dims it to two thirds of its normal brightness; Premium draws it at full brightness by default, and its **Always-on brightness** setting can dim it the same way. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it as an outline at the Large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at the four sizes below Large, the same size at Large, and smaller at Extra large and Extra extra large. Premium's larger time also moves further each minute: it is shifted a twelfth of the screen width each way from the centre, where Lite's is shifted a sixteenth, because at a sixteenth a few pixels of the Large outline stay lit for three minutes. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 1.73% for Premium. A filled Large time would also pass at Premium's shift, at 4.44%; the outline keeps the lit area near Lite's. Raising the wrist wakes the watch face and brings the rain back.
 
 ## Features
 
@@ -59,7 +59,7 @@ The Matrix Time watch face supports the following features:
 |Screenshot|Description|
 |-|:-|
 |![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
-|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it as an outline at Extra extra large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
+|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it as an outline at Large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
 
 Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
@@ -71,13 +71,19 @@ the next value. The two are the same settings, so a change made in one shows in 
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
 there the watch is the only way to change them.
 
-* **Time size** -- Small, Medium, Large, Extra large or Extra extra large: the size of the time on
-  the woken screen. Extra large is the default; Small is the size Lite draws. Premium draws every
-  size in SUSEMono ExtraBold, a heavier weight of Lite's typeface. At the 416x416 reference the five
-  are 27, 40, 54, 68 and 82; see [Fonts](#fonts) for every resolution. Extra extra large is about
-  60% of the screen width on every resolution. The always-on screen is not affected: it is always
-  drawn hollow at Extra extra large; see **Always-on display** above. A change applies at once, and
-  reloads the time font only -- the rain is sized from its own font and does not move.
+* **Time size** -- Extra extra small, Extra small, Small, Medium, Large, Extra large or Extra extra
+  large: the size of the time on the woken screen. Medium is the default; Extra extra small is the
+  size Lite draws. Premium draws every size in SUSEMono ExtraBold, a heavier weight of Lite's
+  typeface. At the 416x416 reference the seven are 27, 40, 54, 68, 82, 96 and 110; see
+  [Fonts](#fonts) for every resolution. Large is about 60% of the screen width on every resolution,
+  and Extra extra large about 80%, which still fits the round screen with the time at the left or
+  right. The always-on screen is not affected: it is always drawn hollow at Large; see **Always-on
+  display** above. A change applies at once, and reloads the time font only -- the rain is sized
+  from its own font and does not move.
+
+  The sizes were renamed when Extra large and Extra extra large were added: the five sizes offered
+  before, Small to Extra extra large, are now Extra extra small to Large. A face that had a size
+  chosen keeps drawing it at the same size, under its new name.
 * **Trail length** -- 25%, 50% or 75% of the screen: how far behind its head each column of rain
   fades to black. 50% is the length Lite draws, and is the default. Being a share of the screen height
   rather than a count of glyphs, a setting looks the same on every resolution. It is also a battery
@@ -86,11 +92,11 @@ there the watch is the only way to change them.
   restarting the rain.
 * **Time style** -- Filled or Hollow: the time on the woken screen drawn as solid digits on a black
   box, or as an outline with no box, so the rain falls through the digits. Filled is the look Lite
-  draws, and is the default. Hollow applies to the Large, Extra large and Extra extra large sizes
-  only; at Small and Medium the outline is too fine to read against the rain, so those stay filled
+  draws, and is the default. Hollow applies to Small and the sizes above it only; at Extra extra
+  small and Extra small the outline is too fine to read against the rain, so those stay filled
   whichever style is chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with
   the screen, like the font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is
-  drawn hollow at Extra extra large whichever style is chosen here.
+  drawn hollow at Large whichever style is chosen here.
 * **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
   is where Lite draws it, and is the default. At the left or right the time keeps its fixed width of
   five characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a
@@ -98,8 +104,8 @@ there the watch is the only way to change them.
   fixed: it is worked out from the screen's curve at the top and bottom of the time, plus half a
   character, so no digit is cut off by a round screen's edge at any time size, and the black box
   behind a filled time stays on the glass too. At the 416x416 reference that puts the time 9 pixels
-  in at Small, 26 at Extra large and 33 at Extra extra large. A rectangular screen gets the same
-  margin as the circle that fits it, so the time sits the same way on every shape. The always-on
+  in at Extra extra small, 26 at Medium, 33 at Large and 47 at Extra extra large. A rectangular
+  screen gets the same margin as the circle that fits it, so the time sits the same way on every shape. The always-on
   screen is not affected: it stays centred, so its burn-in figures above hold.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
@@ -122,8 +128,8 @@ there the watch is the only way to change them.
   their brightness, so the always-on figures above hold at every level; a brighter time costs some
   battery in always-on, and nothing else. The woken screen is not affected.
 * **Date** -- Off or On: today's date under the time on the woken screen, as `2026-09-29`. Off is
-  the default, so the face looks as Lite does until it is turned on. The date is drawn at the Small
-  time size whatever the time size, in the time colour, on a black box like a filled time's, so it
+  the default, so the face looks as Lite does until it is turned on. The date is drawn at the Extra
+  extra small time size whatever the time size, in the time colour, on a black box like a filled time's, so it
   stays legible over the rain whichever time style is chosen. It follows the **Time alignment**
   setting: at the left or right it lines up with the edge of the time, unless the circle that fits
   the screen is already narrower at the date's height, in which case it sits further in, so no
@@ -212,75 +218,118 @@ weight is a static instance of the variable font Google Fonts publishes, made wi
 fonttools varLib.instancer "SUSEMono[wght].ttf" wght=800 --update-name-table -o SUSEMono-ExtraBold.ttf
 ```
 
-Premium's eight time fonts are therefore all its own. Small and Large, of the [time size
-setting](#premium-settings), are Lite's Time and Time large at the same sizes and under the same
+Premium's twelve time fonts are therefore all its own. The table names them by font id, and the
+ids predate the names the [time size setting](#premium-settings) gives the sizes, which moved two
+steps down when Extra large and Extra extra large were added. The ids stayed, since two of them
+override Lite's:
+
+| Time size | Reference size | Element |
+| :-- | --: | :-- |
+| Extra extra small | 27 | Time |
+| Extra small | 40 | Time medium |
+| Small | 54 | Time large |
+| Medium | 68 | Time extra large |
+| Large | 82 | Time extra extra large |
+| Extra large | 96 | Time huge |
+| Extra extra large | 110 | Time extra huge |
+
+Extra extra small and Small are Lite's Time and Time large at the same sizes and under the same
 ids, so Premium's bitmaps replace Lite's rather than joining them, and Lite's Regular bitmaps are
-not compiled into the Premium app. Medium, Extra large and Extra extra large are the three sizes
-Lite does not have. The other three are the hollow time of the [time style
-setting](#premium-settings): Large, Extra large and Extra extra large again, drawn as an outline.
+not compiled into the Premium app. The other five sizes are ones Lite does not have. The remaining
+five fonts are the hollow time of the [time style setting](#premium-settings): Small to Extra extra
+large again, drawn as an outline, and named as their filled twins with *hollow* added.
 Their stroke is 1.2 pixels at the reference, scaled per resolution like the size, which is the
-Stroke column. All eight are configured in `premium/resources/fonts/` and generated into
+Stroke column. All twelve are configured in `premium/resources/fonts/` and generated into
 `premium/resources-<family>/` by `garmin-font-scaler --project-dir premium`, from the same reference
 resolution. The table is a copy of [`premium/fonts.md`](premium/fonts.md), which the scaler writes.
-The date of the [date setting](#premium-settings) is drawn in the Small font, which holds a hyphen
-for it besides the time's digits, space and colon; it has no font of its own, because the scaler
-names a bitmap by typeface and size, and a date font at Small's size would overwrite Small's bitmap.
+The date of the [date setting](#premium-settings) is drawn in the Extra extra small font, which
+holds a hyphen for it besides the time's digits, space and colon; it has no font of its own, because
+the scaler names a bitmap by typeface and size, and a date font at that size would overwrite the
+time's bitmap.
 
 | Resolution |   Shape   |            Element            |            Font            | Size | Stroke |
 | ---------: | :-------- | :---------------------------- | :------------------------- | ---: | -----: |
 |  320 x 360 | rectangle | Time                          | SUSEMono extrabold         |   21 |        |
 |  320 x 360 | rectangle | Time extra extra large        | SUSEMono extrabold         |   63 |        |
 |  320 x 360 | rectangle | Time extra extra large hollow | SUSEMono extrabold, hollow |   63 |   0.92 |
+|  320 x 360 | rectangle | Time extra huge               | SUSEMono extrabold         |   85 |        |
+|  320 x 360 | rectangle | Time extra huge hollow        | SUSEMono extrabold, hollow |   85 |   0.92 |
 |  320 x 360 | rectangle | Time extra large              | SUSEMono extrabold         |   52 |        |
 |  320 x 360 | rectangle | Time extra large hollow       | SUSEMono extrabold, hollow |   52 |   0.92 |
+|  320 x 360 | rectangle | Time huge                     | SUSEMono extrabold         |   74 |        |
+|  320 x 360 | rectangle | Time huge hollow              | SUSEMono extrabold, hollow |   74 |   0.92 |
 |  320 x 360 | rectangle | Time large                    | SUSEMono extrabold         |   42 |        |
 |  320 x 360 | rectangle | Time large hollow             | SUSEMono extrabold, hollow |   42 |   0.92 |
 |  320 x 360 | rectangle | Time medium                   | SUSEMono extrabold         |   31 |        |
 |  360 x 360 | round     | Time                          | SUSEMono extrabold         |   23 |        |
 |  360 x 360 | round     | Time extra extra large        | SUSEMono extrabold         |   71 |        |
 |  360 x 360 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   71 |   1.04 |
+|  360 x 360 | round     | Time extra huge               | SUSEMono extrabold         |   95 |        |
+|  360 x 360 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |   95 |   1.04 |
 |  360 x 360 | round     | Time extra large              | SUSEMono extrabold         |   59 |        |
 |  360 x 360 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   59 |   1.04 |
+|  360 x 360 | round     | Time huge                     | SUSEMono extrabold         |   83 |        |
+|  360 x 360 | round     | Time huge hollow              | SUSEMono extrabold, hollow |   83 |   1.04 |
 |  360 x 360 | round     | Time large                    | SUSEMono extrabold         |   47 |        |
 |  360 x 360 | round     | Time large hollow             | SUSEMono extrabold, hollow |   47 |   1.04 |
 |  360 x 360 | round     | Time medium                   | SUSEMono extrabold         |   35 |        |
 |  390 x 390 | round     | Time                          | SUSEMono extrabold         |   25 |        |
 |  390 x 390 | round     | Time extra extra large        | SUSEMono extrabold         |   77 |        |
 |  390 x 390 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   77 |   1.12 |
+|  390 x 390 | round     | Time extra huge               | SUSEMono extrabold         |  103 |        |
+|  390 x 390 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  103 |   1.12 |
 |  390 x 390 | round     | Time extra large              | SUSEMono extrabold         |   64 |        |
 |  390 x 390 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   64 |   1.12 |
+|  390 x 390 | round     | Time huge                     | SUSEMono extrabold         |   90 |        |
+|  390 x 390 | round     | Time huge hollow              | SUSEMono extrabold, hollow |   90 |   1.12 |
 |  390 x 390 | round     | Time large                    | SUSEMono extrabold         |   51 |        |
 |  390 x 390 | round     | Time large hollow             | SUSEMono extrabold, hollow |   51 |   1.12 |
 |  390 x 390 | round     | Time medium                   | SUSEMono extrabold         |   38 |        |
 |  416 x 416 | round     | Time                          | SUSEMono extrabold         |   27 |        |
 |  416 x 416 | round     | Time extra extra large        | SUSEMono extrabold         |   82 |        |
 |  416 x 416 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   82 |    1.2 |
+|  416 x 416 | round     | Time extra huge               | SUSEMono extrabold         |  110 |        |
+|  416 x 416 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  110 |    1.2 |
 |  416 x 416 | round     | Time extra large              | SUSEMono extrabold         |   68 |        |
 |  416 x 416 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   68 |    1.2 |
+|  416 x 416 | round     | Time huge                     | SUSEMono extrabold         |   96 |        |
+|  416 x 416 | round     | Time huge hollow              | SUSEMono extrabold, hollow |   96 |    1.2 |
 |  416 x 416 | round     | Time large                    | SUSEMono extrabold         |   54 |        |
 |  416 x 416 | round     | Time large hollow             | SUSEMono extrabold, hollow |   54 |    1.2 |
 |  416 x 416 | round     | Time medium                   | SUSEMono extrabold         |   40 |        |
 |  454 x 454 | round     | Time                          | SUSEMono extrabold         |   29 |        |
 |  454 x 454 | round     | Time extra extra large        | SUSEMono extrabold         |   89 |        |
 |  454 x 454 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   89 |   1.31 |
+|  454 x 454 | round     | Time extra huge               | SUSEMono extrabold         |  120 |        |
+|  454 x 454 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  120 |   1.31 |
 |  454 x 454 | round     | Time extra large              | SUSEMono extrabold         |   74 |        |
 |  454 x 454 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   74 |   1.31 |
+|  454 x 454 | round     | Time huge                     | SUSEMono extrabold         |  105 |        |
+|  454 x 454 | round     | Time huge hollow              | SUSEMono extrabold, hollow |  105 |   1.31 |
 |  454 x 454 | round     | Time large                    | SUSEMono extrabold         |   59 |        |
 |  454 x 454 | round     | Time large hollow             | SUSEMono extrabold, hollow |   59 |   1.31 |
 |  454 x 454 | round     | Time medium                   | SUSEMono extrabold         |   44 |        |
 |  466 x 466 | round     | Time                          | SUSEMono extrabold         |   30 |        |
 |  466 x 466 | round     | Time extra extra large        | SUSEMono extrabold         |   92 |        |
 |  466 x 466 | round     | Time extra extra large hollow | SUSEMono extrabold, hollow |   92 |   1.34 |
+|  466 x 466 | round     | Time extra huge               | SUSEMono extrabold         |  123 |        |
+|  466 x 466 | round     | Time extra huge hollow        | SUSEMono extrabold, hollow |  123 |   1.34 |
 |  466 x 466 | round     | Time extra large              | SUSEMono extrabold         |   76 |        |
 |  466 x 466 | round     | Time extra large hollow       | SUSEMono extrabold, hollow |   76 |   1.34 |
+|  466 x 466 | round     | Time huge                     | SUSEMono extrabold         |  108 |        |
+|  466 x 466 | round     | Time huge hollow              | SUSEMono extrabold, hollow |  108 |   1.34 |
 |  466 x 466 | round     | Time large                    | SUSEMono extrabold         |   60 |        |
 |  466 x 466 | round     | Time large hollow             | SUSEMono extrabold, hollow |   60 |   1.34 |
 |  466 x 466 | round     | Time medium                   | SUSEMono extrabold         |   45 |        |
 |  448 x 486 | rectangle | Time                          | SUSEMono extrabold         |   29 |        |
 |  448 x 486 | rectangle | Time extra extra large        | SUSEMono extrabold         |   88 |        |
 |  448 x 486 | rectangle | Time extra extra large hollow | SUSEMono extrabold, hollow |   88 |   1.29 |
+|  448 x 486 | rectangle | Time extra huge               | SUSEMono extrabold         |  118 |        |
+|  448 x 486 | rectangle | Time extra huge hollow        | SUSEMono extrabold, hollow |  118 |   1.29 |
 |  448 x 486 | rectangle | Time extra large              | SUSEMono extrabold         |   73 |        |
 |  448 x 486 | rectangle | Time extra large hollow       | SUSEMono extrabold, hollow |   73 |   1.29 |
+|  448 x 486 | rectangle | Time huge                     | SUSEMono extrabold         |  103 |        |
+|  448 x 486 | rectangle | Time huge hollow              | SUSEMono extrabold, hollow |  103 |   1.29 |
 |  448 x 486 | rectangle | Time large                    | SUSEMono extrabold         |   58 |        |
 |  448 x 486 | rectangle | Time large hollow             | SUSEMono extrabold, hollow |   58 |   1.29 |
 |  448 x 486 | rectangle | Time medium                   | SUSEMono extrabold         |   43 |        |
@@ -693,10 +742,10 @@ base fonts are byte-identical to the generated reference-resolution ones, and th
 in this file and in `fonts.md` are what the scaler produced. It checks Premium's fonts the same way,
 against `premium/resources/fonts/` and `premium/fonts.md`, and also that Premium's
 `resolutions.json` is Lite's, that `premium.jungle` adds the Premium font directory for every
-family, that the five time sizes grow at every resolution, and that the only Lite font ids Premium
+family, that the seven time sizes grow at every resolution, and that the only Lite font ids Premium
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
 that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
-and Premium's Small the date's `-` as well, with one advance in every family, since the fixed-width
+and Premium's Extra extra small the date's `-` as well, with one advance in every family, since the fixed-width
 time depends on it, and that every glyph of a Premium time font fills its whole cell, as wide as its advance and as tall as the line, since the
 time alignment setting keeps that box on the glass and counts on no digit reaching outside it. For
 the hollow fonts it also checks that each file carries the stroke the scaler's rule gives for its
@@ -824,14 +873,15 @@ taking the app down with an error no `catch` clause sees (#91, #93). Remove the 
 out, and both tests report an error rather than a failure.
 
 `TimeSizeTest`, in `premium/source/tests/`, covers the Premium time size setting: that Premium's
-property joins Lite's table instead of replacing it, that each of the five sizes is kept and anything
-else, of any type, falls back to Extra large, the default, that a settings change reaches the font the
-face draws, and that the five fonts really do grow in height on the product under test.
+property joins Lite's table instead of replacing it, that each of the seven sizes is kept and anything
+else, of any type, falls back to Medium, the default, that each stored value draws the font it drew
+before the sizes were renamed, that a settings change reaches the font the face draws, and that the
+seven fonts really do grow in height on the product under test.
 
 `LowPowerFontTest`, also in `premium/source/tests/`, covers Premium's always-on font: that it is
-Extra extra large under all ten combinations of time size and style, that it is loaded from the
+Large under all fourteen combinations of time size and style, that it is loaded from the
 hollow font's id and not the filled one's (which share every metric, so only the id can tell them
-apart), that a hollow Extra extra large woken time is drawn in that same font rather than a second
+apart), that a hollow Large woken time is drawn in that same font rather than a second
 copy of it, that every other combination loads a font of its own, and that the always-on scene draws
 in it at every corner of the jitter square.
 
@@ -860,10 +910,10 @@ pure red, and that a settings
 change reaches the ramp a falling rain draws.
 
 `TimeStyleTest`, also in `premium/source/tests/`, covers the time style setting: that the property
-is declared, that anything but Hollow falls back to Filled, that hollow Large, Extra large and Extra
-extra large map to their hollow fonts and every other size and style maps to none, that a hollow
+is declared, that anything but Hollow falls back to Filled, that hollow Small and every size above
+it map to their hollow fonts and every other size and style maps to none, that a hollow
 font is exactly as tall and as wide as its filled twin, so switching style never moves the time,
-that a settings change drops the black box at hollow Large, Extra large and Extra extra large only,
+that a settings change drops the black box at hollow Small and above only,
 and that the style never changes the size. The mapping is the one value `reloadTimeFont` both loads
 the font from and drops the box by; which of two fonts of the same size was loaded cannot itself be
 observed from a test.
@@ -875,20 +925,21 @@ keeps a gap from the edge, that a settings change reaches the `drawText` the wok
 with, and that the always-on time stays centred under every alignment. The last two draw a frame into
 `RecordingDc`, a stand-in for the screen's `Dc` that records the last text drawn and where. CI runs the suite
 on one product; the margin was checked on one product per supported resolution when the setting
-landed.
+landed, and again when Extra large and Extra extra large were added.
 
 `DateFieldTest`, also in `premium/source/tests/`, covers the date setting: that the property is
 declared, that anything but On falls back to Off, that the date is ISO and zero-padded, its position
 against values worked by hand, that at every time size and alignment the date's box stays on the
 glass under the time's and never sits outside the time's edge, that a settings change reaches the
 `drawText` the date is drawn with, that no date is drawn when it is off or on the always-on screen,
-and that the date font is held only while the date is on, and is the time's own font at Small.
+and that the date font is held only while the date is on, and is the time's own font at Extra extra
+small.
 
 `SettingsMenuTest`, also in `premium/source/tests/`, covers the settings menu on the watch: that
 every value it offers has a label and is kept as it is by the setting it belongs to, so the menu can
 never write a value the face would ignore, that each value is shown with its own label, that the
 open menu shows a value changed from the phone, that selecting steps to the next value and wraps,
-Extra extra large back to Small, and that a trail length the list does not offer steps to the next
+Extra extra large back to Extra extra small, and that a trail length the list does not offer steps to the next
 offered one.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
