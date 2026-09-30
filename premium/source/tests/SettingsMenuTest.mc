@@ -69,7 +69,8 @@ class SettingsMenuTest {
         Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, TimeColor.GREEN), "Green");
         Test.assertEqual(SettingsMenu.labelOf(TimeColor.PROPERTY, 4), "Orange");
         Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, RainColor.GREEN), "Green");
-        Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, 6), "White to green");
+        Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, 4), "Orange");
+        Test.assertEqual(SettingsMenu.labelOf(RainColor.PROPERTY, 7), "White to green");
         Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.BRIGHT), "Bright");
         Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.DIMMED), "Dimmed");
         Test.assertEqual(SettingsMenu.labelOf(AlwaysOnBrightness.PROPERTY, AlwaysOnBrightness.DIM), "Dim");
