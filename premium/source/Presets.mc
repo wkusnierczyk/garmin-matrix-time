@@ -80,8 +80,10 @@ module Presets {
         return (Application.loadResource(Rez.Strings.PresetDefaultName) as String) + " " + slot;
     }
 
-    // Acts on a load or save picked on the phone, and sets the list back to NONE. A save
-    // goes first, so that picking both keeps the look being replaced.
+    // Acts on a load or save picked on the phone, and sets the list back to NONE. Called
+    // from onSettingsChanged and at start, for a request that arrived while the face was
+    // not running. A save goes first, so that picking both saves the look the phone sent
+    // with the request and then replaces it.
     function applyRequests() as Void {
         var slot = requestOf(PropertyUtils.getPropertyElseDefault(SAVE_PROPERTY, NONE));
         if (slot != NONE) {

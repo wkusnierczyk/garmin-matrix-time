@@ -107,6 +107,24 @@ class PresetsTest {
     }
 
 
+    // Save and load picked together: the save runs first, so the slot gets the look the
+    // phone sent, and the load then brings it straight back.
+    (:test)
+    static function aSaveRunsBeforeALoad(logger as Test.Logger) as Boolean {
+        var saved = snapshot();
+        Properties.setValue(TimeColor.PROPERTY, 1);
+        Presets.save(1);
+        Properties.setValue(TimeColor.PROPERTY, 3);
+        Properties.setValue(Presets.SAVE_PROPERTY, 1);
+        Properties.setValue(Presets.LOAD_PROPERTY, 1);
+        Presets.applyRequests();
+        var color = TimeColor.selected();
+        restore(saved);
+        Test.assertEqual(color, 3);
+        return true;
+    }
+
+
     // Anything but a slot number is no request.
     (:test)
     static function onlyASlotNumberIsARequest(logger as Test.Logger) as Boolean {

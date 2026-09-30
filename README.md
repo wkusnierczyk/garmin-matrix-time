@@ -67,7 +67,8 @@ Lite has no customisation settings. It does ship a `resources/properties/propert
 
 Premium adds eight settings, and [presets](#presets) of them. They can be changed in the Connect IQ app, and on the watch from the
 face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
-the next value. The two are the same settings, so a change made in one shows in the other. A face
+the next value. The two preset items at the top of that menu work differently; see
+[Presets](#presets). The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
 there the watch is the only way to change them.
 
@@ -156,7 +157,8 @@ In the Connect IQ app, **Load preset** and **Save look as preset** are lists of 
 Pick a slot and save the settings, and the watch loads or saves it and sets the list back to None.
 The lists say Slot 1 to Slot 5 rather than the slots' names because a Connect IQ settings screen
 cannot label a list from another setting. The five **Slot N name** fields below them rename the
-slots, which are called Preset 1 to Preset 5 until renamed. Names show in the watch's menu.
+slots, which are called Preset 1 to Preset 5 until renamed. Names show in the watch's menu. They can
+only be changed on the phone, since the watch's menu has no way to type text.
 
 Loading a preset and then changing a setting changes the current look only. A preset changes only
 when it is saved over. A setting added in a later version is not in a preset saved before it, and

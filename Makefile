@@ -390,7 +390,8 @@ graphics:
 #
 # Premium sweeps every setting, one at a time with the others at their defaults.
 # PREVIEW_SETTINGS names them, so that the preset lists (#172), which are actions
-# and draw nothing of their own, are not swept too.
+# and draw nothing of their own, are not swept too. Keep it in step with
+# SettingsMenu.properties(): a setting missing here is left out of the sweep.
 # The resource directories are named, not discovered: the settings are in
 # premium/resources-base, and a directory off the build's path would be varied and
 # then ignored. VARY narrows the sweep, GRID="ACROSS DOWN" crosses two settings,
