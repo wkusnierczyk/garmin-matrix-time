@@ -52,13 +52,17 @@ class SettingsMenuTest {
     // rather than passing the size check above.
     (:test)
     static function eachValueIsShownWithItsOwnLabel(logger as Test.Logger) as Boolean {
+        Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.EXTRA_EXTRA_SMALL), "Extra extra small");
+        Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.EXTRA_SMALL), "Extra small");
         Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.SMALL), "Small");
+        Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.MEDIUM), "Medium");
+        Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.LARGE), "Large");
         Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.EXTRA_LARGE), "Extra large");
         Test.assertEqual(SettingsMenu.labelOf(TimeSize.PROPERTY, TimeSize.EXTRA_EXTRA_LARGE), "Extra extra large");
         Test.assertEqual(SettingsMenu.labelOf(TrailLength.PROPERTY, 25), "25% of the screen");
         Test.assertEqual(SettingsMenu.labelOf(TrailLength.PROPERTY, 75), "75% of the screen");
         Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.FILLED), "Filled");
-        Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.HOLLOW), "Hollow (Large and above)");
+        Test.assertEqual(SettingsMenu.labelOf(TimeStyle.PROPERTY, TimeStyle.HOLLOW), "Hollow (Small and above)");
         Test.assertEqual(SettingsMenu.labelOf(TimeAlign.PROPERTY, TimeAlign.LEFT), "Left");
         Test.assertEqual(SettingsMenu.labelOf(TimeAlign.PROPERTY, TimeAlign.CENTER), "Centre");
         Test.assertEqual(SettingsMenu.labelOf(TimeAlign.PROPERTY, TimeAlign.RIGHT), "Right");
@@ -78,10 +82,12 @@ class SettingsMenuTest {
     (:test)
     static function selectingStepsToTheNextValueAndWraps(logger as Test.Logger) as Boolean {
         var sizes = SettingsMenu.valuesOf(TimeSize.PROPERTY);
+        Test.assertEqual(SettingsMenu.next(sizes, TimeSize.EXTRA_EXTRA_SMALL), TimeSize.EXTRA_SMALL);
         Test.assertEqual(SettingsMenu.next(sizes, TimeSize.SMALL), TimeSize.MEDIUM);
+        Test.assertEqual(SettingsMenu.next(sizes, TimeSize.MEDIUM), TimeSize.LARGE);
         Test.assertEqual(SettingsMenu.next(sizes, TimeSize.LARGE), TimeSize.EXTRA_LARGE);
         Test.assertEqual(SettingsMenu.next(sizes, TimeSize.EXTRA_LARGE), TimeSize.EXTRA_EXTRA_LARGE);
-        Test.assertEqual(SettingsMenu.next(sizes, TimeSize.EXTRA_EXTRA_LARGE), TimeSize.SMALL);
+        Test.assertEqual(SettingsMenu.next(sizes, TimeSize.EXTRA_EXTRA_LARGE), TimeSize.EXTRA_EXTRA_SMALL);
 
         var styles = SettingsMenu.valuesOf(TimeStyle.PROPERTY);
         Test.assertEqual(SettingsMenu.next(styles, TimeStyle.FILLED), TimeStyle.HOLLOW);
@@ -109,14 +115,14 @@ class SettingsMenuTest {
     (:test)
     static function refreshShowsAValueChangedBehindTheMenu(logger as Test.Logger) as Boolean {
         var saved = Properties.getValue(TimeSize.PROPERTY);
-        Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
+        Properties.setValue(TimeSize.PROPERTY, TimeSize.EXTRA_EXTRA_SMALL);
         var menu = new SettingsMenuView();
-        Properties.setValue(TimeSize.PROPERTY, TimeSize.EXTRA_LARGE);
+        Properties.setValue(TimeSize.PROPERTY, TimeSize.MEDIUM);
         menu.refresh();
         var item = menu.getItem(menu.findItemById(TimeSize.PROPERTY));
         Properties.setValue(TimeSize.PROPERTY, saved as Number);
         Test.assert(item != null);
-        Test.assertEqual((item as WatchUi.MenuItem).getSubLabel() as String, "Extra large");
+        Test.assertEqual((item as WatchUi.MenuItem).getSubLabel() as String, "Medium");
         return true;
     }
 

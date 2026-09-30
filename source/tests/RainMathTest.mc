@@ -251,7 +251,7 @@ class RainMathTest {
     }
 
 
-    // Each edition's own square (#153). Premium's always-on font, the hollow XXL, leaves
+    // Each edition's own square (#153). Premium's always-on font, the hollow L, leaves
     // pixels lit for three minutes at Lite's 16 and clears at 12; Lite, frozen, keeps 16.
     // The other jitter tests read LOW_POWER_JITTER_DIVISOR and would pass whatever it was.
     (:test :lite)

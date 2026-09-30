@@ -1,14 +1,18 @@
 <settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
 
-    <!-- The values are the indices TimeSize maps to fonts (#32). -->
+    <!-- The values are the indices TimeSize maps to fonts (#32). XL and XXL came last
+         (#166), as 5 and 6, so that every stored value kept its font when the first five
+         were renamed. -->
     <setting propertyKey="@Properties.timeSize" title="@Strings.TimeSizeTitle">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.TimeSizeSmall</listEntry>
-            <listEntry value="1">@Strings.TimeSizeMedium</listEntry>
-            <listEntry value="2">@Strings.TimeSizeLarge</listEntry>
-            <listEntry value="3">@Strings.TimeSizeExtraLarge</listEntry>
-            <listEntry value="4">@Strings.TimeSizeExtraExtraLarge</listEntry>
+            <listEntry value="0">@Strings.TimeSizeExtraExtraSmall</listEntry>
+            <listEntry value="1">@Strings.TimeSizeExtraSmall</listEntry>
+            <listEntry value="2">@Strings.TimeSizeSmall</listEntry>
+            <listEntry value="3">@Strings.TimeSizeMedium</listEntry>
+            <listEntry value="4">@Strings.TimeSizeLarge</listEntry>
+            <listEntry value="5">@Strings.TimeSizeExtraLarge</listEntry>
+            <listEntry value="6">@Strings.TimeSizeExtraExtraLarge</listEntry>
         </settingConfig>
     </setting>
 
@@ -21,7 +25,7 @@
         </settingConfig>
     </setting>
 
-    <!-- The values are the indices TimeStyle reads (#72). Hollow has no effect at S or M,
+    <!-- The values are the indices TimeStyle reads (#72). Hollow has no effect at XXS or XS,
          and its label says so, since the two settings are on separate lines. -->
     <setting propertyKey="@Properties.timeStyle" title="@Strings.TimeStyleTitle">
         <settingConfig type="list">

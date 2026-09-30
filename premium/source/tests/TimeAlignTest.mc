@@ -130,7 +130,7 @@ class TimeAlignTest {
     }
 
 
-    // The chord, worked by hand: XL at 416x416 is 86 pixels tall, so its corners are 43 above
+    // The chord, worked by hand: M at 416x416 is 86 pixels tall, so its corners are 43 above
     // and below the centre, where the circle of radius 208 is 2 * 203.5 wide. Rounded up, the
     // inset is 5, and the gap a quarter of 86, 21, puts the box 26 in. A box as tall as the
     // screen has nowhere to go but the middle.
@@ -163,7 +163,7 @@ class TimeAlignTest {
         var height = settings.screenHeight;
         var radius = (width < height ? width : height) / 2;
         var dc = new RecordingDc();
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             for (var style = TimeStyle.FILLED; style <= TimeStyle.HOLLOW; ++style) {
                 var id = TimeStyle.hollowFont(size, style);
                 var font = id == null ? TimeSize.load(size) : Application.loadResource(id) as Graphics.FontType;
@@ -198,7 +198,7 @@ class TimeAlignTest {
         var width = System.getDeviceSettings().screenWidth;
         var height = System.getDeviceSettings().screenHeight;
         var filled = TimeStyle.FILLED;
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var left = drawnWith(TimeAlign.LEFT, size, filled, false);
             var center = drawnWith(TimeAlign.CENTER, size, filled, false);
             var right = drawnWith(TimeAlign.RIGHT, size, filled, false);
@@ -209,9 +209,9 @@ class TimeAlignTest {
             Test.assertEqualMessage(center[1], JUSTIFY, "size " + size + ": centre anchor");
             Test.assertEqualMessage(right[1], Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER, "size " + size + ": right anchor");
         }
-        var small = drawnWith(TimeAlign.LEFT, TimeSize.SMALL, filled, false)[0];
-        var extraLarge = drawnWith(TimeAlign.LEFT, TimeSize.EXTRA_LARGE, filled, false)[0];
-        Test.assertMessage(extraLarge > small, "a taller time sits further in: S at " + small + ", XL at " + extraLarge);
+        var smallest = drawnWith(TimeAlign.LEFT, TimeSize.EXTRA_EXTRA_SMALL, filled, false)[0];
+        var largest = drawnWith(TimeAlign.LEFT, TimeSize.EXTRA_EXTRA_LARGE, filled, false)[0];
+        Test.assertMessage(largest > smallest, "a taller time sits further in: XXS at " + smallest + ", XXL at " + largest);
         return true;
     }
 
@@ -223,7 +223,7 @@ class TimeAlignTest {
         var width = System.getDeviceSettings().screenWidth;
         var expected = width / 2 + RainMath.jitter(0, width)[0];
         for (var align = TimeAlign.LEFT; align <= TimeAlign.RIGHT; ++align) {
-            var drawn = drawnWith(align, TimeSize.EXTRA_LARGE, TimeStyle.FILLED, true);
+            var drawn = drawnWith(align, TimeSize.MEDIUM, TimeStyle.FILLED, true);
             Test.assertEqualMessage(drawn[0], expected, "alignment " + align + ": the always-on time is at the centre");
             Test.assertEqualMessage(drawn[1], JUSTIFY, "alignment " + align + ": the always-on time is centred");
         }

@@ -54,21 +54,25 @@ class TimeStyleTest {
     }
 
 
-    // The choice the draw follows, for every size and style: hollow L, XL and XXL are drawn
-    // in their hollow fonts, and everything else is drawn filled, which is null here.
+    // The choice the draw follows, for every size and style: hollow S, M, L, XL and XXL are
+    // drawn in their hollow fonts, and everything else is drawn filled, which is null here.
     (:test)
-    static function hollowIsLargeAndAboveOnly(logger as Test.Logger) as Boolean {
+    static function hollowIsSmallAndAboveOnly(logger as Test.Logger) as Boolean {
         var filled = TimeStyle.FILLED;
         var hollow = TimeStyle.HOLLOW;
-        Test.assertMessage(TimeStyle.hollowFont(TimeSize.LARGE, hollow) == Rez.Fonts.TimeLargeHollow,
-            "hollow L is drawn in TimeLargeHollow");
-        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_LARGE, hollow) == Rez.Fonts.TimeExtraLargeHollow,
-            "hollow XL is drawn in TimeExtraLargeHollow");
-        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_EXTRA_LARGE, hollow) == Rez.Fonts.TimeExtraExtraLargeHollow,
-            "hollow XXL is drawn in TimeExtraExtraLargeHollow");
-        Test.assertMessage(TimeStyle.hollowFont(TimeSize.SMALL, hollow) == null, "hollow S is drawn filled");
-        Test.assertMessage(TimeStyle.hollowFont(TimeSize.MEDIUM, hollow) == null, "hollow M is drawn filled");
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.SMALL, hollow) == Rez.Fonts.TimeLargeHollow,
+            "hollow S is drawn in TimeLargeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.MEDIUM, hollow) == Rez.Fonts.TimeExtraLargeHollow,
+            "hollow M is drawn in TimeExtraLargeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.LARGE, hollow) == Rez.Fonts.TimeExtraExtraLargeHollow,
+            "hollow L is drawn in TimeExtraExtraLargeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_LARGE, hollow) == Rez.Fonts.TimeHugeHollow,
+            "hollow XL is drawn in TimeHugeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_EXTRA_LARGE, hollow) == Rez.Fonts.TimeExtraHugeHollow,
+            "hollow XXL is drawn in TimeExtraHugeHollow");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_EXTRA_SMALL, hollow) == null, "hollow XXS is drawn filled");
+        Test.assertMessage(TimeStyle.hollowFont(TimeSize.EXTRA_SMALL, hollow) == null, "hollow XS is drawn filled");
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             Test.assertMessage(TimeStyle.hollowFont(size, filled) == null, "filled size " + size + " is drawn filled");
         }
         return true;
@@ -82,7 +86,7 @@ class TimeStyleTest {
     (:test)
     static function aHollowFontHasItsFilledTwinsMetrics(logger as Test.Logger) as Boolean {
         var dc = (Graphics.createBufferedBitmap({:width => 1, :height => 1}).get() as Graphics.BufferedBitmap).getDc();
-        for (var size = TimeSize.LARGE; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var filled = TimeSize.load(size);
             var hollow = Application.loadResource(
                 TimeStyle.hollowFont(size, TimeStyle.HOLLOW) as ResourceId) as Graphics.FontType;
@@ -100,17 +104,19 @@ class TimeStyleTest {
 
 
     // The whole path a change takes, App.onSettingsChanged to DigitalRain.reloadTimeFont,
-    // and what it decides: hollow L, XL and XXL drop the box, everything else keeps it.
+    // and what it decides: hollow S and above drop the box, everything else keeps it.
     (:test)
-    static function hollowDropsTheBoxAtLargeAndAboveOnly(logger as Test.Logger) as Boolean {
+    static function hollowDropsTheBoxAtSmallAndAboveOnly(logger as Test.Logger) as Boolean {
         var none = Graphics.COLOR_TRANSPARENT;
         var box = Graphics.COLOR_BLACK;
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.HOLLOW)[1], none, "hollow XXL: no box");
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.HOLLOW)[1], none, "hollow XL: no box");
         Test.assertEqualMessage(drawnWith(TimeSize.LARGE, TimeStyle.HOLLOW)[1], none, "hollow L: no box");
-        Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.HOLLOW)[1], box, "hollow M: filled, on the box");
-        Test.assertEqualMessage(drawnWith(TimeSize.SMALL, TimeStyle.HOLLOW)[1], box, "hollow S: filled, on the box");
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XL: on the box");
+        Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.HOLLOW)[1], none, "hollow M: no box");
+        Test.assertEqualMessage(drawnWith(TimeSize.SMALL, TimeStyle.HOLLOW)[1], none, "hollow S: no box");
+        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_SMALL, TimeStyle.HOLLOW)[1], box, "hollow XS: filled, on the box");
+        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_SMALL, TimeStyle.HOLLOW)[1], box, "hollow XXS: filled, on the box");
+        Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.FILLED)[1], box, "filled M: on the box");
         Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XXL: on the box");
         return true;
     }
@@ -119,7 +125,7 @@ class TimeStyleTest {
     // The style changes the font, never the size.
     (:test)
     static function hollowKeepsTheSelectedSize(logger as Test.Logger) as Boolean {
-        for (var size = TimeSize.SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var filled = drawnWith(size, TimeStyle.FILLED)[0];
             var hollow = drawnWith(size, TimeStyle.HOLLOW)[0];
             Test.assertEqualMessage(hollow, filled, "size " + size + ": the same height either style");

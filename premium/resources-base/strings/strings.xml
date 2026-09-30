@@ -4,8 +4,10 @@
     <!-- Overrides resources/strings/strings.xml in the Premium build only (#135). -->
     <string id="AppName">MatrixTime Premium</string>
 
-    <!-- The time size setting (#32). -->
+    <!-- The time size setting (#32), XXS to XXL (#166). -->
     <string id="TimeSizeTitle">Time size</string>
+    <string id="TimeSizeExtraExtraSmall">Extra extra small</string>
+    <string id="TimeSizeExtraSmall">Extra small</string>
     <string id="TimeSizeSmall">Small</string>
     <string id="TimeSizeMedium">Medium</string>
     <string id="TimeSizeLarge">Large</string>
@@ -21,7 +23,7 @@
     <!-- The time style setting (#72). -->
     <string id="TimeStyleTitle">Time style</string>
     <string id="TimeStyleFilled">Filled</string>
-    <string id="TimeStyleHollow">Hollow (Large and above)</string>
+    <string id="TimeStyleHollow">Hollow (Small and above)</string>
 
     <!-- The time alignment setting (#154). -->
     <string id="TimeAlignTitle">Time alignment</string>

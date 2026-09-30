@@ -20,9 +20,9 @@ import Toybox.Lang;
 // fonts to it -- so no digit can reach past the glass, and the black box behind a filled
 // time (#50) stays on it too.
 //
-// That alone puts the digits against the bezel, 1 pixel in at S and 5 at XL on 416x416,
+// That alone puts the digits against the bezel, 1 pixel in at XXS and 5 at M on 416x416,
 // so the box moves a further GAP in: a quarter of the font height, which in SUSE Mono is
-// about half a digit cell (41 of 86 pixels at XL), and so the same proportion at every
+// about half a digit cell (41 of 86 pixels at M), and so the same proportion at every
 // size. A quarter of the height rather than half the measured advance because the height
 // needs no Dc, and the margin can then be settled before the first frame. The margin
 // therefore grows with the time size, and is worked out from whichever font is loaded,
