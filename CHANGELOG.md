@@ -39,9 +39,9 @@ each change is recorded in full.
   their current values, and selecting one steps to the next value. They were in the Connect IQ app
   only, which also left a sideloaded face with no way to change them. (#148)
 * **Premium: a choice of time and rain colours.** The time can be green, white, cyan, amber, orange
-  or red, and the always-on time follows it. The rain can be green, cyan, blue, amber, red or
-  white, or change hue as it fades: white to green, a white-hot head cooling to green, or green to
-  teal. Green, Lite's look, is the default for both. (#143)
+  or red, and the always-on time follows it. The rain can be green, cyan, blue, amber, orange,
+  red or white, or change hue as it fades: white to green, a white-hot head cooling to green, or
+  green to teal. Green, Lite's look, is the default for both. (#143, #171)
 * **Premium: a choice of time alignment.** The time can sit at the left, centre or right of the woken
   screen. Centre, Lite's look, is the default. The margin follows the screen's curve and the time
   size, so no digit is cut off by a round screen's edge, and the time keeps its fixed width, so it

@@ -114,12 +114,13 @@ there the watch is the only way to change them.
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
   brightness, so the always-on figures above hold for every colour.
-* **Rain colour** -- Green, Cyan, Blue, Amber, Red, White, White to green or Green to teal: the colour
-  of the rain. Green is the colour Lite draws, and is the default. The first six fade along the trail in
-  their own hue, as Lite's green does. The last two also change hue as they fade: White to green has a
-  white-hot head that cools to green within a few glyphs, and Green to teal cools from green to teal.
-  Every colour stays a visibly stepped fade at the shortest trail length. A change applies from the next
-  frame without restarting the rain.
+* **Rain colour** -- Green, Cyan, Blue, Amber, Orange, Red, White, White to green or Green to teal:
+  the colour of the rain. Green is the colour Lite draws, and is the default. Orange is the time's
+  orange, so the two can match. The first seven fade along the trail in their own hue, as Lite's
+  green does. The last two also change hue as they fade: White to green has a white-hot head that
+  cools to green within a few glyphs, and Green to teal cools from green to teal. Every colour stays
+  a visibly stepped fade at the shortest trail length. A change applies from the next frame without
+  restarting the rain.
 
   Any time colour can be paired with any rain colour. The time is drawn with no box, so the rain
   falls right up to its digits, and through them when it is hollow. A hollow time in the same colour
@@ -841,7 +842,7 @@ and building that, so the tree is never written to, and nothing about the simula
 can leak into a tile. It is slow: each combination is a build of its own, compiled and then captured
 on a freshly started simulator, and on an arm64 Mac, where the image runs emulated, that is about a
 minute a build: one setting of three values, in both scenes, took six minutes. The full Premium sweep
-is 27 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what
+is 28 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what
 changed. Tiles taken a minute apart show different times, and the rain differs in every frame;
 neither is a difference between settings.
 

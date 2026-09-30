@@ -19,7 +19,7 @@ class PresetsTest {
         Properties.setValue(TimeStyle.PROPERTY, TimeStyle.HOLLOW);
         Properties.setValue(TimeAlign.PROPERTY, TimeAlign.LEFT);
         Properties.setValue(TimeColor.PROPERTY, 1);
-        Properties.setValue(RainColor.PROPERTY, 6);
+        Properties.setValue(RainColor.PROPERTY, 7);
         Presets.save(1);
         Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
         Properties.setValue(TrailLength.PROPERTY, 25);
@@ -37,7 +37,7 @@ class PresetsTest {
         Test.assertEqual(look[2], TimeStyle.HOLLOW);
         Test.assertEqual(look[3], TimeAlign.LEFT);
         Test.assertEqual(look[4], 1);
-        Test.assertEqual(look[5], 6);
+        Test.assertEqual(look[5], 7);
         return true;
     }
 
