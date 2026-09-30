@@ -75,4 +75,13 @@
         </settingConfig>
     </setting>
 
+    <!-- The values are DateField's OFF and ON (#163). A list rather than a boolean, so that
+         the watch's menu steps through it like every other setting. -->
+    <setting propertyKey="@Properties.date" title="@Strings.DateTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.DateOff</listEntry>
+            <listEntry value="1">@Strings.DateOn</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>

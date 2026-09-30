@@ -48,4 +48,9 @@
     <string id="AlwaysOnBrightnessDimmed">Dimmed</string>
     <string id="AlwaysOnBrightnessDim">Dim</string>
 
+    <!-- The date setting (#163). -->
+    <string id="DateTitle">Date</string>
+    <string id="DateOff">Off</string>
+    <string id="DateOn">On</string>
+
 </resources>

@@ -21,7 +21,12 @@
          scaler scales per resolution like the size and passes to ttf2bmp; it needs
          garmin-font-scaler 0.3.0 and ttf2bmp 0.3.0. 1.2 is the look chosen from the
          prototype on #72. S and M have no hollow font: an outline that small reads as
-         noise in the rain. -->
+         noise in the rain.
+
+         Time, S, also draws the date under the woken time (#163), whatever the time size,
+         so its charset adds "-" to the time's. The date has no font of its own because the
+         scaler names a bitmap by face and size: a date font at S's size would overwrite S's
+         bitmap in every family. -->
     <fonts>
         <font id="Time" filename="SUSEMono-ExtraBold-27.fnt" antialias="true" />
         <font id="TimeMedium" filename="SUSEMono-ExtraBold-40.fnt" antialias="true" />

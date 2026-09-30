@@ -60,24 +60,38 @@ module TimeAlign {
     // its corners to be on the circle of this radius. Rounded up, so that the box is never
     // a fraction of a pixel outside it, and taking the half height rounded up too, since
     // centring an odd height puts the extra row on one side or the other.
+    //
+    // The time's case of insetAt. xOf passes the same half height to xAt directly; this is
+    // kept for TimeAlignTest's hand-worked values, and for DateField's comment on rounding.
     function inset(radius as Number, boxHeight as Number) as Number {
-        var half = (boxHeight + 1) / 2;
-        if (half >= radius) {
+        return insetAt(radius, (boxHeight + 1) / 2);
+    }
+
+    // The same for a box whose farthest corner is reach pixels above or below the centre:
+    // the date's (#163), which sits under the time rather than across the middle.
+    function insetAt(radius as Number, reach as Number) as Number {
+        if (reach >= radius) {
             return radius;
         }
-        return radius - Math.sqrt(radius * radius - half * half).toNumber();
+        return radius - Math.sqrt(radius * radius - reach * reach).toNumber();
     }
 
     // The x the time is drawn at, for a screen of this size and a font of this height. At
     // the centre it is the centre; left and right are the box's outer edge, which justifyOf
     // anchors the text to, inset past the circle and a gap further.
     function xOf(align as Number, width as Number, height as Number, fontHeight as Number) as Number {
+        return xAt(align, width, height, (fontHeight + 1) / 2, fontHeight);
+    }
+
+    // xOf for a box of this font's height whose farthest corner is reach pixels from the
+    // centre, as insetAt takes it.
+    function xAt(align as Number, width as Number, height as Number, reach as Number, fontHeight as Number) as Number {
         var center = width / 2;
         if (align == CENTER) {
             return center;
         }
         var radius = (width < height ? width : height) / 2;
-        var margin = inset(radius, fontHeight) + fontHeight / GAP_DIVISOR;
+        var margin = insetAt(radius, reach) + fontHeight / GAP_DIVISOR;
         return align == LEFT ? center - radius + margin : center + radius - margin;
     }
 
