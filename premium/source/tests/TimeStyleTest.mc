@@ -2,6 +2,7 @@ using Toybox.Application;
 using Toybox.Application.Properties;
 using Toybox.Graphics;
 using Toybox.Test;
+using Toybox.Time;
 
 import Toybox.Lang;
 
@@ -10,23 +11,29 @@ import Toybox.Lang;
 (:test)
 class TimeStyleTest {
 
-    // Sets both settings the style depends on, applies them the way Connect IQ does, and
-    // returns what the face now draws the time with: [font height, background]. Puts back
-    // what was stored, for the reason TimeSizeTest.selectedWith gives.
+    // Sets both settings the style depends on, applies them the way Connect IQ does, draws
+    // one woken frame, and returns what the time was drawn with: [font height, background].
+    // The date is turned off, so that the last drawText is the time. Puts back what was
+    // stored, for the reason TimeSizeTest.selectedWith gives.
     private static function drawnWith(size as Number, style as Number) as Array<Number> {
         var app = Application.getApp() as App;
         var view = (app.getInitialView() as Array)[0] as View;
         var savedSize = Properties.getValue(TimeSize.PROPERTY);
         var savedStyle = Properties.getValue(TimeStyle.PROPERTY);
+        var savedDate = Properties.getValue(DateField.PROPERTY);
 
         Properties.setValue(TimeSize.PROPERTY, size);
         Properties.setValue(TimeStyle.PROPERTY, style);
+        Properties.setValue(DateField.PROPERTY, DateField.OFF);
         app.onSettingsChanged();
-        var rain = view.digitalRain();
-        var drawn = [Graphics.getFontHeight(rain.timeFont()), rain.timeBackground() as Number] as Array<Number>;
+        var rain = view.digitalRain().forTime(new Time.Moment(0));
+        var dc = new RecordingDc();
+        rain.draw(dc as Graphics.Dc);
+        var drawn = [Graphics.getFontHeight(rain.timeFont()), dc.background as Number] as Array<Number>;
 
         Properties.setValue(TimeSize.PROPERTY, savedSize as Number);
         Properties.setValue(TimeStyle.PROPERTY, savedStyle as Number);
+        Properties.setValue(DateField.PROPERTY, savedDate as Number);
         app.onSettingsChanged();
         return drawn;
     }
@@ -103,22 +110,16 @@ class TimeStyleTest {
     }
 
 
-    // The whole path a change takes, App.onSettingsChanged to DigitalRain.reloadTimeFont,
-    // and what it decides: hollow S and above drop the box, everything else keeps it.
+    // The whole path a change takes, App.onSettingsChanged to the drawText the woken time is
+    // drawn with: no size and no style draws it on a box (#174), filled included.
     (:test)
-    static function hollowDropsTheBoxAtSmallAndAboveOnly(logger as Test.Logger) as Boolean {
-        var none = Graphics.COLOR_TRANSPARENT;
-        var box = Graphics.COLOR_BLACK;
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.HOLLOW)[1], none, "hollow XXL: no box");
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.HOLLOW)[1], none, "hollow XL: no box");
-        Test.assertEqualMessage(drawnWith(TimeSize.LARGE, TimeStyle.HOLLOW)[1], none, "hollow L: no box");
-        Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.HOLLOW)[1], none, "hollow M: no box");
-        Test.assertEqualMessage(drawnWith(TimeSize.SMALL, TimeStyle.HOLLOW)[1], none, "hollow S: no box");
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_SMALL, TimeStyle.HOLLOW)[1], box, "hollow XS: filled, on the box");
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_SMALL, TimeStyle.HOLLOW)[1], box, "hollow XXS: filled, on the box");
-        Test.assertEqualMessage(drawnWith(TimeSize.MEDIUM, TimeStyle.FILLED)[1], box, "filled M: on the box");
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XL, the always-on font: on the box");
-        Test.assertEqualMessage(drawnWith(TimeSize.EXTRA_EXTRA_LARGE, TimeStyle.FILLED)[1], box, "filled XXL: on the box");
+    static function noSizeOrStyleDrawsABox(logger as Test.Logger) as Boolean {
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+            for (var style = TimeStyle.FILLED; style <= TimeStyle.HOLLOW; ++style) {
+                Test.assertEqualMessage(drawnWith(size, style)[1], Graphics.COLOR_TRANSPARENT,
+                    "size " + size + ", style " + style + ": no box");
+            }
+        }
         return true;
     }
 

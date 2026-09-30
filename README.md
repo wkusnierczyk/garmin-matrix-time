@@ -90,23 +90,25 @@ there the watch is the only way to change them.
   control: the face only draws the lit part of each trail, so 25% draws about half the glyphs of 50%
   each frame, and 75% about half again as many. A change applies from the next frame without
   restarting the rain.
-* **Time style** -- Filled or Hollow: the time on the woken screen drawn as solid digits on a black
-  box, or as an outline with no box, so the rain falls through the digits. Filled is the look Lite
-  draws, and is the default. Hollow applies to Small and the sizes above it only; at Extra extra
-  small and Extra small the outline is too fine to read against the rain, so those stay filled
-  whichever style is chosen. The outline is 1.2 pixels wide at the 416x416 reference and scales with
-  the screen, like the font sizes; see [Fonts](#fonts). The always-on screen is not affected: it is
-  drawn filled at Extra large whichever style is chosen here.
+* **Time style** -- Filled or Hollow: the time on the woken screen drawn as solid digits, with the
+  rain falling around them, or as an outline, with the rain falling through the digits. Filled is
+  the default. Neither is drawn on a box: Lite draws its time as solid digits on a black box that
+  keeps the rain out of the whole time field, and that look is Lite's alone. Hollow applies to Small
+  and the sizes above it only; at Extra extra small and Extra small the outline is too fine to read
+  against the rain, so those stay filled whichever style is chosen. The outline is 1.2 pixels wide
+  at the 416x416 reference and scales with the screen, like the font sizes; see [Fonts](#fonts). The
+  always-on screen is not affected: it is drawn filled at Extra large whichever style is chosen
+  here.
 * **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
   is where Lite draws it, and is the default. At the left or right the time keeps its fixed width of
   five characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a
   left-aligned time therefore starts one blank character in from its margin. The margin is not
   fixed: it is worked out from the screen's curve at the top and bottom of the time, plus half a
-  character, so no digit is cut off by a round screen's edge at any time size, and the black box
-  behind a filled time stays on the glass too. At the 416x416 reference that puts the time 9 pixels
-  in at Extra extra small, 26 at Medium, 33 at Large and 47 at Extra extra large. A rectangular
-  screen gets the same margin as the circle that fits it, so the time sits the same way on every
-  shape. The always-on screen is not affected: it stays centred, so its burn-in figures above hold.
+  character, so no digit is cut off by a round screen's edge at any time size. At the 416x416
+  reference that puts the time 9 pixels in at Extra extra small, 26 at Medium, 33 at Large and 47 at
+  Extra extra large. A rectangular screen gets the same margin as the circle that fits it, so the
+  time sits the same way on every shape. The always-on screen is not affected: it stays centred, so
+  its burn-in figures above hold.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
@@ -118,9 +120,10 @@ there the watch is the only way to change them.
   Every colour stays a visibly stepped fade at the shortest trail length. A change applies from the next
   frame without restarting the rain.
 
-  Any time colour can be paired with any rain colour. Behind a filled time the black box keeps the two
-  apart, but a hollow time has no box, and in the same colour as the rain it is hard to read: pick a
-  time colour that differs from the rain, such as White on the default green.
+  Any time colour can be paired with any rain colour. The time is drawn with no box, so the rain
+  falls right up to its digits, and through them when it is hollow. A hollow time in the same colour
+  as the rain is hard to read: pick a time colour that differs from the rain, such as White on the
+  default green.
 * **Always-on brightness** -- Bright, Dimmed or Dim: how bright the time is on the always-on screen,
   as a share of the time colour. Bright is the full colour, and is the default. Dimmed is five sixths
   of it, and Dim two thirds, which is how Lite draws its always-on time. The watch dims the always-on
@@ -129,14 +132,15 @@ there the watch is the only way to change them.
   battery in always-on, and nothing else. The woken screen is not affected.
 * **Date** -- Off or On: today's date under the time on the woken screen, as `2026-09-29`. Off is
   the default, so the face looks as Lite does until it is turned on. The date is drawn at the Extra
-  extra small time size whatever the time size, in the time colour, on a black box like a filled
-  time's, so it stays legible over the rain whichever time style is chosen. It follows the **Time
-  alignment** setting: at the left or right it lines up with the edge of the time, unless the circle
-  that fits the screen is already narrower at the date's height, in which case it sits further in,
-  so no digit is cut off. That happens under the smaller time sizes, by a few pixels. Like the time,
-  it is a fixed width, ten characters every day. The time's blank padding character before 10:00 on
-  a 12-hour clock therefore leaves a left-aligned date one character further out than the hour. The
-  always-on screen is not affected: it shows the time alone, so its burn-in figures above hold.
+  extra small time size whatever the time size, in the time colour, on a black box, so it stays
+  legible over the rain whichever time style is chosen. The time itself has no box; the date keeps
+  one because it is always drawn that small. It follows the **Time alignment** setting: at the left
+  or right it lines up with the edge of the time, unless the circle that fits the screen is already
+  narrower at the date's height, in which case it sits further in, so no digit is cut off. That
+  happens under the smaller time sizes, by a few pixels. Like the time, it is a fixed width, ten
+  characters every day. The time's blank padding character before 10:00 on a 12-hour clock therefore
+  leaves a left-aligned date one character further out than the hour. The always-on screen is not
+  affected: it shows the time alone, so its burn-in figures above hold.
 
 ## Editions
 
@@ -974,10 +978,9 @@ change reaches the ramp a falling rain draws.
 is declared, that anything but Hollow falls back to Filled, that hollow Small and every size above
 it map to their hollow fonts and every other size and style maps to none, that a hollow
 font is exactly as tall and as wide as its filled twin, so switching style never moves the time,
-that a settings change drops the black box at hollow Small and above only,
-and that the style never changes the size. The mapping is the one value `reloadTimeFont` both loads
-the font from and drops the box by; which of two fonts of the same size was loaded cannot itself be
-observed from a test.
+that no time size or style draws the woken time on a box, and that the style never changes the
+size. The mapping is the one value `reloadTimeFont` loads the font from; which of two fonts of the
+same size was loaded cannot itself be observed from a test.
 
 `TimeAlignTest`, also in `premium/source/tests/`, covers the time alignment setting: that the property
 is declared, that anything but Left, Centre or Right falls back to Centre, the margin against values
