@@ -842,7 +842,7 @@ and building that, so the tree is never written to, and nothing about the simula
 can leak into a tile. It is slow: each combination is a build of its own, compiled and then captured
 on a freshly started simulator, and on an arm64 Mac, where the image runs emulated, that is about a
 minute a build: one setting of three values, in both scenes, took six minutes. The full Premium sweep
-is 27 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what
+is 28 builds in each scene, about an hour, so narrow it with `VARY` when one setting is what
 changed. Tiles taken a minute apart show different times, and the rain differs in every frame;
 neither is a difference between settings.
 

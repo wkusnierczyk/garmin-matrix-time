@@ -401,7 +401,7 @@ graphics:
 #
 # Expect it to be slow. Every build is compiled in the one container, then captured
 # on a fresh simulator: about a minute a build on an arm64 Mac, where the image
-# runs emulated. The full Premium sweep is 27 builds a scene, about an hour; one
+# runs emulated. The full Premium sweep is 28 builds a scene, about an hour; one
 # setting of three values in both scenes took six minutes.
 PREVIEW_DIR := .dev/scratchpad/preview/$(EDITION)
 SCENES ?= woken always-on

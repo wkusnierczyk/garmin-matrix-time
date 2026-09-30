@@ -34,7 +34,7 @@ module RainColor {
     // settings.xml's listEntry values index these two, which run index for index. Orange is
     // the time's orange (#171), and sits between amber and red as it does in TimeColor. It
     // went in there rather than at the end because Premium had not been released, so no
-    // stored index could change colour.
+    // stored index, a rainColor or one saved in a preset (#172), could change colour.
     const
         HEADS = [MATRIX_COLOR, 0x00FFFF, 0x3399FF, 0xFFBF00, 0xFF8000, 0xFF0000, 0xFFFFFF, 0xFFFFFF, MATRIX_COLOR] as Array<Number>,
         TAILS = [MATRIX_COLOR, 0x00FFFF, 0x3399FF, 0xFFBF00, 0xFF8000, 0xFF0000, 0xFFFFFF, MATRIX_COLOR, 0x00FFFF] as Array<Number>;
