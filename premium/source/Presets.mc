@@ -7,6 +7,10 @@ import Toybox.Lang;
 
 // Presets: five slots, each a saved look that can be loaded back in one step (#172).
 //
+// Slots 1 to 3 ship with a look of their own, Green, Red and Blue (#183), which stands in
+// for a snapshot until the slot is first saved over. Slots 4 and 5 ship empty. The names
+// are the defaults of presetName1 to presetName3 in properties.xml.
+//
 // A preset is the look only -- time size, trail length, time style, time alignment, time
 // colour and rain colour. Always-on brightness and the date are about readability and
 // information, not the look, so a load leaves them as they are.
@@ -50,10 +54,10 @@ module Presets {
     }
 
     // Sets every setting slot holds. False, and nothing changed, if slot has never been
-    // saved.
+    // saved and has no built-in look.
     function load(slot as Number) as Boolean {
-        var snapshot = Storage.getValue(STORAGE_KEY + slot);
-        if (!(snapshot instanceof Dictionary)) {
+        var snapshot = snapshotOf(slot);
+        if (snapshot == null) {
             return false;
         }
         var properties = properties();
@@ -67,11 +71,49 @@ module Presets {
     }
 
     function isSaved(slot as Number) as Boolean {
-        return Storage.getValue(STORAGE_KEY + slot) instanceof Dictionary;
+        return snapshotOf(slot) != null;
     }
 
-    // The slot's name as the phone set it; Preset 1 to Preset 5 by default, and whenever the
-    // name is cleared.
+    // The look slot holds: the one saved into it, else its built-in look, else null.
+    function snapshotOf(slot as Number) as Dictionary or Null {
+        var snapshot = Storage.getValue(STORAGE_KEY + slot);
+        if (snapshot instanceof Dictionary) {
+            return snapshot as Dictionary;
+        }
+        return builtIn(slot);
+    }
+
+    // The looks slots 1 to 3 ship with (#183), or null for a slot that ships empty. The
+    // colours are indices into TimeColor.COLORS and RainColor's HEADS and TAILS.
+    function builtIn(slot as Number) as Dictionary<String, Number> or Null {
+        switch (slot) {
+            case 1:
+                // Green: white time, green rain.
+                return look(TimeSize.MEDIUM, 25, TimeStyle.FILLED, TimeAlign.RIGHT, 1, 0);
+            case 2:
+                // Red: orange time, red rain.
+                return look(TimeSize.LARGE, 25, TimeStyle.FILLED, TimeAlign.LEFT, 4, 5);
+            case 3:
+                // Blue: cyan time, blue rain.
+                return look(TimeSize.EXTRA_EXTRA_LARGE, 75, TimeStyle.HOLLOW, TimeAlign.CENTER, 2, 2);
+        }
+        return null;
+    }
+
+    function look(size as Number, trail as Number, style as Number, align as Number, timeColor as Number,
+            rainColor as Number) as Dictionary<String, Number> {
+        return {
+            TimeSize.PROPERTY => size,
+            TrailLength.PROPERTY => trail,
+            TimeStyle.PROPERTY => style,
+            TimeAlign.PROPERTY => align,
+            TimeColor.PROPERTY => timeColor,
+            RainColor.PROPERTY => rainColor
+        } as Dictionary<String, Number>;
+    }
+
+    // The slot's name as the phone set it; Green, Red, Blue, Preset 4 and Preset 5 by
+    // default, and Preset N whenever the name is cleared.
     function nameOf(slot as Number) as String {
         var name = PropertyUtils.getPropertyElseDefault(NAME_PROPERTY + slot, "");
         if (name instanceof String && name.length() > 0) {

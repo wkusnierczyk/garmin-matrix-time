@@ -63,6 +63,8 @@ each change is recorded in full.
   trail length, time style, time alignment, time colour and rain colour. Load and save are at the top
   of the watch's Customize menu and in the Connect IQ app, where the slots can also be renamed.
   Loading a preset leaves always-on brightness and the date as they are. (#172)
+* **Premium: three presets out of the box.** Slots 1 to 3 come filled with three looks, Green, Red
+  and Blue, which can be loaded straight away, renamed, or saved over. (#183)
 
 ## 0.2.1 -- 2026-09-21
 

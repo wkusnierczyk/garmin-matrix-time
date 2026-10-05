@@ -150,16 +150,27 @@ A preset is a saved look that can be brought back in one step. There are five sl
 the look: time size, trail length, time style, time alignment, time colour and rain colour. Always-on
 brightness and the date are not part of it, and loading a preset leaves them as they are.
 
+Three slots come filled, and the other two are empty:
+
+| Slot | Name | Time size | Trail length | Time style | Time alignment | Time colour | Rain colour |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| 1 | Green | Medium | 25% | Filled | Right | White | Green |
+| 2 | Red | Large | 25% | Filled | Left | Orange | Red |
+| 3 | Blue | Extra extra large | 75% | Hollow | Centre | Cyan | Blue |
+
+They are loaded and saved over like any other slot. Saving over one replaces its look for good.
+
 On the watch, **Load preset** and **Save look as preset** are at the top of the Customize menu. Each
-opens the five slots by name. A slot that has never been saved says Empty, and loading it does
-nothing. Saving overwrites the slot.
+opens the five slots by name. An empty slot says Empty, and loading it does nothing. Saving
+overwrites the slot.
 
 In the Connect IQ app, **Load preset** and **Save look as preset** are lists of Slot 1 to Slot 5.
 Pick a slot and save the settings, and the watch loads or saves it and sets the list back to None.
 The lists say Slot 1 to Slot 5 rather than the slots' names because a Connect IQ settings screen
 cannot label a list from another setting. The five **Slot N name** fields below them rename the
-slots, which are called Preset 1 to Preset 5 until renamed. Names show in the watch's menu. They can
-only be changed on the phone, since the watch's menu has no way to type text.
+slots, which are called Green, Red, Blue, Preset 4 and Preset 5 until renamed, and Preset N if a
+name is cleared. Names show in the watch's menu. They can only be changed on the phone, since the
+watch's menu has no way to type text.
 
 Loading a preset and then changing a setting changes the current look only. A preset changes only
 when it is saved over. A setting added in a later version is not in a preset saved before it, and
@@ -1034,8 +1045,9 @@ to the next offered one.
 `PresetsTest`, also in `premium/source/tests/`, covers the presets: that a load brings back every
 setting of the saved look and leaves always-on brightness and the date alone, that an empty slot loads
 nothing and a setting missing from a saved preset is left as it is, that a load or save picked on the
-phone is acted on and the list set back to None, that only a slot number counts as a request, and
-that a slot with no name is Preset N.
+phone is acted on and the list set back to None, that only a slot number counts as a request, that a
+slot with no name is Preset N, that slots 1 to 3 ship with the Green, Red and Blue looks and slots 4
+and 5 empty, and that saving over a shipped look replaces it.
 
 Run No Evil strips every `(:test)` function from ordinary builds, so none of this reaches a watch. The
 edition tests are module-level functions rather than classes and leave nothing behind in a release
