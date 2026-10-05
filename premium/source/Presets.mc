@@ -75,7 +75,9 @@ module Presets {
         return snapshotOf(slot) != null;
     }
 
-    // The look slot holds: the one saved into it, else its built-in look, else null.
+    // The look slot holds: the one saved into it, else its built-in look, else null. save is
+    // the only writer of the key and always writes a Dictionary, so anything else there is
+    // treated as never saved, as it was before slots had built-in looks.
     function snapshotOf(slot as Number) as Dictionary or Null {
         var snapshot = Storage.getValue(STORAGE_KEY + slot);
         if (snapshot instanceof Dictionary) {
