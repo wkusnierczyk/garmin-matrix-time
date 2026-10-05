@@ -1,5 +1,5 @@
-# Stages 1 to 3 of #41: build, package and test verification. Every push to main,
-# and every pull request, runs the consistency checks that need no SDK at all,
+# Stages 1 to 3 of #41: build, package and test verification. Every push to main
+# and every pull request runs the consistency checks that need no SDK at all,
 # compiles the face for one product per deviceFamily, exports the store bundle --
 # which builds every product manifest.xml names -- and runs the unit test suite in
 # the simulator under a virtual display.
