@@ -49,12 +49,13 @@
          nothing, and 1 to 5 loads or saves that slot, after which the face sets the property
          back to 0; see Presets.applyRequests. presetName1 to presetName5 name the slots, and
          are what the phone can rename. The looks themselves are in Storage, not here, so
-         the phone never writes them. -->
+         the phone never writes them. Slots 1 to 3 ship with a look, and their names here
+         are its name (#183); see Presets.builtIn. -->
     <property id="presetLoad" type="number">0</property>
     <property id="presetSave" type="number">0</property>
-    <property id="presetName1" type="string">Preset 1</property>
-    <property id="presetName2" type="string">Preset 2</property>
-    <property id="presetName3" type="string">Preset 3</property>
+    <property id="presetName1" type="string">Green</property>
+    <property id="presetName2" type="string">Red</property>
+    <property id="presetName3" type="string">Blue</property>
     <property id="presetName4" type="string">Preset 4</property>
     <property id="presetName5" type="string">Preset 5</property>
 

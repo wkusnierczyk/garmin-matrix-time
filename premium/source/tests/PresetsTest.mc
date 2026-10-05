@@ -5,8 +5,8 @@ using Toybox.Test;
 import Toybox.Lang;
 
 
-// Presets (#172). Each test puts back the settings and slots it touches, since the simulator
-// keeps both across runs.
+// Presets (#172, #183). Each test puts back the settings and slots it touches, since the
+// simulator keeps both across runs.
 (:test)
 class PresetsTest {
 
@@ -66,14 +66,14 @@ class PresetsTest {
     (:test)
     static function anEmptySlotOrAMissingSettingChangesNothing(logger as Test.Logger) as Boolean {
         var saved = snapshot();
-        Storage.deleteValue(Presets.STORAGE_KEY + 1);
+        Storage.deleteValue(Presets.STORAGE_KEY + Presets.SLOTS);
         Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
-        var loadedEmpty = Presets.load(1);
-        var savedEmpty = Presets.isSaved(1);
+        var loadedEmpty = Presets.load(Presets.SLOTS);
+        var savedEmpty = Presets.hasLook(Presets.SLOTS);
         var sizeAfterEmpty = TimeSize.selected();
         var partial = {TimeColor.PROPERTY => 3} as Dictionary<String, Number>;
-        Storage.setValue(Presets.STORAGE_KEY + 1, partial as Storage.ValueType);
-        Presets.load(1);
+        Storage.setValue(Presets.STORAGE_KEY + Presets.SLOTS, partial as Storage.ValueType);
+        Presets.load(Presets.SLOTS);
         var sizeAfterPartial = TimeSize.selected();
         var colorAfterPartial = TimeColor.selected();
         restore(saved);
@@ -138,6 +138,64 @@ class PresetsTest {
     }
 
 
+    // Slots 1 to 3 ship as Green, Red and Blue, loadable before anything is saved; slots 4
+    // and 5 ship empty.
+    (:test)
+    static function slotsOneToThreeShipWithALook(logger as Test.Logger) as Boolean {
+        var saved = snapshot();
+        for (var slot = 1; slot <= Presets.SLOTS; ++slot) {
+            Storage.deleteValue(Presets.STORAGE_KEY + slot);
+        }
+        var shipped = [Presets.hasLook(1), Presets.hasLook(2), Presets.hasLook(3), Presets.hasLook(4),
+            Presets.hasLook(5)];
+        var loaded = [] as Array<Boolean>;
+        var looks = [] as Array<Array>;
+        for (var slot = 1; slot <= 3; ++slot) {
+            // A look none of the three has, so a load that did nothing cannot pass.
+            Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
+            Properties.setValue(TrailLength.PROPERTY, 50);
+            Properties.setValue(TimeAlign.PROPERTY, TimeAlign.CENTER);
+            Properties.setValue(TimeStyle.PROPERTY, TimeStyle.HOLLOW);
+            Properties.setValue(TimeColor.PROPERTY, 3);
+            Properties.setValue(RainColor.PROPERTY, 8);
+            loaded.add(Presets.load(slot));
+            looks.add([TimeSize.selected(), TrailLength.selected(), TimeStyle.selected(), TimeAlign.selected(),
+                TimeColor.selected(), RainColor.selected()]);
+        }
+        restore(saved);
+        Test.assert(shipped[0] && shipped[1] && shipped[2]);
+        Test.assert(!shipped[3] && !shipped[4]);
+        Test.assert(loaded[0] && loaded[1] && loaded[2]);
+        assertLook(looks[0], [TimeSize.MEDIUM, 25, TimeStyle.FILLED, TimeAlign.RIGHT, 1, 0]);
+        assertLook(looks[1], [TimeSize.LARGE, 25, TimeStyle.FILLED, TimeAlign.LEFT, 4, 5]);
+        assertLook(looks[2], [TimeSize.EXTRA_EXTRA_LARGE, 75, TimeStyle.HOLLOW, TimeAlign.CENTER, 2, 2]);
+        return true;
+    }
+
+
+    // Saving over a built-in look replaces it, like any other slot.
+    (:test)
+    static function aSaveReplacesABuiltInLook(logger as Test.Logger) as Boolean {
+        var saved = snapshot();
+        Storage.deleteValue(Presets.STORAGE_KEY + 2);
+        Properties.setValue(RainColor.PROPERTY, 7);
+        Presets.save(2);
+        Properties.setValue(RainColor.PROPERTY, 0);
+        Presets.load(2);
+        var color = RainColor.selected();
+        restore(saved);
+        Test.assertEqual(color, 7);
+        return true;
+    }
+
+
+    static function assertLook(look as Array, expected as Array) as Void {
+        for (var i = 0; i < expected.size(); ++i) {
+            Test.assertEqual(look[i] as Number, expected[i] as Number);
+        }
+    }
+
+
     // A slot is Preset N until the phone names it, and again if the name is cleared.
     (:test)
     static function aSlotWithoutANameIsPresetN(logger as Test.Logger) as Boolean {
@@ -154,7 +212,7 @@ class PresetsTest {
     }
 
 
-    // The settings a preset touches, and slot 1, as they were before a test.
+    // The settings a preset touches, and every slot, as they were before a test.
     static function snapshot() as Dictionary {
         var keys = [TimeSize.PROPERTY, TrailLength.PROPERTY, TimeStyle.PROPERTY, TimeAlign.PROPERTY, TimeColor.PROPERTY,
             RainColor.PROPERTY, AlwaysOnBrightness.PROPERTY, DateField.PROPERTY, Presets.LOAD_PROPERTY,
@@ -163,7 +221,11 @@ class PresetsTest {
         for (var i = 0; i < keys.size(); ++i) {
             saved[keys[i]] = Properties.getValue(keys[i]);
         }
-        saved[:slot] = Storage.getValue(Presets.STORAGE_KEY + 1);
+        var slots = [] as Array;
+        for (var slot = 1; slot <= Presets.SLOTS; ++slot) {
+            slots.add(Storage.getValue(Presets.STORAGE_KEY + slot));
+        }
+        saved[:slots] = slots;
         return saved;
     }
 
@@ -174,11 +236,14 @@ class PresetsTest {
                 Properties.setValue(keys[i] as String, saved[keys[i]] as Properties.ValueType);
             }
         }
-        var slot = saved[:slot];
-        if (slot == null) {
-            Storage.deleteValue(Presets.STORAGE_KEY + 1);
-        } else {
-            Storage.setValue(Presets.STORAGE_KEY + 1, slot as Storage.ValueType);
+        var slots = saved[:slots] as Array;
+        for (var slot = 1; slot <= Presets.SLOTS; ++slot) {
+            var value = slots[slot - 1];
+            if (value == null) {
+                Storage.deleteValue(Presets.STORAGE_KEY + slot);
+            } else {
+                Storage.setValue(Presets.STORAGE_KEY + slot, value as Storage.ValueType);
+            }
         }
     }
 
