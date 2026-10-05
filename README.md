@@ -759,7 +759,8 @@ Every target that compiles also builds one edition, `EDITION`, which defaults to
 edition's output overwrites the other's. Any other value is refused before anything runs.
 
 `make export` is the exception, and the only compiling target that ignores `DEVICE`: it packages
-every product `manifest.xml` names into one signed `.iq` under `export/`, which is the file the
+every product the edition's manifest names -- `manifest.xml` for Lite, `manifest-premium.xml` for
+Premium -- into one signed `.iq` under `export/`, which is the file the
 Connect IQ store takes. It also strips debug information, which `make build` deliberately keeps so
 that the simulator and the profiler have something to say. `monkeyc` counts part numbers rather than
 products as it works, so it reports more devices than the manifest lists -- several products ship
@@ -1112,7 +1113,7 @@ skipped -- that is the state in which the store bundle fails to build, and CI is
 hear about it first.
 
 The export step is a different check rather than a larger one. `monkeyc -e` builds every product in
-`manifest.xml`, and fails if any single one of them lacks a device definition -- so it covers what
+the edition's manifest, `manifest.xml` or `manifest-premium.xml`, and fails if any single one of them lacks a device definition -- so it covers what
 one-product-per-family cannot, and the `.iq` that gets uploaded is proved on every push instead of on
 release day. It is the same `make export` a developer runs, with the same flags, so there is no second
 spelling of the build in the workflow; the bundle's size is logged and then discarded, since publishing
