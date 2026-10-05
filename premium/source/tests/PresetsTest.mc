@@ -69,7 +69,7 @@ class PresetsTest {
         Storage.deleteValue(Presets.STORAGE_KEY + Presets.SLOTS);
         Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
         var loadedEmpty = Presets.load(Presets.SLOTS);
-        var savedEmpty = Presets.isSaved(Presets.SLOTS);
+        var savedEmpty = Presets.hasLook(Presets.SLOTS);
         var sizeAfterEmpty = TimeSize.selected();
         var partial = {TimeColor.PROPERTY => 3} as Dictionary<String, Number>;
         Storage.setValue(Presets.STORAGE_KEY + Presets.SLOTS, partial as Storage.ValueType);
@@ -146,17 +146,26 @@ class PresetsTest {
         for (var slot = 1; slot <= Presets.SLOTS; ++slot) {
             Storage.deleteValue(Presets.STORAGE_KEY + slot);
         }
-        var shipped = [Presets.isSaved(1), Presets.isSaved(2), Presets.isSaved(3), Presets.isSaved(4),
-            Presets.isSaved(5)];
+        var shipped = [Presets.hasLook(1), Presets.hasLook(2), Presets.hasLook(3), Presets.hasLook(4),
+            Presets.hasLook(5)];
+        var loaded = [] as Array<Boolean>;
         var looks = [] as Array<Array>;
         for (var slot = 1; slot <= 3; ++slot) {
-            Presets.load(slot);
+            // A look none of the three has, so a load that did nothing cannot pass.
+            Properties.setValue(TimeSize.PROPERTY, TimeSize.SMALL);
+            Properties.setValue(TrailLength.PROPERTY, 50);
+            Properties.setValue(TimeAlign.PROPERTY, TimeAlign.CENTER);
+            Properties.setValue(TimeStyle.PROPERTY, TimeStyle.HOLLOW);
+            Properties.setValue(TimeColor.PROPERTY, 3);
+            Properties.setValue(RainColor.PROPERTY, 8);
+            loaded.add(Presets.load(slot));
             looks.add([TimeSize.selected(), TrailLength.selected(), TimeStyle.selected(), TimeAlign.selected(),
                 TimeColor.selected(), RainColor.selected()]);
         }
         restore(saved);
         Test.assert(shipped[0] && shipped[1] && shipped[2]);
         Test.assert(!shipped[3] && !shipped[4]);
+        Test.assert(loaded[0] && loaded[1] && loaded[2]);
         assertLook(looks[0], [TimeSize.MEDIUM, 25, TimeStyle.FILLED, TimeAlign.RIGHT, 1, 0]);
         assertLook(looks[1], [TimeSize.LARGE, 25, TimeStyle.FILLED, TimeAlign.LEFT, 4, 5]);
         assertLook(looks[2], [TimeSize.EXTRA_EXTRA_LARGE, 75, TimeStyle.HOLLOW, TimeAlign.CENTER, 2, 2]);

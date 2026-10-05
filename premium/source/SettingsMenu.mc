@@ -252,7 +252,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
 
 // The five preset slots, to load from or save to (#172), each by its name, with Empty under a
-// slot that has never been saved.
+// slot with no look, saved or built in (#183).
 class PresetsMenuView extends WatchUi.Menu2 {
 
     function initialize(saving as Boolean) {
@@ -260,7 +260,7 @@ class PresetsMenuView extends WatchUi.Menu2 {
             saving ? Rez.Strings.PresetSaveTitle : Rez.Strings.PresetLoadTitle) as String});
         var empty = Application.loadResource(Rez.Strings.PresetEmpty) as String;
         for (var slot = 1; slot <= Presets.SLOTS; ++slot) {
-            addItem(new WatchUi.MenuItem(Presets.nameOf(slot), Presets.isSaved(slot) ? null : empty, slot, null));
+            addItem(new WatchUi.MenuItem(Presets.nameOf(slot), Presets.hasLook(slot) ? null : empty, slot, null));
         }
     }
 

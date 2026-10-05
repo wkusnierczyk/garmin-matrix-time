@@ -70,7 +70,8 @@ module Presets {
         return true;
     }
 
-    function isSaved(slot as Number) as Boolean {
+    // Whether slot holds a look, saved or built in.
+    function hasLook(slot as Number) as Boolean {
         return snapshotOf(slot) != null;
     }
 
