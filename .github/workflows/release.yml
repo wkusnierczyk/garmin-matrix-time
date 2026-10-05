@@ -1,6 +1,12 @@
 # Stage 4 of #41: a tag push becomes a draft GitHub release with the signed store
-# bundle attached. The last stage, and the first one where the real developer key
+# bundles attached. The last stage, and the first one where the real developer key
 # is involved at all.
+#
+# A tag is a code release of the repository, one for both editions; each edition's
+# manifest carries the version it is published as, and moves to the tag's only when
+# the release changes that edition (#186). So a tag releases the editions whose
+# manifest equals it -- Lite, Premium or both -- and only those are exported. An
+# edition the release leaves alone keeps its published version, and gets no bundle.
 #
 # Why the real key now, when build.yml still generates a throwaway. `monkeyc`
 # signs, it does not authenticate: it accepts any key, so for proving that the
@@ -60,6 +66,8 @@ jobs:
   version:
     name: version check
     runs-on: ubuntu-latest
+    outputs:
+      editions: ${{ steps.check.outputs.editions }}
     steps:
       # No lfs: true here, unlike every job in build.yml. This job reads two text
       # files and compiles nothing, so the LFS objects would be fetched only to be
@@ -70,12 +78,17 @@ jobs:
       # nothing about `git tag` consults manifest.xml -- so the version on the
       # release page and the version inside the bundle can disagree, and the one
       # inside the bundle is what the store shows and what can never be uploaded
-      # twice. tools/release-notes.py refuses unless the tag, manifest.xml and a
-      # dated CHANGELOG.md section all say the same thing, and prints that
-      # section as the notes. Pure Python, no SDK, seconds; see its docstring for
-      # why the CHANGELOG section has to exist first.
-      - name: Check the tag against manifest.xml and CHANGELOG.md
-        run: tools/release-notes.py "$GITHUB_REF_NAME" -o notes.md
+      # twice. tools/release-notes.py refuses unless at least one edition's
+      # manifest equals the tag, none is ahead of it, and a dated CHANGELOG.md
+      # section exists for it; it prints that section as the notes, and names
+      # the editions the tag releases for the bundle job's matrix. Pure Python,
+      # no SDK, seconds; see its docstring for why the CHANGELOG section has to
+      # exist first.
+      - name: Check the tag against the manifests and CHANGELOG.md
+        id: check
+        run: |
+          tools/release-notes.py "$GITHUB_REF_NAME" -o notes.md -e editions.json
+          echo "editions=$(cat editions.json)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
@@ -83,9 +96,13 @@ jobs:
           path: notes.md
 
   bundle:
-    name: signed bundle
+    name: signed bundle (${{ matrix.edition }})
     needs: version
     runs-on: ubuntu-latest
+    # One job per edition the tag releases, and no job for one it does not.
+    strategy:
+      matrix:
+        edition: ${{ fromJSON(needs.version.outputs.editions) }}
     # The gate. Everything about this job that touches the key depends on this
     # one line; see the note at the top.
     environment: release
@@ -137,9 +154,9 @@ jobs:
             echo "::error::Store base64 of developer_key, not developer_key.pem."; exit 1; }
 
       # The same `make export` a developer runs before an upload, with the same
-      # flags: one signed .iq covering every product manifest.xml names. Lite only:
-      # EDITION is left at its default on purpose. Releasing Premium -- its signing,
-      # its tag scheme, its store listing -- is a decision of its own (#135). HOME is
+      # flags: one signed .iq covering every product the edition's manifest names.
+      # Both editions are signed with the same developer key; the store tells them
+      # apart by their application ids, which differ between the manifests. HOME is
       # set explicitly because the image put the device definitions in root's home
       # while a container job runs with HOME=/github/home, and monkeyc finds them
       # by expanding ~.
@@ -154,9 +171,14 @@ jobs:
         env:
           HOME: /root
         run: |
-          make export SDK_BIN=/connectiq/bin DEV_KEY=/tmp/developer_key
-          mv export/MatrixTime.iq "export/MatrixTime-$GITHUB_REF_NAME.iq"
-          ls -l "export/MatrixTime-$GITHUB_REF_NAME.iq"
+          case "${{ matrix.edition }}" in
+            lite) app=MatrixTime ;;
+            premium) app=MatrixTimePremium ;;
+            *) echo "::error::unknown edition ${{ matrix.edition }}"; exit 1 ;;
+          esac
+          make export EDITION=${{ matrix.edition }} SDK_BIN=/connectiq/bin DEV_KEY=/tmp/developer_key
+          mv "export/$app.iq" "export/$app-$GITHUB_REF_NAME.iq"
+          ls -l "export/$app-$GITHUB_REF_NAME.iq"
 
       # if: always(), so a failed export does not leave the key behind for
       # whatever steps this job grows later. The container filesystem goes away
@@ -168,8 +190,8 @@ jobs:
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
-          name: store-bundle
-          path: export/MatrixTime-*.iq
+          name: store-bundle-${{ matrix.edition }}
+          path: export/MatrixTime*-*.iq
           if-no-files-found: error
 
   release:
@@ -215,5 +237,5 @@ jobs:
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
             --notes-file artifacts/notes.md \
-            artifacts/MatrixTime-*.iq
+            artifacts/MatrixTime*-*.iq
           echo "Draft release $GITHUB_REF_NAME created. Review the notes and publish it."

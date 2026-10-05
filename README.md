@@ -765,9 +765,9 @@ that the simulator and the profiler have something to say. `monkeyc` counts part
 products as it works, so it reports more devices than the manifest lists -- several products ship
 under more than one part, and `venu2` under four. The whole set builds in well under a minute, and
 this is the only build that exercises the packaging step, so it is worth running before a release
-even when nothing about the devices has changed. A `v*` tag runs the same target in CI and attaches
-its output to a draft release (see [Releases](#releases)); uploading the bundle to the store is manual
-either way, through the store's web form.
+even when nothing about the devices has changed. A `v*` tag runs the same target in CI for each edition
+the tag releases and attaches the output to a draft release (see [Releases](#releases)); uploading a
+bundle to the store is manual either way, through the store's web form.
 
 `make graphics` regenerates the eight images in `resources/graphics/` that it owns -- the store gallery
 and the draft hero -- from whatever the face currently draws. The published hero and banner are
@@ -1163,31 +1163,43 @@ which is `1` whether every test passed or one failed (#23).
 
 ### Releases
 
-Releases are Lite only. How Premium is signed, tagged and listed in the store is a decision of its own,
-not yet made; until it is, `release.yml` exports the default edition and nothing else.
+A tag is a **code release** of the repository: one tag, one GitHub release, one `CHANGELOG.md`
+section, shared by Lite and Premium. Each edition's **published version** is the `version` in its own
+manifest, `manifest.xml` for Lite and `manifest-premium.xml` for Premium, and it is the number that
+edition's store listing shows. An edition moves to the tag's version only when the release changes it
+(#186):
+
+* a release that changes only Premium sets `manifest-premium.xml` to the new version and leaves
+  `manifest.xml` where it is. Lite is not exported or uploaded, and keeps the version it is published
+  as;
+* a release that changes both sets both manifests, and both editions publish as the tag's version;
+* so the two published versions can differ, but whichever is newer always equals the latest tag.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
-the store bundle, signs it with the real developer key, and attaches it to a **draft** GitHub release
-carrying that version's `CHANGELOG.md` section as its notes. Publishing the draft, and uploading the
-bundle to the Connect IQ store afterwards, both stay manual.
+the store bundle of each edition the tag releases, signs it with the real developer key, and attaches
+it to a **draft** GitHub release carrying that version's `CHANGELOG.md` section as its notes. The
+bundles are named by edition and tag, `MatrixTime-v0.3.0.iq` and `MatrixTimePremium-v0.3.0.iq`.
+Publishing the draft, and uploading each bundle to its Connect IQ store listing afterwards, both stay
+manual.
 
 ```bash
-# the version in manifest.xml and a dated CHANGELOG.md section come first
+# the version of each edition the release changes, and a dated CHANGELOG.md section, come first
 git tag v0.3.0
 git push origin v0.3.0
 ```
 
 | Job | What it proves |
 | :-- | :------------- |
-| `version check` | the tag, `manifest.xml` and `CHANGELOG.md` all name the same version. Pure Python, no SDK, seconds. |
-| `signed bundle` | `make export` produces the `.iq`, signed with the real key. |
-| `draft release` | the bundle and the notes are attached to a draft release for that tag. |
+| `version check` | at least one edition's manifest names the tag's version, none is ahead of it, and `CHANGELOG.md` has a dated section for it. Pure Python, no SDK, seconds. |
+| `signed bundle (<edition>)` | `make export EDITION=<edition>` produces the `.iq`, signed with the real key. One job per edition the tag releases. |
+| `draft release` | the bundles and the notes are attached to a draft release for that tag. |
 
 The version check runs first, and before the container is even pulled, because a tag is a name someone
 typed and nothing about `git tag` consults `manifest.xml`. The number inside the bundle is the one the
 store shows, and the store will not take a version twice: the release page and the bundle disagreeing
 is the shape of mistake that cost 0.2.0. [`tools/release-notes.py`](tools/release-notes.py) refuses the
-release unless the tag is `v` plus the manifest's version, and unless `CHANGELOG.md` already carries a
+release unless the tag is `v` plus the version of at least one edition's manifest, with no manifest
+ahead of it -- a bump made for a later release, or a typo -- and unless `CHANGELOG.md` already carries a
 section for it headed with a real `YYYY-MM-DD` date -- which puts the release notes ahead of the
 irreversible step rather than behind it, the other half of what went wrong with 0.2.0. The date is
 matched as a date rather than as "some token" on purpose: `## 0.3.0 -- TBD` is precisely the heading

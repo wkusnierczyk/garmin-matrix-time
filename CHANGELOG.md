@@ -2,8 +2,11 @@
 
 Everything in Matrix Time that a user could notice, newest first. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project follows
-[semantic versioning](https://semver.org/spec/v2.0.0.html), with the version in `manifest.xml` as the
-single source of truth -- it is the number the Connect IQ store shows.
+[semantic versioning](https://semver.org/spec/v2.0.0.html). A section is a code release, tagged `vX.Y.Z`
+and shared by both editions. Each edition is published under the version in its own manifest,
+`manifest.xml` for Lite and `manifest-premium.xml` for Premium, which is the number its Connect IQ
+store listing shows. An edition moves to a release's version only when that release changes it, so
+the two can differ (#186).
 
 Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
