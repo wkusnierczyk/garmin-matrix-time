@@ -1173,7 +1173,7 @@ edition's store listing shows. An edition moves to the tag's version only when t
   `manifest.xml` where it is. Lite is not exported or uploaded, and keeps the version it is published
   as;
 * a release that changes both sets both manifests, and both editions publish as the tag's version;
-* so the two published versions can differ, but whichever is newer always equals the latest tag.
+* so the two published versions can differ, but whichever is newer equals the tag that released it.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 the store bundle of each edition the tag releases, signs it with the real developer key, and attaches

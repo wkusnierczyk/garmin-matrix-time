@@ -69,8 +69,8 @@ jobs:
     outputs:
       editions: ${{ steps.check.outputs.editions }}
     steps:
-      # No lfs: true here, unlike every job in build.yml. This job reads two text
-      # files and compiles nothing, so the LFS objects would be fetched only to be
+      # No lfs: true here, unlike every job in build.yml. This job reads the two
+      # manifests and CHANGELOG.md and compiles nothing, so the LFS objects would be fetched only to be
       # ignored. The jobs that do compile ask for them.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
@@ -170,13 +170,14 @@ jobs:
         shell: bash
         env:
           HOME: /root
+          EDITION: ${{ matrix.edition }}
         run: |
-          case "${{ matrix.edition }}" in
+          case "$EDITION" in
             lite) app=MatrixTime ;;
             premium) app=MatrixTimePremium ;;
-            *) echo "::error::unknown edition ${{ matrix.edition }}"; exit 1 ;;
+            *) echo "::error::unknown edition $EDITION"; exit 1 ;;
           esac
-          make export EDITION=${{ matrix.edition }} SDK_BIN=/connectiq/bin DEV_KEY=/tmp/developer_key
+          make export EDITION="$EDITION" SDK_BIN=/connectiq/bin DEV_KEY=/tmp/developer_key
           mv "export/$app.iq" "export/$app-$GITHUB_REF_NAME.iq"
           ls -l "export/$app-$GITHUB_REF_NAME.iq"
 

@@ -55,8 +55,9 @@ MANIFESTS = {'lite': 'manifest.xml', 'premium': 'manifest-premium.xml'}
 CHANGELOG = 'CHANGELOG.md'
 
 # A version is three dot-separated numbers, compared as numbers: 0.10.0 is ahead
-# of 0.9.0. Anything else is refused rather than compared as text.
-VERSION = re.compile(r'^(\d+)\.(\d+)\.(\d+)$')
+# of 0.9.0. No leading zeros, as semver requires, so that two spellings of one
+# version cannot exist. Anything else is refused rather than compared as text.
+VERSION = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$')
 
 # The application version, not the manifest format version on the line above it
 # nor the XML declaration's above that -- all three are spelled version="...".
