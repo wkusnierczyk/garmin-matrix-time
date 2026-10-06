@@ -71,6 +71,9 @@ each change is recorded in full.
 * **Premium: its own launcher icon.** Premium's icon is Lite's with a gold star in the corner, so the
   two editions can be told apart in a launcher list, at every size a supported watch asks for. The store
   listing gets a square cover image built from the same artwork. (#189)
+* **Premium: its own store images.** The Premium store listing has a gallery of its own: the three
+  built-in presets, a white-to-green rain under a hollow time, and the always-on screen, with a hero
+  composed from the five. (#188)
 
 ## 0.2.1 -- 2026-09-21
 

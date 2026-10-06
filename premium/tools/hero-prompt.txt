@@ -4,8 +4,8 @@ You are a photographer and retoucher arranging real objects, not an illustrator
 drawing new ones.
 
 INPUTS
-Five images. Each is a front-on render of the same watch model, differing only in
-what its screen shows. Treat each as a separate physical watch.
+There are $count_word images. Each is a front-on render of the same watch model,
+differing only in what its screen shows. Treat each as a separate physical watch.
 The falling glyphs on every screen look like the ones in the supplied images, and
 like nothing else.
 
@@ -23,17 +23,24 @@ INVARIANTS — these outrank every layout rule below
    screen to suit its viewpoint, but never change what the face is showing:
    No Arabic numerals (0 1 2 3 4 5 6 7 8 9) appear anywhere on any screen except in
    the single time readout. The falling glyphs are Japanese halfwidth katakana; if
-   you are unsure whether a glyph is a numeral, use a katakana glyph instead. Green
-   glyphs falling down a pure black screen; exactly one time readout per screen,
-   green, of the form H:MM or HH:MM; nothing else on the glass — no date, no
-   seconds, no icons. One input shows only the time on an otherwise black screen:
-   that is the always-on state and must stay that way; do not add rain to it.
-   Never add UI, icons, complications, notifications, dates or text that is not in
-   the input.
+   you are unsure whether a glyph is a numeral, use a katakana glyph instead.
+   The screens differ from one another on purpose, and each keeps its own look:
+   never recolour, resize or move anything on one screen to match another.
+   - Rain: glyphs falling down a pure black screen, on each screen in the colour
+     its input shows. Some rain is a single colour; some fades from white heads to
+     a coloured trail. Keep each screen's colours as they are.
+   - Time: exactly one readout per screen, of the form H:MM or HH:MM, in the
+     colour, size, weight and position its input shows. Some readouts are solid
+     digits; some are outlines only, hollow digits with the rain showing through
+     them. Keep the hollow ones hollow; never fill them.
+   - One input shows only the time on an otherwise black screen: that is the
+     always-on state and must stay that way; do not add rain to it.
+   Nothing else on the glass — no date, no seconds, no icons. Never add UI, icons,
+   complications, notifications, dates or text that is not in the input.
 2. The hardware stays this watch model: case shape and depth, bezel markings, button
    count and placement, strap type, material and colour.
-3. Exactly five watches. Never add, duplicate, merge or drop one. Each input appears
-   exactly once.
+3. Exactly $count_word watches. Never add, duplicate, merge or drop one. Each input
+   appears exactly once.
 4. Nothing else in the frame: no text, logos, captions, watermarks, hands, wrists,
    packaging, studio props, or reflections of a photographer.
 
@@ -66,11 +73,12 @@ REALISM
     cut-outs.
 
 BEFORE YOU RETURN THE IMAGE, CHECK
-- Count the watches. If the number is not five, remove the extras or add the missing
-  one before returning. This has gone wrong before.
+- Count the watches. If the number is not $count_word, remove the extras or add the
+  missing one before returning. This has gone wrong before.
 - Read every screen. If any glyph other than the time readout is an Arabic numeral,
   replace it with a katakana glyph before returning. This has gone wrong before.
-- Each watch matches one input, each screen faithful to it.
+- Each watch matches one input, each screen faithful to it: the same rain colours,
+  the same time colour, size and position, hollow where the input is hollow.
 - No screen partly hidden. No watch hidden by more than 25%.
 - Largest/smallest ratio within 2x. Rotations within the stated limits.
 - All watches inside the canvas with the stated margin. No empty quadrant.

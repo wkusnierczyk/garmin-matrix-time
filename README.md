@@ -523,11 +523,15 @@ python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusn
 
 ## Store and README images
 
-`resources/graphics/` holds the ten images the Connect IQ store listing and this file are illustrated
-with. Eight of them are **generated output** of `make graphics`; do not edit those by hand. The two
-that are not are the published hero and its banner, which are composed rather than captured, and which
-`make graphics` deliberately does not write. Premium's store cover is not among them: it is drawn
-from the launcher icon's artwork, by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
+Each edition has a store listing of its own, and so a set of images of its own: Lite's in
+`resources/graphics/`, which also illustrate this file, and Premium's in `premium/graphics/`. Most of
+them are **generated output** of `make graphics`; do not edit those by hand. The exceptions are the
+published heroes and Lite's banner, which are composed with an image model and picked by hand -- with
+`make hero` for Premium's, and before `make hero` existed for Lite's -- and which `make graphics`
+deliberately does not write; and Premium's store cover, which is drawn from the launcher icon's
+artwork by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
+
+Lite's, in `resources/graphics/`:
 
 | file | what it is | where it is used | made by |
 |:--|:--|:--|:--|
@@ -540,66 +544,140 @@ from the launcher icon's artwork, by `make icons`; see [Premium launcher icon](#
 | `MatrixTimeHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics` |
 | `MatrixTimeHero-draft-small.png` | the same composition at 900 x 450 | the same | `make graphics` |
 
+Premium's, in `premium/graphics/`:
+
+| file | what it is | where it is used | made by |
+|:--|:--|:--|:--|
+| `MatrixTimePremium1.png` to `MatrixTimePremium3.png` | the three built-in presets, Green, Red and Blue, set into the watch render, 200 px wide | store gallery | `make graphics EDITION=premium` |
+| `MatrixTimePremium4.png` | the same, of white-to-green rain under a hollow white time at Extra large | store gallery | `make graphics EDITION=premium` |
+| `MatrixTimePremium5.png` | the same, of the always-on screen | store gallery | `make graphics EDITION=premium` |
+| `MatrixTimePremiumHero.png` | the five captures recomposed at 1440 x 720, watches overlapping and seen from several viewpoints | store listing | `make hero EDITION=premium`, picked by hand |
+| `MatrixTimePremiumHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics EDITION=premium` |
+| `MatrixTimePremiumCover.png` | the launcher icon's artwork, 512 x 512 | store listing | `make icons` |
+
+Premium has no raw capture and no banner: nothing in its listing uses the one, and the banner at the
+top of this file is Lite's.
+
+**Each Premium image is a look, not a moment.** Lite's four woken images are four frames of one build;
+Premium's are four builds, and with the always-on one that makes five, each compiled with its settings
+as the property defaults in a copy of the tree, so the tree itself is never written to. All five are
+captured in one container. The presets are
+not restated anywhere: each preset build sets `presetLoad`, the phone's *Load preset* request, to its
+slot, and the face loads that slot's built-in look as it starts, exactly as it would a request from the
+phone. So the first three images show whatever `Presets.builtIn` holds, and follow it when it changes.
+The fourth is no preset, so its settings are stated in `PREMIUM_LOOKS` in `tools/make-graphics.py`,
+which checks every value against `settings.xml` before building, since a value no setting lists would
+be clamped to the default by the face and captured as the wrong look without a word. The always-on
+image is at the defaults, which is how a new install draws it.
+
 **The published hero is composed with an image model**, from the same five captures the gallery is cut
 from. A composition of face-on renders can only scatter them; the listing image wants watches that
 overlap, that are seen from more than one viewpoint, and that share a light, and none of that can be
-had by transforming a flat render. The captures go to the model, the result is judged by eye, and it is
-put in place by hand. `make graphics` writes `MatrixTimeHero-draft.png` instead, so a capture run
-cannot overwrite an adopted hero.
+had by transforming a flat render. `make graphics` writes a draft hero instead, so a capture run
+cannot overwrite an adopted one, and keeps the full-size watch renders in
+`.dev/scratchpad/hero/<edition>/captures/`, which is gitignored, for `make hero` to send to the model.
+The 200 px gallery images are too small for it to read the glyphs from.
 
-The prompt is [`tools/hero-prompt.txt`](tools/hero-prompt.txt), kept as plain text because it is meant
-to be pasted whole. It states what must not change -- five watches, the screens believable, and no
-Arabic numerals in the rain, which the model will otherwise put back -- alongside the limits on
-overlap, relative size and rotation, and it asks for 2:1 at the largest size the model can produce.
-Two steps are still yours afterwards: trim to an exact 2:1 if the output is not quite square to it, and
-resize to **exactly 1440 x 720**, which the store validates and rejects anything else for. The banner
-is the same image at 900 x 450 rather than a second composition.
-
-Two consequences worth stating plainly. The hero is **not reproducible from this repository**: the
-model is not deterministic and no target regenerates it. And it has to be **recomposed by hand
-whenever what the face draws changes**, which is the same debt the captures carry but one no `make`
-target pays. The draft is regenerated on every capture run and is the honest fallback if a composed
-hero is ever out of date.
-
-Screens are pixel-exact in `MatrixTime1.png` to `MatrixTime5.png` and only faithful in the hero, where
-the watches are small. That is the reason the gallery is never composed this way: those are the images
-a prospective user inspects.
-
-`MatrixTime5.png` is captured from a build in which `onUpdate` takes the low-power branch on every
-frame, because the simulator will not enter always-on without a hand on its menus: Display Mode is a
-GUI-only setting and is not one of the keys the simulator persists, so it resets to High Power on every
-launch. The forcing is two annotated definitions of one function in `source/View.mc`, of which exactly
-one is ever compiled -- `monkey.jungle` excludes the forced one, and `graphics.jungle`, layered over it
-for this capture alone, excludes the real one instead. Every build the store or a watch ever sees
-therefore takes the branch from `onEnterSleep` as before, and the forced definition is absent from the
-`.prg` rather than merely unreached. What `drawLowPower` paints depends on the clock and the screen
-width and on nothing the system sets in always-on, so the captured frame is a real always-on frame with
-only its trigger forced.
-
-The capture build is `monkey.jungle;graphics.jungle;lite.jungle`: `lite.jungle` still comes last, as it
-does in every Lite build; see [Editions in the build](#editions-in-the-build) for why the order matters.
-The store images are Lite's, so `make graphics` captures Lite and refuses `EDITION=premium`.
-
-`make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
-and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
-newer:
+`make hero` is two steps with the model between them, both through `garmin-graphics-generator compose`:
 
 ```bash
-pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.5.1'
+# fill in the edition's prompt, print it and save it to .dev/scratchpad/hero/premium/prompt.txt
+make hero EDITION=premium
+
+# paste the prompt into the Gemini app with the five captures attached, download what it makes,
+# and size and screen each image
+make hero EDITION=premium CANDIDATES="~/Downloads/gemini-1.png ~/Downloads/gemini-2.png" \
+  GEMINI_KEY_FILE=~/.config/gemini/key
+
+# a name with spaces goes in quotes inside the list, split as a shell would split it, though never run
+make hero EDITION=premium CANDIDATES="'$HOME/Downloads/Gemini Generated Image.png'" \
+  GEMINI_KEY_FILE=~/.config/gemini/key
+```
+
+The prompts are [`tools/hero-prompt.txt`](tools/hero-prompt.txt) for Lite and
+[`premium/tools/hero-prompt.txt`](premium/tools/hero-prompt.txt) for Premium. Each states what must not
+change -- five watches, the screens believable, and no Arabic numerals in the rain, which the model
+will otherwise put back -- alongside the limits on overlap, relative size and rotation, and asks for
+2:1 at the largest size the model can produce. Premium's adds that the screens differ on purpose, in
+rain colour and in the time's colour, size, position and style, and that each keeps its own look,
+hollow digits included.
+
+The second step crops each image about its centre to 2:1 and resizes it to **exactly 1440 x 720**,
+which the store validates and rejects anything else for, and, for Lite, to the 900 x 450 banner too,
+as the same image rather than a second composition. It then screens it: the size, the store's 2048 KB
+limit, and that the crop was not enlarged, locally; and the watch count, any case cut off by the edge,
+and the edition's own checks, [`tools/hero-checks.json`](tools/hero-checks.json) or
+[`premium/tools/hero-checks.json`](premium/tools/hero-checks.json), by a vision model. Those ask, among
+other things, whether a numeral has crept into the rain and whether the always-on screen stayed
+without rain; Premium's also ask for at least three rain colours and a hollow time. Screening needs a
+Gemini API key, `GEMINI_API_KEY` or `GEMINI_KEY_FILE`. A key whose project has no credit is refused
+with HTTP 402, and every candidate is then rejected for want of a screen. `NO_SCREEN=1` runs the local
+checks alone and needs no key; the watch count, the numerals and the rest of the checks file are then
+yours to check by eye, screen by screen at full size.
+Candidates land in `.dev/scratchpad/hero/<edition>/candidates/`, numbered on from any already there, a
+rejected one marked `-rejected` rather than deleted, each beside a JSON record of every check. Nothing
+is ever written over the published hero: copying the chosen candidate into place is yours to do, and a
+pass narrows the field rather than replacing a look.
+
+The candidates come from the Gemini app rather than the API because image generation through the API
+is paid, and a subscription covers the app. `compose -g N` generates through the API instead,
+for whoever wants to pay for it.
+
+Lite's published hero predates `make hero`: it was composed from the same prompt with an image model
+and trimmed and resized by hand, which is the work the second step now does.
+
+Two consequences worth stating plainly. The hero is **not reproducible from this repository**: the
+model is not deterministic, and choosing a candidate is a judgement. And it has to be **recomposed
+whenever what the face draws changes**, which is the same debt the captures carry but one no `make`
+target pays by itself. The draft is regenerated on every capture run and is the honest fallback if a
+composed hero is ever out of date.
+
+Screens are pixel-exact in the gallery images and only faithful in the hero, where the watches are
+small. That is the reason the gallery is never composed this way: those are the images a prospective
+user inspects.
+
+`MatrixTime5.png` and `MatrixTimePremium5.png` are captured from a build in which `onUpdate` takes the
+low-power branch on every frame, because the simulator will not enter always-on without a hand on its
+menus: Display Mode is a GUI-only setting and is not one of the keys the simulator persists, so it
+resets to High Power on every launch. The forcing is two annotated definitions of one function in
+`source/View.mc`, of which exactly one is ever compiled -- `monkey.jungle` excludes the forced one, and
+`graphics.jungle`, layered over it for this capture alone, excludes the real one instead. Every build
+the store or a watch ever sees therefore takes the branch from `onEnterSleep` as before, and the forced
+definition is absent from the `.prg` rather than merely unreached. What `drawLowPower` paints depends
+on the clock, the screen width and the settings, and on nothing the system sets in always-on, so the
+captured frame is a real always-on frame with only its trigger forced.
+
+The capture builds are `monkey.jungle;graphics.jungle;lite.jungle` and
+`monkey.jungle;graphics.jungle;premium.jungle`: the edition jungle still comes last, as it does in every
+build; see [Editions in the build](#editions-in-the-build) for why the order matters.
+
+`make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
+and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator): 0.5.1 or
+newer for Lite, 0.6.0 or newer for Premium, and 0.7.0 or newer for `make hero`. `make icons` needs
+0.7.0 as well, and a pinned Pillow for the `python3` on `PATH`, so install it the way
+[Premium launcher icon](#premium-launcher-icon) says, which serves every target here:
+
+```bash
+python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0' 'Pillow==12.1.0'
 ```
 
 0.5.0 is the first release carrying the `shots` command; 0.5.1 is the first whose `hero` retries an
 arrangement it cannot place rather than dropping a watch from it, which is what a five-watch
 composition needs, and the first whose `shots` takes a list of jungle files, which is how the
-always-on capture selects its build. `tools/make-graphics.py` checks the installed version and says so
-rather than failing later in a way that looks like a bad capture. It needs no Connect IQ SDK and no simulator on the
-desktop: the capture runs the simulator inside a container under a virtual display, and the device
+always-on capture selects its build. 0.6.0 is the first that captures several builds in one container,
+each with its own property defaults, which is what Premium's looks are; 0.7.0 is the first with
+`compose`. `tools/make-graphics.py` and `make hero` check the installed version and say so rather than
+failing later in a way that looks like a bad capture. Neither needs a Connect IQ SDK or a simulator on
+the desktop: the capture runs the simulator inside a container under a virtual display, and the device
 definition it cuts frames against is taken out of that container, so the artwork a frame is composed
 onto is always the artwork that rendered it.
 
 ```bash
-# regenerate all eight it owns
+# regenerate all eight Lite images it owns
 make graphics
+
+# regenerate the six Premium ones
+make graphics EDITION=premium
 
 # on an arm64 machine, where the Connect IQ tester image runs emulated
 make graphics PLATFORM=linux/amd64
@@ -608,12 +686,14 @@ make graphics PLATFORM=linux/amd64
 make graphics TZ_NAME=Asia/Tokyo
 ```
 
-**Rerun it whenever what the face draws changes**, in the same change, and recompose the published
-hero with it. Nothing reports these stale the
-way `make check-fonts` reports a stale size table: a capture is derived from the app but is not
-generated output in the sense a build is, so it drifts silently. That is how #54 could drop `0-9`
-from the rain charset and leave every one of the images then in the directory showing numerals for
-months (#80).
+Premium's five builds share one container, and took about three and a half minutes on an arm64 Mac;
+Lite's two capture runs start a container each.
+
+**Rerun it whenever what the face draws changes**, in the same change and for each edition the change
+reaches, and recompose the published hero with it. Nothing reports these stale the way
+`make check-fonts` reports a stale size table: a capture is derived from the app but is not generated
+output in the sense a build is, so it drifts silently. That is how #54 could drop `0-9` from the rain
+charset and leave every one of the images then in the directory showing numerals for months (#80).
 
 ## Build, test, deploy
 
@@ -629,13 +709,13 @@ reference guide covers the extension in full; what follows is the part of it thi
 
 ### Git LFS
 
-Fourteen binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
+Twenty-one binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
 typefaces, `resources/fonts/MatrixCodeNFI.ttf`, `resources/fonts/SUSEMono-Regular.ttf` and Premium's
 `premium/resources/fonts/SUSEMono-ExtraBold.ttf`; the launcher icon
-fallback, `resources/drawables/launcher_icon.png`; and the ten hero and screenshot graphics under
-`resources/graphics/`. Everything else is stored normally, the generated bitmap fonts and the
-per-device launcher icons included -- they are build output of the typefaces, small, and worth
-diffing.
+fallback, `resources/drawables/launcher_icon.png`; the ten hero and screenshot graphics under
+`resources/graphics/`; and Premium's seven under `premium/graphics/`. Everything else is stored
+normally, the generated bitmap fonts, the per-device launcher icons and Premium's store cover
+included -- they are build output of the typefaces and the icon artwork, small, and worth diffing.
 
 `git lfs install` is once per machine, not once per repository, and wants doing before the clone:
 
@@ -780,8 +860,15 @@ make icons
 # and its banner are left alone
 make graphics
 
+# ... Premium's six in premium/graphics instead; its composed hero and cover are left alone
+make graphics EDITION=premium
+
 # ... on an arm64 machine, where the simulator container runs emulated
 make graphics PLATFORM=linux/amd64
+
+# print the prompt for a composed hero, then size and screen what the image model made
+make hero EDITION=premium
+make hero EDITION=premium CANDIDATES="a.png b.png" GEMINI_KEY_FILE=~/.config/gemini/key
 
 # a labelled contact sheet of the face across its settings, for review
 make preview EDITION=premium
@@ -805,7 +892,9 @@ needs no arguments at all.
 Every target that compiles also builds one edition, `EDITION`, which defaults to `lite`. With
 `EDITION=premium` the same targets build Premium instead -- `build`, `run`, `test`, `sideload` and
 `export` alike -- and write `MatrixTimePremium.prg` and `export/MatrixTimePremium.iq`, so neither
-edition's output overwrites the other's. Any other value is refused before anything runs.
+edition's output overwrites the other's. Any other value is refused before anything runs. `graphics`
+and `hero` follow `EDITION` too, and so does `preview`, though none of the three compiles on the
+desktop.
 
 `make export` is the exception, and the only compiling target that ignores `DEVICE`: it packages
 every product the edition's manifest names -- `manifest.xml` for Lite, `manifest-premium.xml` for
@@ -819,13 +908,15 @@ even when nothing about the devices has changed. A `v*` tag runs the same target
 the tag releases and attaches the output to a draft release (see [Releases](#releases)); uploading a
 bundle to the store is manual either way, through the store's web form.
 
-`make graphics` regenerates the eight images in `resources/graphics/` that it owns -- the store gallery
-and the draft hero -- from whatever the face currently draws. The published hero and banner are
-composed by hand and are left alone. It needs Docker running and
+`make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
+and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
+six in `premium/graphics/` for Premium. The published heroes, Lite's banner and Premium's cover are
+left alone. It needs Docker running and
 [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
-newer, and no SDK: the capture runs the Connect IQ simulator inside a container under a virtual display, so
-there is no GUI to drive and no macOS screen-recording permission to grant. See
-[Store and README images](#store-and-readme-images).
+newer for Lite, 0.6.0 or newer for Premium, and no SDK: the capture runs the Connect IQ simulator
+inside a container under a virtual display, so there is no GUI to drive and no macOS
+screen-recording permission to grant. `make hero` composes the published hero from its captures
+with an image model, and needs 0.7.0. See [Store and README images](#store-and-readme-images).
 
 `make check-fonts` and `make check-icons` are consistency checks rather than builds, and need no
 SDK. `check-fonts` verifies that `fonts.xml`, `resolutions.json` and `charsets.json` agree with one
@@ -934,8 +1025,9 @@ jungle names none, and building it alone fails loudly instead of building one ed
 **The edition jungle always comes last.** Each edition keeps the other's code out by *appending* an
 annotation to the exclusion list: `lite.jungle` excludes `(:premium)`, `premium.jungle` excludes
 `(:lite)`. A jungle layered after it that *replaced* the list would drop that exclusion without a word
--- `graphics.jungle` replaces the list, which is why the always-on capture builds
-`monkey.jungle;graphics.jungle;lite.jungle` and never puts `lite.jungle` before it.
+-- `graphics.jungle` replaces the list, which is why the always-on captures build
+`monkey.jungle;graphics.jungle;lite.jungle` and `monkey.jungle;graphics.jungle;premium.jungle`, and
+never put the edition jungle before it.
 
 Premium-only code goes in `premium/source/`, which is on Premium's source path and on no other. Small
 differences inside a shared file take a `(:premium)` or `(:lite)` annotation instead. A whole

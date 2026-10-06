@@ -1,0 +1,32 @@
+[
+  {
+    "name": "numerals-in-rain",
+    "question": "Apart from the single time readout on each screen, does any screen show a clearly drawn Arabic numeral 0-9 among the falling glyphs? The falling glyphs are Japanese katakana, and some resemble digits: ｭ looks like a 1. A katakana that merely resembles a digit does not count.",
+    "expect": false
+  },
+  {
+    "name": "one-always-on",
+    "question": "Is exactly one screen black apart from a time readout, with no falling glyphs on it at all?",
+    "expect": true
+  },
+  {
+    "name": "rain-colours",
+    "question": "Does the falling rain differ in colour from screen to screen, with at least three different colours among the screens, such as green, red and blue?",
+    "expect": true
+  },
+  {
+    "name": "hollow-time",
+    "question": "Is at least one time readout drawn as outlines only, hollow digits with the background showing through them?",
+    "expect": true
+  },
+  {
+    "name": "added-content",
+    "question": "Does any screen show anything besides falling glyphs and one time readout, such as a date, seconds, icons, a battery or any other text?",
+    "expect": false
+  },
+  {
+    "name": "added-text",
+    "question": "Leaving aside the watches themselves, their screens and the markings printed on their bezels, such as GARMIN, START or LAP, is there any text, logo, caption or watermark anywhere in the image?",
+    "expect": false
+  }
+]
