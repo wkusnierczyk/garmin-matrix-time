@@ -453,10 +453,11 @@ else
   HERO_CHECKS := tools/hero-checks.json
   HERO_SIZES := -s 1440x720 -s 900x450
 endif
-# CANDIDATES is read by the shell, not split by make: make's word functions split on
-# every space, and downloaded images are often named with spaces. The recipe takes it
-# from the environment and parses it with eval, so quoting inside the value holds:
-# CANDIDATES="'$HOME/Downloads/Gemini image.png' ~/Downloads/b.png".
+# CANDIDATES is not split by make: make's word functions split on every space, and
+# downloaded images are often named with spaces. The recipe takes it from the
+# environment and splits it with Python's shlex, which honours quotes as a shell does
+# but never runs anything, so a name holding ; or $(...) is only ever a name. A
+# leading ~ is expanded: CANDIDATES="'$HOME/Downloads/Gemini image.png' ~/Downloads/b.png".
 CANDIDATES ?=
 export CANDIDATES
 GEMINI_KEY_FILE ?=
@@ -480,10 +481,12 @@ else
 	@test -n "$(NO_SCREEN)$${GEMINI_API_KEY}$(GEMINI_KEY_FILE)" || { \
 	  echo "Screening needs a Gemini API key: set GEMINI_API_KEY, or pass GEMINI_KEY_FILE=path,"; \
 	  echo "or pass NO_SCREEN=1 to run the local checks alone."; exit 1; }
-	@eval "set -- $$CANDIDATES"; \
-	for file in "$$@"; do set -- "$$@" -c "$$file"; shift; done; \
-	garmin-graphics-generator compose -p $(HERO_PROMPT) -o $(HERO_DIR)/candidates \
-	  $(if $(NO_SCREEN),--no-screen,--checks $(HERO_CHECKS)) $(HERO_SIZES) "$$@" \
+	@python3 -c 'import os, shlex, sys; \
+	  files = [os.path.expanduser(f) for f in shlex.split(os.environ.get("CANDIDATES", ""))]; \
+	  command = sys.argv[1:] + [a for f in files for a in ("-c", f)]; \
+	  os.execvp(command[0], command)' \
+	  garmin-graphics-generator compose -p $(HERO_PROMPT) -o $(HERO_DIR)/candidates \
+	  $(if $(NO_SCREEN),--no-screen,--checks $(HERO_CHECKS)) $(HERO_SIZES) \
 	  $(if $(NO_SCREEN),,$(if $(GEMINI_KEY_FILE),--key-file "$(GEMINI_KEY_FILE)",)) \
 	  $(HERO_DIR)/captures/watch-*.png
 endif

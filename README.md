@@ -559,8 +559,9 @@ Premium has no raw capture and no banner: nothing in its listing uses the one, a
 top of this file is Lite's.
 
 **Each Premium image is a look, not a moment.** Lite's four woken images are four frames of one build;
-Premium's are four builds, each compiled with its settings as the property defaults in a copy of the
-tree, so the tree itself is never written to. All five are captured in one container. The presets are
+Premium's are four builds, and with the always-on one that makes five, each compiled with its settings
+as the property defaults in a copy of the tree, so the tree itself is never written to. All five are
+captured in one container. The presets are
 not restated anywhere: each preset build sets `presetLoad`, the phone's *Load preset* request, to its
 slot, and the face loads that slot's built-in look as it starts, exactly as it would a request from the
 phone. So the first three images show whatever `Presets.builtIn` holds, and follow it when it changes.
@@ -588,7 +589,7 @@ make hero EDITION=premium
 make hero EDITION=premium CANDIDATES="~/Downloads/gemini-1.png ~/Downloads/gemini-2.png" \
   GEMINI_KEY_FILE=~/.config/gemini/key
 
-# a name with spaces goes in quotes inside the list, which the shell parses as it would a command line
+# a name with spaces goes in quotes inside the list, split as a shell would split it, though never run
 make hero EDITION=premium CANDIDATES="'$HOME/Downloads/Gemini Generated Image.png'" \
   GEMINI_KEY_FILE=~/.config/gemini/key
 ```
