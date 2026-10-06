@@ -144,9 +144,9 @@ SIZE_VARIATION = 5
 ORIENTATION_VARIATION = 20
 MAX_OVERLAP = 20
 
-# Premium's set (#188), beside its store cover. No capture and no banner: Lite's raw
-# capture is a reference nothing in the listing uses, and the README banner is Lite's
-# hero, scaled.
+# Premium's set (#188), beside its store cover. No capture and no draft banner: Lite's
+# raw capture is a reference nothing in the listing uses, and the README banner is cut
+# from the published hero by make hero, not from the draft.
 PREMIUM_GRAPHICS = os.path.join(PROJECT, "premium", "graphics")
 PREMIUM_GALLERY_NAME = "MatrixTimePremium{index}.png"
 PREMIUM_HERO_NAME = "MatrixTimePremiumHero-draft.png"
@@ -534,7 +534,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Regenerate an edition's generated store images from the "
         "simulator: Lite's in resources/graphics, Premium's in premium/graphics. The "
-        "composed hero, Lite's banner and Premium's cover are left alone."
+        "composed heroes, their banners and Premium's cover are left alone."
     )
     parser.add_argument(
         "-e",

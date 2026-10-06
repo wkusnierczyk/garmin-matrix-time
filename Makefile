@@ -427,7 +427,7 @@ graphics:
 # The first fills in the edition's prompt and writes it to HERO_DIR/prompt.txt, to
 # paste into the Gemini app with HERO_DIR/captures/watch-*.png attached. The second
 # hands each image the app returned to garmin-graphics-generator compose, which
-# crops and resizes it to exactly the store's 1440x720 (and Lite's banner size), and
+# crops and resizes it to exactly the store's 1440x720 and the README banner's 900x450, and
 # screens it: the size and the 2048 KB limit locally, and the watch count and the
 # edition's checks file by a vision model. Candidates land in HERO_DIR/candidates,
 # numbered on from any already there, and nothing is ever overwritten. Picking one and
@@ -447,7 +447,7 @@ HERO_DIR := .dev/scratchpad/hero/$(EDITION)
 ifeq ($(EDITION),premium)
   HERO_PROMPT := premium/tools/hero-prompt.txt
   HERO_CHECKS := premium/tools/hero-checks.json
-  HERO_SIZES := -s 1440x720
+  HERO_SIZES := -s 1440x720 -s 900x450
 else
   HERO_PROMPT := tools/hero-prompt.txt
   HERO_CHECKS := tools/hero-checks.json

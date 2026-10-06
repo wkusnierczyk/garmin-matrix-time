@@ -4,7 +4,7 @@
 
 A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face that displays the current time with the Digital Rain design in the background.
 
-![Matrix Time](resources/graphics/MatrixTimeHero-small.png)
+![Matrix Time](premium/graphics/MatrixTimePremiumHero-small.png)
 
 Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps/71aed235-c2f2-4b33-b29f-836e83497853) or through the Connect IQ mobile app.
 
@@ -54,12 +54,14 @@ Every supported device has an AMOLED screen, and Garmin's burn-in protector blan
 
 ## Features
 
-The Matrix Time watch face supports the following features:
+The Matrix Time watch face supports the following features, in Lite, the free edition, and in
+Premium, the paid one; see [Editions](#editions).
 
-|Screenshot|Description|
-|-|:-|
-|![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
-|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it filled at Extra large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
+|Lite|Premium|Feature|
+|:-:|:-:|:-|
+|![](resources/graphics/MatrixTime4.png)|![](premium/graphics/MatrixTimePremium1.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time. Lite draws green rain under a small time on a black box. Premium can set the colour of both, the length of the rain's trail, and the size, style and place of the time; the [Green preset](#presets) is shown.
+|![](resources/graphics/MatrixTime5.png)|![](premium/graphics/MatrixTimePremium5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it filled at Extra large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
+||![](premium/graphics/MatrixTimePremium4.png)|**Hollow time, gradient rain**<br/> Premium only. The time drawn as an outline, with the rain falling through the digits, here in white at Extra large over the White to green rain, whose heads glow white and cool to green. See **Time style**, **Time size** and **Rain colour** under [Premium settings](#premium-settings).
 
 Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
@@ -152,11 +154,11 @@ brightness and the date are not part of it, and loading a preset leaves them as 
 
 Three slots come filled, and the other two are empty:
 
-| Slot | Name | Time size | Trail length | Time style | Time alignment | Time colour | Rain colour |
-| :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| 1 | Green | Medium | 25% | Filled | Right | White | Green |
-| 2 | Red | Large | 25% | Filled | Left | Orange | Red |
-| 3 | Blue | Extra extra large | 75% | Hollow | Centre | Cyan | Blue |
+| Slot | Name | Look | Time size | Trail length | Time style | Time alignment | Time colour | Rain colour |
+| :-- | :-- | :-: | :-- | :-- | :-- | :-- | :-- | :-- |
+| 1 | Green | <img src="premium/graphics/MatrixTimePremium1.png" width="100" alt="Green preset"> | Medium | 25% | Filled | Right | White | Green |
+| 2 | Red | <img src="premium/graphics/MatrixTimePremium2.png" width="100" alt="Red preset"> | Large | 25% | Filled | Left | Orange | Red |
+| 3 | Blue | <img src="premium/graphics/MatrixTimePremium3.png" width="100" alt="Blue preset"> | Extra extra large | 75% | Hollow | Centre | Cyan | Blue |
 
 They are loaded and saved over like any other slot. Saving over one replaces its look for good.
 
@@ -526,7 +528,7 @@ python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusn
 Each edition has a store listing of its own, and so a set of images of its own: Lite's in
 `resources/graphics/`, which also illustrate this file, and Premium's in `premium/graphics/`. Most of
 them are **generated output** of `make graphics`; do not edit those by hand. The exceptions are the
-published heroes and Lite's banner, which are composed with an image model and picked by hand -- with
+published heroes and their banners, which are composed with an image model and picked by hand -- with
 `make hero` for Premium's, and before `make hero` existed for Lite's -- and which `make graphics`
 deliberately does not write; and Premium's store cover, which is drawn from the launcher icon's
 artwork by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
@@ -540,7 +542,7 @@ Lite's, in `resources/graphics/`:
 | `MatrixTime4.png` | the same | the [Features](#features) table above | `make graphics` |
 | `MatrixTime5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table | `make graphics` |
 | `MatrixTimeHero.png` | the five captures recomposed at 1440 x 720, watches overlapping and seen from several viewpoints | store listing, social | composed by hand |
-| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file | composed by hand |
+| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file, until Premium's replaced it | composed by hand |
 | `MatrixTimeHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics` |
 | `MatrixTimeHero-draft-small.png` | the same composition at 900 x 450 | the same | `make graphics` |
 
@@ -548,15 +550,17 @@ Premium's, in `premium/graphics/`:
 
 | file | what it is | where it is used | made by |
 |:--|:--|:--|:--|
-| `MatrixTimePremium1.png` to `MatrixTimePremium3.png` | the three built-in presets, Green, Red and Blue, set into the watch render, 200 px wide | store gallery | `make graphics EDITION=premium` |
-| `MatrixTimePremium4.png` | the same, of white-to-green rain under a hollow white time at Extra large | store gallery | `make graphics EDITION=premium` |
-| `MatrixTimePremium5.png` | the same, of the always-on screen | store gallery | `make graphics EDITION=premium` |
+| `MatrixTimePremium1.png` to `MatrixTimePremium3.png` | the three built-in presets, Green, Red and Blue, set into the watch render, 200 px wide | store gallery, and the [Features](#features) and [Presets](#presets) tables | `make graphics EDITION=premium` |
+| `MatrixTimePremium4.png` | the same, of white-to-green rain under a hollow white time at Extra large | store gallery, and the [Features](#features) table | `make graphics EDITION=premium` |
+| `MatrixTimePremium5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table | `make graphics EDITION=premium` |
 | `MatrixTimePremiumHero.png` | the five captures recomposed at 1440 x 720, watches overlapping and seen from several viewpoints | store listing | `make hero EDITION=premium`, picked by hand |
+| `MatrixTimePremiumHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file | `make hero EDITION=premium`, with the hero |
 | `MatrixTimePremiumHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics EDITION=premium` |
 | `MatrixTimePremiumCover.png` | the launcher icon's artwork, 512 x 512 | store listing | `make icons` |
 
-Premium has no raw capture and no banner: nothing in its listing uses the one, and the banner at the
-top of this file is Lite's.
+Premium has no raw capture, since nothing in its listing uses one, and no draft banner. The banner at
+the top of this file is Premium's published hero at 900 x 450, written by `make hero` beside the hero
+from the same image; Lite's, from before Premium had a hero, is kept with the hero it was cut from.
 
 **Each Premium image is a look, not a moment.** Lite's four woken images are four frames of one build;
 Premium's are four builds, and with the always-on one that makes five, each compiled with its settings
@@ -603,8 +607,8 @@ rain colour and in the time's colour, size, position and style, and that each ke
 hollow digits included.
 
 The second step crops each image about its centre to 2:1 and resizes it to **exactly 1440 x 720**,
-which the store validates and rejects anything else for, and, for Lite, to the 900 x 450 banner too,
-as the same image rather than a second composition. It then screens it: the size, the store's 2048 KB
+which the store validates and rejects anything else for, and to the 900 x 450 banner too, as the
+same image rather than a second composition. It then screens it: the size, the store's 2048 KB
 limit, and that the crop was not enlarged, locally; and the watch count, any case cut off by the edge,
 and the edition's own checks, [`tools/hero-checks.json`](tools/hero-checks.json) or
 [`premium/tools/hero-checks.json`](premium/tools/hero-checks.json), by a vision model. Those ask, among
@@ -709,11 +713,11 @@ reference guide covers the extension in full; what follows is the part of it thi
 
 ### Git LFS
 
-Twenty-one binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
+Twenty-two binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
 typefaces, `resources/fonts/MatrixCodeNFI.ttf`, `resources/fonts/SUSEMono-Regular.ttf` and Premium's
 `premium/resources/fonts/SUSEMono-ExtraBold.ttf`; the launcher icon
 fallback, `resources/drawables/launcher_icon.png`; the ten hero and screenshot graphics under
-`resources/graphics/`; and Premium's seven under `premium/graphics/`. Everything else is stored
+`resources/graphics/`; and Premium's eight under `premium/graphics/`. Everything else is stored
 normally, the generated bitmap fonts, the per-device launcher icons and Premium's store cover
 included -- they are build output of the typefaces and the icon artwork, small, and worth diffing.
 
@@ -910,7 +914,7 @@ bundle to the store is manual either way, through the store's web form.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
-six in `premium/graphics/` for Premium. The published heroes, Lite's banner and Premium's cover are
+six in `premium/graphics/` for Premium. The published heroes, their banners and Premium's cover are
 left alone. It needs Docker running and
 [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer for Lite, 0.6.0 or newer for Premium, and no SDK: the capture runs the Connect IQ simulator
