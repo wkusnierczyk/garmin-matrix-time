@@ -205,15 +205,20 @@ PREMIUM_LOOKS = (
 #
 # Premium needs 0.6.0, which captures several builds in one container, each with its
 # own property defaults laid over a copy of the tree.
+#
+# The hint installs INSTALL_VERSION rather than the minimum: make icons and make hero
+# need 0.7.0, and the README installs that release, with the Pillow the icons were
+# drawn with, for every target alike.
 GENERATOR = "garmin_graphics_generator"
 REQUIRED_VERSIONS = {"lite": "0.5.1", "premium": "0.6.0"}
+INSTALL_VERSION = "0.7.0"
 RELEASE_URL = (
     "https://github.com/wkusnierczyk/garmin-graphics-generator/releases/tag/v{version}"
 )
 
 INSTALL_HINT = """garmin-graphics-generator {version} or newer is needed, and {problem}.
 
-    pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v{version}'
+    python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v{install}' 'Pillow==12.1.0'
 
 It carries the simulator capture and the hero composition, which are shared with the
 other watch faces rather than kept here. Release notes: {url}"""
@@ -239,7 +244,8 @@ def load_generator(edition):
             INSTALL_HINT.format(
                 version=required,
                 problem=problem,
-                url=RELEASE_URL.format(version=required),
+                install=INSTALL_VERSION,
+                url=RELEASE_URL.format(version=INSTALL_VERSION),
             )
         )
 
@@ -255,10 +261,13 @@ def load_generator(edition):
         from garmin_graphics_generator.core import (  # noqa: F401
             WatchHeroGenerator,
         )
+        from garmin_graphics_generator.capture import CaptureError
         from garmin_graphics_generator.shots import ShotsError, take_shots
     except ImportError as error:
         fail(f"importing it failed: {error}")
-    return WatchHeroGenerator, take_shots, ShotsError
+    # Both, because cutting the frames raises CaptureError, which is no ShotsError; a
+    # failed cut is reported like a failed capture rather than as a traceback.
+    return WatchHeroGenerator, take_shots, (ShotsError, CaptureError)
 
 
 def flatten(image, background):
@@ -299,6 +308,8 @@ def keep_hero_captures(shots, edition, quiet):
     if os.path.isdir(directory):
         shutil.rmtree(directory)
     os.makedirs(directory)
+    if not quiet:
+        print("Keeping the full-size captures for make hero:")
     for index, shot in enumerate(shots, start=1):
         path = os.path.join(directory, f"watch-{index}.png")
         shutil.copyfile(shot.watch_path, path)
@@ -426,9 +437,12 @@ def capture_looks(shots_error, arguments, work):
 
     # Every overlay carries every properties file any look touches, so laying them
     # over one copy in turn puts back what the previous build changed.
-    overlays = variants.overlay_files(
-        PROJECT, resources, [look.settings for look in PREMIUM_LOOKS]
-    )
+    try:
+        overlays = variants.overlay_files(
+            PROJECT, resources, [look.settings for look in PREMIUM_LOOKS]
+        )
+    except variants.VariantsError as error:
+        sys.exit(f"cannot set Premium's looks: {error}")
     builds = [
         Build(f"{index:02d}", look.jungle, files or None)
         for index, (look, files) in enumerate(zip(PREMIUM_LOOKS, overlays), start=1)
@@ -456,7 +470,7 @@ def capture_looks(shots_error, arguments, work):
 
 
 def make_lite(arguments, work):
-    """Captures Lite and writes resources/graphics, but for the published hero."""
+    """Captures Lite and writes resources/graphics, but for the published hero and banner."""
     generator_class, take_shots, shots_error = load_generator("lite")
 
     # Two runs, because they are two builds. Each one compiles the face, starts a
@@ -491,7 +505,7 @@ def make_lite(arguments, work):
 
 
 def make_premium(arguments, work):
-    """Captures Premium's looks and writes premium/graphics, but for the cover."""
+    """Captures Premium and writes premium/graphics, but for the published hero and cover."""
     generator_class, _, shots_error = load_generator("premium")
     shots = capture_looks(shots_error, arguments, work)
 

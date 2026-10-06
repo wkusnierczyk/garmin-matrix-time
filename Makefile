@@ -375,11 +375,12 @@ check-icons:
 	@$(ICONS_TOOL) icons $(PREMIUM_ICONS) --check
 	@python3 premium/tools/launcher_icon.py check $(PREMIUM_FALLBACK) $(PREMIUM_COVER)
 
-# Every image in resources/graphics/ that is generated, regenerated from the current
-# build (#125). They used to be made by hand -- run the simulator, capture, resize,
-# composite -- which is why #54 could change what the face draws and leave all seven
-# showing the old charset for months (#80). A capture is derived from the app but is
-# not generated output, so nothing reported them stale.
+# Every generated store image of the edition, regenerated from the current build:
+# Lite's in resources/graphics/ (#125), Premium's in premium/graphics/ (#188). Lite's
+# used to be made by hand -- run the simulator, capture, resize, composite -- which is
+# why #54 could change what the face draws and leave all seven showing the old charset
+# for months (#80). A capture is derived from the app but is not generated output, so
+# nothing reported them stale.
 #
 # The exceptions are MatrixTimeHero.png and MatrixTimeHero-small.png, which are
 # composed with an image model and are what the store serves (#130); see make hero.
@@ -449,7 +450,12 @@ else
   HERO_CHECKS := tools/hero-checks.json
   HERO_SIZES := -s 1440x720 -s 900x450
 endif
+# CANDIDATES is read by the shell, not split by make: make's word functions split on
+# every space, and downloaded images are often named with spaces. The recipe takes it
+# from the environment and parses it with eval, so quoting inside the value holds:
+# CANDIDATES="'$HOME/Downloads/Gemini image.png' ~/Downloads/b.png".
 CANDIDATES ?=
+export CANDIDATES
 GEMINI_KEY_FILE ?=
 
 hero:
@@ -467,9 +473,13 @@ ifeq ($(strip $(CANDIDATES)),)
 	@echo "Attach: $(HERO_DIR)/captures/watch-*.png"
 	@echo "Then:   make hero EDITION=$(EDITION) CANDIDATES=\"<the images the model returned>\""
 else
-	@garmin-graphics-generator compose -p $(HERO_PROMPT) -o $(HERO_DIR)/candidates \
-	  --checks $(HERO_CHECKS) $(HERO_SIZES) $(foreach file,$(CANDIDATES),-c $(file)) \
-	  $(if $(GEMINI_KEY_FILE),--key-file $(GEMINI_KEY_FILE),) \
+	@test -n "$${GEMINI_API_KEY}$(GEMINI_KEY_FILE)" || { \
+	  echo "Screening needs a Gemini API key: set GEMINI_API_KEY, or pass GEMINI_KEY_FILE=path."; exit 1; }
+	@eval "set -- $$CANDIDATES"; \
+	for file in "$$@"; do set -- "$$@" -c "$$file"; shift; done; \
+	garmin-graphics-generator compose -p $(HERO_PROMPT) -o $(HERO_DIR)/candidates \
+	  --checks $(HERO_CHECKS) $(HERO_SIZES) "$$@" \
+	  $(if $(GEMINI_KEY_FILE),--key-file "$(GEMINI_KEY_FILE)",) \
 	  $(HERO_DIR)/captures/watch-*.png
 endif
 

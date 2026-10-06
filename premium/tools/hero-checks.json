@@ -1,7 +1,7 @@
 [
   {
     "name": "numerals-in-rain",
-    "question": "Apart from the single time readout on each screen, does any screen show an Arabic numeral 0-9 anywhere, including among the falling glyphs?",
+    "question": "Apart from the single time readout on each screen, does any screen show a clearly drawn Arabic numeral 0-9 among the falling glyphs? The falling glyphs are Japanese katakana, and some resemble digits: ｭ looks like a 1. A katakana that merely resembles a digit does not count.",
     "expect": false
   },
   {
@@ -26,7 +26,7 @@
   },
   {
     "name": "added-text",
-    "question": "Leaving aside the markings printed on the watches themselves, such as GARMIN, START or LAP on the bezels, is there any text, logo, caption or watermark anywhere in the image?",
+    "question": "Leaving aside the watches themselves, their screens and the markings printed on their bezels, such as GARMIN, START or LAP, is there any text, logo, caption or watermark anywhere in the image?",
     "expect": false
   }
 ]

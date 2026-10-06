@@ -526,9 +526,10 @@ python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusn
 Each edition has a store listing of its own, and so a set of images of its own: Lite's in
 `resources/graphics/`, which also illustrate this file, and Premium's in `premium/graphics/`. Most of
 them are **generated output** of `make graphics`; do not edit those by hand. The exceptions are the
-published heroes and Lite's banner, which are composed with an image model by `make hero` and picked
-by hand, and which `make graphics` deliberately does not write, and Premium's store cover, which is
-drawn from the launcher icon's artwork by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
+published heroes and Lite's banner, which are composed with an image model and picked by hand -- with
+`make hero` for Premium's, and before `make hero` existed for Lite's -- and which `make graphics`
+deliberately does not write; and Premium's store cover, which is drawn from the launcher icon's
+artwork by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
 
 Lite's, in `resources/graphics/`:
 
@@ -585,6 +586,10 @@ make hero EDITION=premium
 # paste the prompt into the Gemini app with the five captures attached, download what it makes,
 # and size and screen each image
 make hero EDITION=premium CANDIDATES="~/Downloads/gemini-1.png ~/Downloads/gemini-2.png" \
+  GEMINI_KEY_FILE=~/.config/gemini/key
+
+# a name with spaces goes in quotes inside the list, which the shell parses as it would a command line
+make hero EDITION=premium CANDIDATES="'$HOME/Downloads/Gemini Generated Image.png'" \
   GEMINI_KEY_FILE=~/.config/gemini/key
 ```
 
@@ -645,10 +650,11 @@ build; see [Editions in the build](#editions-in-the-build) for why the order mat
 `make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
 and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator): 0.5.1 or
 newer for Lite, 0.6.0 or newer for Premium, and 0.7.0 or newer for `make hero`. `make icons` needs
-0.7.0 too, so install that:
+0.7.0 as well, and a pinned Pillow for the `python3` on `PATH`, so install it the way
+[Premium launcher icon](#premium-launcher-icon) says, which serves every target here:
 
 ```bash
-pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0'
+python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0' 'Pillow==12.1.0'
 ```
 
 0.5.0 is the first release carrying the `shots` command; 0.5.1 is the first whose `hero` retries an
@@ -882,7 +888,9 @@ needs no arguments at all.
 Every target that compiles also builds one edition, `EDITION`, which defaults to `lite`. With
 `EDITION=premium` the same targets build Premium instead -- `build`, `run`, `test`, `sideload` and
 `export` alike -- and write `MatrixTimePremium.prg` and `export/MatrixTimePremium.iq`, so neither
-edition's output overwrites the other's. Any other value is refused before anything runs.
+edition's output overwrites the other's. Any other value is refused before anything runs. `graphics`
+and `hero` follow `EDITION` too, and so does `preview`, though none of the three compiles on the
+desktop.
 
 `make export` is the exception, and the only compiling target that ignores `DEVICE`: it packages
 every product the edition's manifest names -- `manifest.xml` for Lite, `manifest-premium.xml` for
@@ -1013,8 +1021,9 @@ jungle names none, and building it alone fails loudly instead of building one ed
 **The edition jungle always comes last.** Each edition keeps the other's code out by *appending* an
 annotation to the exclusion list: `lite.jungle` excludes `(:premium)`, `premium.jungle` excludes
 `(:lite)`. A jungle layered after it that *replaced* the list would drop that exclusion without a word
--- `graphics.jungle` replaces the list, which is why the always-on capture builds
-`monkey.jungle;graphics.jungle;lite.jungle` and never puts `lite.jungle` before it.
+-- `graphics.jungle` replaces the list, which is why the always-on captures build
+`monkey.jungle;graphics.jungle;lite.jungle` and `monkey.jungle;graphics.jungle;premium.jungle`, and
+never put the edition jungle before it.
 
 Premium-only code goes in `premium/source/`, which is on Premium's source path and on no other. Small
 differences inside a shared file take a `(:premium)` or `(:lite)` annotation instead. A whole

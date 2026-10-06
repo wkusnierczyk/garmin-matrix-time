@@ -13,8 +13,9 @@ OUTPUT
 A single image, exactly twice as wide as it is tall, at the largest resolution you
 can produce and no smaller than 2880x1440. A flat pure white background, no
 gradient, no vignette, no visible surface. No border, no frame, no caption.
-Leave a little clear white at the left and right edges, so the image can be trimmed
-to an exact 2:1 without touching a watch.
+Keep every watch inside the central area that is twice as wide as it is tall, with
+a little clear white at its edges, so the image can be trimmed to an exact 2:1
+without touching a watch.
 
 INVARIANTS — these outrank every layout rule below
 1. Each screen must stay a believable screenshot of this watch face. Reproduce each
