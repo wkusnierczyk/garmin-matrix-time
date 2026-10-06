@@ -27,7 +27,7 @@ import textwrap
 
 HELP_RE = re.compile(r'## (.*)$')
 TARGET_RE = re.compile(r'([a-z][a-z0-9-]*):(?!=)')
-VARIABLE_RE = re.compile(r'([A-Z][A-Z0-9_]*) *\?=')
+VARIABLE_RE = re.compile(r'\s*(?:(?:export|override)\s+)*([A-Z][A-Z0-9_]*)\s*\?=')
 TAKES_RE = re.compile(r'(.*?) *\[([A-Z0-9_ ]+)\]$')
 NAME_WIDTH = 17
 VALUE_WIDTH = 18
@@ -66,6 +66,9 @@ def parse(path):
         rule, variable = TARGET_RE.match(following), VARIABLE_RE.match(following)
         if rule:
             takes = TAKES_RE.match(help.group(1))
+            if not takes and help.group(1).endswith(']'):
+                errors.append(f"line {number}: the variables a target takes go in brackets as "
+                              "upper-case names separated by spaces, [DEVICE EDITION]")
             targets[rule.group(1)] = (takes.group(1), takes.group(2).split()) if takes \
                 else (help.group(1), [])
         elif variable:
@@ -81,9 +84,10 @@ def check(path):
         if name not in targets:
             errors.append(f"{name} is in .PHONY but has no ## line" if name in rules
                           else f"{name} is in .PHONY but has no rule")
-    for name in targets:
+    for name in rules:
         if name not in phony:
-            errors.append(f"{name} has a ## line but is not in .PHONY")
+            errors.append(f"{name} is a rule with no ## line, and not in .PHONY"
+                          if name not in targets else f"{name} has a ## line but is not in .PHONY")
     for name in settable:
         if name not in variables:
             errors.append(f"{name} is a ?= variable but has no ## line")
@@ -112,7 +116,7 @@ def columns(lead, text, column):
 
 def show(path, values):
     targets, variables, *_ = parse(path)
-    column = 2 + NAME_WIDTH + max(len(what) for what, _ in targets.values()) + 2
+    column = 2 + NAME_WIDTH + max((len(what) for what, _ in targets.values()), default=0) + 2
     print("Usage: make [target] [VARIABLE=value ...]; with no target, make builds.")
     print()
     print("Targets")
@@ -133,8 +137,10 @@ def main(argv):
         check(path)
     elif args == ['--variables']:
         print(' '.join(parse(path)[1]))
-    else:
+    elif all('=' in arg for arg in args):
         show(path, dict(arg.split('=', 1) for arg in args))
+    else:
+        sys.exit(__doc__)
 
 
 if __name__ == '__main__':

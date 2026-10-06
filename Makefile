@@ -5,15 +5,15 @@
 #   ~/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg
 # macOS only. On another platform, pass CIQ_HOME or SDK_BIN explicitly.
 # Override for CI or a pinned build:  make build SDK_BIN=/path/to/sdk/bin
-## The SDK manager's directory, which SDK_BIN is read from
+## The SDK manager's directory: SDK_BIN's default, and the devices sideload knows
 CIQ_HOME ?= $(HOME)/Library/Application Support/Garmin/ConnectIQ
 # Trailing slashes are stripped in the shell: the file's format is not guaranteed,
 # and make's own text functions split on whitespace, which the macOS path contains.
-## The Connect IQ SDK's bin directory, for every target that compiles
+## The Connect IQ SDK's bin directory, for every target that runs the SDK locally
 SDK_BIN  ?= $(shell sed -e 's:/*$$::' "$(CIQ_HOME)/current-sdk.cfg" 2>/dev/null)/bin
 
 # Path to your developer key (generated via SDK manager or openssl)
-## The developer key every compiling target signs with
+## The developer key every local build signs with
 DEV_KEY ?= ../garmin-keys/developer_key
 
 # The device to simulate (must match one in manifest.xml)
@@ -48,7 +48,7 @@ OUTPUT := $(APP).prg
 # embeds the absolute build path and line numbers -- which is what "make check-lite"
 # does with it (#35, finding 4). Empty, the default, keeps the debug symbols the
 # simulator and the profiler use.
-## 1 builds the .prg without debug information, as export does
+## Non-empty builds the .prg without debug information, as export does
 RELEASE ?=
 
 # The store bundle "make export" produces: one signed package covering every
@@ -111,7 +111,7 @@ SUBMAKE := $(MAKE)
 
 # Fail with a readable message rather than "No such file or directory".
 # Checked inside the recipes rather than at parse time, so targets that need no
-# SDK -- clean, check-fonts, check-icons -- still work on a machine without one.
+# SDK -- clean, help, and every check but check-lite -- still work on a machine without one.
 # The test goes through the shell with the path quoted: make's own text functions
 # split on whitespace, and the macOS path contains "Application Support".
 define require_sdk
@@ -248,7 +248,7 @@ test: sim
 # device has to be known before the binary is compiled, and a prerequisite would
 # have built for the default DEVICE before the watch was ever consulted. The
 # binary is still always current, which is what that ordering is for.
-## Build for the plugged-in watch and install it [DEVICE EDITION RELEASE WAIT EVERY]
+## Build for the plugged-in watch and install it [DEVICE EDITION RELEASE WAIT EVERY CIQ_HOME]
 sideload:
 	$(require_sdk)
 	@tools/sideload.sh wait "$(WAIT)" "$(EVERY)" || exit 1
@@ -488,7 +488,7 @@ CANDIDATES ?=
 export CANDIDATES
 ## A file holding the Gemini API key hero screens with
 GEMINI_KEY_FILE ?=
-## 1 runs hero's local checks alone, with no API key
+## Non-empty runs hero's local checks alone, with no API key
 NO_SCREEN ?=
 
 ## Print the hero prompt, or screen CANDIDATES [EDITION CANDIDATES GEMINI_KEY_FILE NO_SCREEN]
@@ -558,7 +558,7 @@ PREVIEW_DIR := .dev/scratchpad/preview/$(EDITION)
 SCENES ?= woken always-on
 SCENE_JUNGLE_woken := monkey.jungle;$(EDITION).jungle
 SCENE_JUNGLE_always-on := monkey.jungle;graphics.jungle;$(EDITION).jungle
-## The settings preview varies; by default every one
+## The settings preview varies; empty is every one, unless GRID or CASES is set
 VARY ?=
 ## Two settings preview crosses, across and down
 GRID ?=
@@ -612,7 +612,7 @@ clean:
 help:
 	@python3 tools/make-help.py Makefile \
 	  $(foreach v,$(shell python3 tools/make-help.py Makefile --variables),'$(v)=$(subst ','\'',$($(v)))')
-	@test -x "$(SDK_BIN)/monkeyc" || echo "No Connect IQ SDK at SDK_BIN, which every target that compiles needs."
+	@test -x "$(SDK_BIN)/monkeyc" || echo "No Connect IQ SDK at SDK_BIN: the targets that run the SDK locally need one."
 
 # Fails on a target in .PHONY, or a ?= variable, with no "## " line above it. Run in CI.
 ## Check that every target and variable has help
