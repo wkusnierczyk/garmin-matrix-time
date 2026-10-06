@@ -15,3 +15,10 @@ resources/graphics/MatrixTime3.png filter=lfs diff=lfs merge=lfs -text
 resources/graphics/MatrixTimeHero-draft.png filter=lfs diff=lfs merge=lfs -text
 resources/graphics/MatrixTimeHero-draft-small.png filter=lfs diff=lfs merge=lfs -text
 premium/resources/fonts/SUSEMono-ExtraBold.ttf filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium1.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium2.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium3.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium4.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium5.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremiumHero-draft.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremiumHero.png filter=lfs diff=lfs merge=lfs -text

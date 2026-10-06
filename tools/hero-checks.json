@@ -1,0 +1,27 @@
+[
+  {
+    "name": "numerals-in-rain",
+    "question": "Apart from the single time readout on each screen, does any screen show an Arabic numeral 0-9 anywhere, including among the falling glyphs?",
+    "expect": false
+  },
+  {
+    "name": "one-always-on",
+    "question": "Is exactly one screen black apart from a time readout, with no falling glyphs on it at all?",
+    "expect": true
+  },
+  {
+    "name": "rain-is-green",
+    "question": "Are the falling glyphs on every screen that has them green, and no other colour?",
+    "expect": true
+  },
+  {
+    "name": "added-content",
+    "question": "Does any screen show anything besides falling glyphs and one time readout, such as a date, seconds, icons, a battery or any other text?",
+    "expect": false
+  },
+  {
+    "name": "added-text",
+    "question": "Leaving aside the markings printed on the watches themselves, such as GARMIN, START or LAP on the bezels, is there any text, logo, caption or watermark anywhere in the image?",
+    "expect": false
+  }
+]

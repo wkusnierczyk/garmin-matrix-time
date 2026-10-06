@@ -39,3 +39,7 @@ __pycache__/
 
 # make preview's contact sheets, for review and never committed (#140)
 /.dev/scratchpad/preview/
+
+# make graphics' full-size captures and make hero's candidates, inputs to a manual step
+# and never committed (#188)
+/.dev/scratchpad/hero/

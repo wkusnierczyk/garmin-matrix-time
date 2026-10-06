@@ -121,7 +121,7 @@ TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f "$(JUNGLES)" --unit-test
 EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f "$(JUNGLES)"
 
 .PHONY: all build sim run test sideload export check-fonts check-manifests check-lite \
-        icons check-icons graphics preview clean
+        icons check-icons graphics hero preview clean
 
 all: build
 
@@ -382,10 +382,10 @@ check-icons:
 # not generated output, so nothing reported them stale.
 #
 # The exceptions are MatrixTimeHero.png and MatrixTimeHero-small.png, which are
-# composed by hand with an image model and are what the store serves (#130). This
-# target writes MatrixTimeHero-draft.png and its banner instead, and never those two,
-# so a capture run cannot overwrite an adopted hero. Recomposing it is manual and is
-# owed whenever what the face draws changes.
+# composed with an image model and are what the store serves (#130); see make hero.
+# This target writes MatrixTimeHero-draft.png and its banner instead, and never those
+# two, so a capture run cannot overwrite an adopted hero. Recomposing it is owed
+# whenever what the face draws changes.
 #
 # The capture and the hero composition come from garmin-graphics-generator, shared
 # with the sibling faces; what is here is the names, the sizes and the reference
@@ -402,15 +402,76 @@ check-icons:
 # lite.jungle (#128, #135). Expect roughly twice the wait of a woken-only capture,
 # since each run compiles the face and starts a container of its own.
 #
-# Lite only. The store images are Lite's, and a Premium set would need a listing of
-# its own to go on; tools/make-graphics.py names the Lite jungles itself, so
-# EDITION=premium is refused rather than quietly capturing Lite.
+# EDITION=premium writes Premium's set instead, into premium/graphics/ beside its
+# store cover, and leaves Lite's alone (#188): MatrixTimePremium1.png to 5.png and
+# MatrixTimePremiumHero-draft.png. Each of its five images is a look rather than a
+# moment -- the three built-in presets, a gradient rain, and always-on -- so each is a
+# build of its own with its settings as the property defaults, all five in one
+# container. MatrixTimePremiumHero.png is never written, as Lite's hero is not.
+#
+# Both editions also keep the full-size watch renders in HERO_DIR/captures, which is
+# what make hero sends to the image model.
 graphics:
-	@test "$(EDITION)" = lite || { \
-	  echo "make graphics captures Lite only; drop EDITION=$(EDITION)."; exit 1; }
-	@echo "Regenerating resources/graphics..."
-	@python3 tools/make-graphics.py $(if $(PLATFORM),--platform $(PLATFORM),) \
+	@echo "Regenerating the $(EDITION) store images..."
+	@python3 tools/make-graphics.py --edition $(EDITION) \
+	                                $(if $(PLATFORM),--platform $(PLATFORM),) \
 	                                $(if $(TZ_NAME),--timezone $(TZ_NAME),)
+
+# The published hero, composed by an image model from the captures make graphics
+# keeps (#188). Two steps, with the model between them:
+#
+#   make hero EDITION=premium                           prints the prompt, and saves it
+#   make hero EDITION=premium CANDIDATES="a.png b.png"  sizes and screens what came back
+#
+# The first fills in the edition's prompt and writes it to HERO_DIR/prompt.txt, to
+# paste into the Gemini app with HERO_DIR/captures/watch-*.png attached. The second
+# hands each image the app returned to garmin-graphics-generator compose, which
+# crops and resizes it to exactly the store's 1440x720 (and Lite's banner size), and
+# screens it: the size and the 2048 KB limit locally, and the watch count and the
+# edition's checks file by a vision model. Candidates land in HERO_DIR/candidates,
+# numbered on from any already there, and nothing is ever overwritten. Picking one and
+# copying it over the published hero is yours to do.
+#
+# Screening needs a Gemini API key, GEMINI_API_KEY or GEMINI_KEY_FILE=path; the vision
+# model it uses is on the free tier. Generating through the API is not, which is why
+# the candidates come from the app: compose -g is there for whoever wants to pay.
+#
+# 0.7.0 is the first release with compose. The PATH tool is fine here: nothing it
+# draws has to match a Pillow elsewhere, as the icons do.
+HERO_TOOL_VERSION := 0.7.0
+HERO_DIR := .dev/scratchpad/hero/$(EDITION)
+ifeq ($(EDITION),premium)
+  HERO_PROMPT := premium/tools/hero-prompt.txt
+  HERO_CHECKS := premium/tools/hero-checks.json
+  HERO_SIZES := -s 1440x720
+else
+  HERO_PROMPT := tools/hero-prompt.txt
+  HERO_CHECKS := tools/hero-checks.json
+  HERO_SIZES := -s 1440x720 -s 900x450
+endif
+CANDIDATES ?=
+GEMINI_KEY_FILE ?=
+
+hero:
+	@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
+	  found = 1; old = v[1] + 0 == 0 && v[2] + 0 < 7 } END { exit !found || old }' || { \
+	  echo "make hero needs garmin-graphics-generator $(HERO_TOOL_VERSION) or newer on PATH; see README.md."; exit 1; }
+	@ls $(HERO_DIR)/captures/watch-*.png >/dev/null 2>&1 || { \
+	  echo "No captures in $(HERO_DIR)/captures; run make graphics EDITION=$(EDITION) first."; exit 1; }
+ifeq ($(strip $(CANDIDATES)),)
+	@garmin-graphics-generator compose -p $(HERO_PROMPT) --print-prompt \
+	  $(HERO_DIR)/captures/watch-*.png > $(HERO_DIR)/prompt.txt
+	@cat $(HERO_DIR)/prompt.txt
+	@echo
+	@echo "Prompt: $(HERO_DIR)/prompt.txt"
+	@echo "Attach: $(HERO_DIR)/captures/watch-*.png"
+	@echo "Then:   make hero EDITION=$(EDITION) CANDIDATES=\"<the images the model returned>\""
+else
+	@garmin-graphics-generator compose -p $(HERO_PROMPT) -o $(HERO_DIR)/candidates \
+	  --checks $(HERO_CHECKS) $(HERO_SIZES) $(foreach file,$(CANDIDATES),-c $(file)) \
+	  $(if $(GEMINI_KEY_FILE),--key-file $(GEMINI_KEY_FILE),) \
+	  $(HERO_DIR)/captures/watch-*.png
+endif
 
 # A labelled contact sheet of the face across its settings, for review before a
 # setting merges (#140). Not store artwork: it goes to .dev/scratchpad/preview/<edition>/,
