@@ -22,7 +22,8 @@ over a crown, a gold corner and a gold rim by rendering all four at every launch
 size: at 38 x 38 the star keeps the clearest outline and hides the least rain, and a
 corner would vanish if a launcher crops icons to a circle.
 
-Generating needs Pillow; `check` needs nothing but Python.
+Generating and checking both need Pillow: `check` compares every Premium icon with
+Lite's, pixel by pixel, outside the star.
 """
 import importlib.util
 import math
@@ -53,6 +54,10 @@ COVER_SIZE = 512
 COVER_COLUMNS = 7
 COVER_LIMIT = 300 * 1000
 
+# How far from the disc's edge, measured from pixel centres, Premium may differ from
+# Lite: the antialiased rim of the resampled disc reaches about 2.6 px.
+RIM = 3
+
 ICON_DIRECTORY = re.compile(r'^resources-icon-(\d+)$')
 
 
@@ -70,6 +75,12 @@ def _lite():
 LITE = _lite()
 
 
+def _disc(size):
+    """The centre and radius of the black disc behind the star, in pixels at `size`."""
+    r = size * STAR_RADIUS
+    return size - r - size * STAR_INSET, r + size * STAR_INSET, r * DISC
+
+
 def _star(size):
     from PIL import Image, ImageDraw
 
@@ -77,8 +88,7 @@ def _star(size):
     layer = Image.new('RGBA', (edge, edge), (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
     r = edge * STAR_RADIUS
-    cx, cy = edge - r - edge * STAR_INSET, r + edge * STAR_INSET
-    d = r * DISC
+    cx, cy, d = _disc(edge)
     draw.ellipse((cx - d, cy - d, cx + d, cy + d), fill=(0, 0, 0, 255))
     points = []
     for i in range(10):
@@ -100,8 +110,39 @@ def render(size):
     return _marked(LITE.render(size))
 
 
+def _cells(size):
+    """The glyph cells LITE.render lays out at `size`, as (x0, y0, x1, y1) boxes.
+
+    This mirrors the sizing at the top of LITE.render: the column count, the widest
+    glyph fitted to a cell, the leading and the row count. `cover` checks that every
+    lit pixel falls inside one of these, so the two cannot drift apart unnoticed.
+    """
+    from PIL import ImageFont
+
+    columns = max(3, int(size / LITE.PIXELS_PER_CELL + 0.5))
+    cell_w = size / columns
+    for points in range(int(cell_w * 2) + 6, 3, -1):
+        font = ImageFont.truetype(LITE.FONT, points)
+        boxes = [font.getbbox(c) for c in LITE.CHARSET]
+        h = max(b[3] - b[1] for b in boxes)
+        if max(b[2] - b[0] for b in boxes) <= cell_w and h <= cell_w:
+            break
+    cell_h = h * LITE.CELL_LEADING
+    rows = int(size // cell_h)
+    if size - rows * cell_h >= h / 2:
+        rows += 1
+    return [(c * cell_w, r * cell_h, (c + 1) * cell_w, r * cell_h + h)
+            for c in range(columns) for r in range(rows)]
+
+
 def cover(size=COVER_SIZE):
-    """The store cover: the 70 x 70 icon's rain at `size`, with the star."""
+    """The store cover: the 70 x 70 icon's rain at `size`, with the star.
+
+    A glyph whose cell reaches under the disc is left out whole. At icon sizes the
+    disc trims such a glyph by a pixel or two; at the cover's size it would cut it
+    into fragments that read as dirt around the star."""
+    from PIL import Image, ImageChops, ImageDraw
+
     # Lite's renderer fixes the glyph cell at PIXELS_PER_CELL and lets the size decide
     # how many columns fit. For the cover the column count is what is fixed, so the
     # cell is widened for this one call and put back.
@@ -109,8 +150,24 @@ def cover(size=COVER_SIZE):
     LITE.PIXELS_PER_CELL = size / COVER_COLUMNS
     try:
         rain = LITE.render(size)
+        cells = _cells(size)
     finally:
         LITE.PIXELS_PER_CELL = cell
+
+    inside = Image.new('L', rain.size, 0)
+    for x0, y0, x1, y1 in cells:
+        ImageDraw.Draw(inside).rectangle((x0 - 1, y0 - 1, x1 + 1, y1 + 1), fill=255)
+    stray = ImageChops.multiply(rain.convert('L'), ImageChops.invert(inside)).getbbox()
+    if stray:
+        sys.exit(f"cover: Lite's renderer drew outside the cells _cells() expects, at {stray}; "
+                 "bring _cells() back in step with tools/make-launcher-icons.py")
+
+    cx, cy, d = _disc(size)
+    draw = ImageDraw.Draw(rain)
+    for x0, y0, x1, y1 in cells:
+        nearest = (min(max(cx, x0), x1), min(max(cy, y0), y1))
+        if math.hypot(nearest[0] - cx, nearest[1] - cy) < d:
+            draw.rectangle((x0 - 1, y0 - 1, x1 + 1, y1 + 1), fill=(0, 0, 0))
     return _marked(rain)
 
 
@@ -120,9 +177,26 @@ def write_cover(path):
     print(f"  {COVER_SIZE}x{COVER_SIZE}  {path}  ({os.path.getsize(path)} bytes)")
 
 
+def _drift(size):
+    """Pixels where Premium's icon at `size` differs from Lite's, away from the star."""
+    from PIL import Image
+
+    lite = Image.open(os.path.join(ROOT, f'resources-icon-{size}', 'drawables',
+                                   'launcher_icon.png')).convert('RGB')
+    premium = Image.open(os.path.join(ROOT, 'premium', f'resources-icon-{size}', 'drawables',
+                                      'launcher_icon.png')).convert('RGB')
+    if lite.size != premium.size:
+        return -1
+    cx, cy, d = _disc(size)
+    a, b = lite.load(), premium.load()
+    return sum(1 for y in range(size) for x in range(size)
+               if a[x, y] != b[x, y] and math.hypot(x + .5 - cx, y + .5 - cy) > d + RIM)
+
+
 def check(fallback, cover_path):
-    """The checks garmin-graphics-generator icons --check does not make: Premium's
-    fallback icon, and the store cover. Pure Python, and no SDK."""
+    """The checks garmin-graphics-generator icons --check does not make: that Premium's
+    icons are still Lite's but for the star, Premium's fallback, and the store cover.
+    No SDK."""
     fail = []
 
     def ok(cond, msg):
@@ -138,6 +212,20 @@ def check(fallback, cover_path):
     ok(largest is not None and os.path.exists(fallback)
        and LITE.png_size(fallback) == (largest, largest),
        f"{fallback} is the {largest}x{largest} fallback, the largest size mapped")
+
+    # Without it the fallback is never compiled, and Premium falls back to Lite's.
+    declaration = os.path.join(os.path.dirname(fallback), 'drawables.xml')
+    shared = os.path.join(ROOT, 'resources', 'drawables', 'drawables.xml')
+    ok(os.path.exists(declaration) and open(declaration).read() == open(shared).read(),
+       f"{declaration} declares LauncherIcon, as {os.path.relpath(shared, ROOT)} does")
+
+    # Regenerating Lite alone, with tools/make-launcher-icons.py, would leave Premium on
+    # the old artwork.
+    for size in sorted(sizes, reverse=True):
+        drift = _drift(size)
+        ok(drift == 0, f"premium/resources-icon-{size} is Lite's icon but for the star"
+           + ("" if drift == 0 else f" ({'sizes differ' if drift < 0 else f'{drift} pixels differ'};"
+              " regenerate both with make icons)"))
 
     got = LITE.png_size(cover_path) if os.path.exists(cover_path) else None
     ok(got is not None and got[0] == got[1],

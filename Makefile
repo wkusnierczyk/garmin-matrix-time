@@ -337,15 +337,25 @@ check-lite:
 #
 # 0.7.0 is the first release that can target an edition: its own manifest, jungle and
 # icon directory. --check needs no SDK, as Lite's does.
+#
+# The tool runs through the python3 on PATH, not through its garmin-graphics-generator
+# script, which may belong to another interpreter (pipx, a venv). That python3 draws
+# Lite's icons and the cover, and the tool's -R loads the Premium renderer into its own
+# interpreter, so this way one Pillow draws all three. Two Pillows antialias the glyphs
+# differently -- 12.1.0 against 12.3.0 at 60 px -- and Premium would quietly stop being
+# Lite's icon but for the star.
 ICONS_TOOL_VERSION := 0.7.0
+ICONS_TOOL := python3 -c 'import sys; from garmin_graphics_generator.cli import main; \
+  sys.argv[0] = "garmin-graphics-generator"; sys.exit(main())'
 PREMIUM_ICONS := --manifest manifest-premium.xml --jungle premium.jungle --icon-root premium
 PREMIUM_FALLBACK := premium/resources-base/drawables/launcher_icon.png
 PREMIUM_COVER := premium/graphics/MatrixTimePremiumCover.png
 
 define require_icons_tool
-@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
-  found = 1; old = v[1] + 0 == 0 && v[2] + 0 < 7 } END { exit !found || old }' || { \
-  echo "make $@ needs garmin-graphics-generator $(ICONS_TOOL_VERSION) or newer on PATH; see README.md."; exit 1; }
+@python3 -c 'from importlib.metadata import version; v = version("garmin_graphics_generator").split("."); \
+  raise SystemExit(int(v[0]) == 0 and int(v[1]) < 7)' 2>/dev/null || { \
+  echo "make $@ needs garmin-graphics-generator $(ICONS_TOOL_VERSION) or newer, installed for the"; \
+  echo "python3 on PATH (python3 -m pip install ...); see README.md."; exit 1; }
 endef
 
 icons:
@@ -353,7 +363,7 @@ icons:
 	@echo "Generating launcher icons..."
 	@python3 tools/make-launcher-icons.py
 	@echo "Generating Premium's launcher icons and store cover..."
-	@garmin-graphics-generator icons -R premium/tools/launcher_icon.py $(PREMIUM_ICONS) \
+	@$(ICONS_TOOL) icons -R premium/tools/launcher_icon.py $(PREMIUM_ICONS) \
 	  --fallback-icon $(PREMIUM_FALLBACK)
 	@python3 premium/tools/launcher_icon.py cover $(PREMIUM_COVER)
 
@@ -362,7 +372,7 @@ check-icons:
 	@echo "Checking launcher icon configuration consistency..."
 	@python3 tools/make-launcher-icons.py --check
 	@echo "Checking Premium's launcher icons..."
-	@garmin-graphics-generator icons $(PREMIUM_ICONS) --check
+	@$(ICONS_TOOL) icons $(PREMIUM_ICONS) --check
 	@python3 premium/tools/launcher_icon.py check $(PREMIUM_FALLBACK) $(PREMIUM_COVER)
 
 # Every image in resources/graphics/ that is generated, regenerated from the current

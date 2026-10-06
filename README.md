@@ -495,22 +495,30 @@ command, with `premium/tools/launcher_icon.py` as the renderer:
 * the 70 x 70 fallback into `premium/resources-base/drawables/`.
 
 The same `make icons` writes them alongside Lite's, and `make check-icons` checks them alongside
-Lite's.
+Lite's. Beyond what it checks for Lite, it compares every Premium icon with Lite's, pixel by pixel,
+and fails if they differ anywhere but at the star. So regenerating Lite alone, with
+`tools/make-launcher-icons.py`, cannot leave Premium on the old artwork unnoticed. It also checks
+that Premium's fallback is the largest size mapped, and that the `drawables.xml` declaring it is in
+place: without it, Premium falls back to Lite's icon.
 
 Premium's **store cover** is `premium/graphics/MatrixTimePremiumCover.png`, also written by `make icons`.
-It is 512 x 512 and about 30 KB, against the store's 300 KB limit, and shows the 70 x 70 icon's rain,
-drawn at the cover's size rather than scaled up, with the same star. `make check-icons` checks that
-it is square and under the limit, and that Premium's fallback is the largest size mapped.
+It is 512 x 512 and about 28 KB, against the store's 300 KB limit. It shows the 70 x 70 icon's rain,
+drawn at the cover's size rather than scaled up, with the same star. A glyph whose cell reaches under
+the star's disc is left out whole: at the cover's size, the disc would otherwise cut it into
+fragments. `make check-icons` checks that the cover is square and under the limit.
 
-Both targets need Python 3 and `garmin-graphics-generator` 0.7.0 or newer, the first release that
-can write an edition's icons into a directory and jungle of its own. It brings
-[Pillow](https://python-pillow.org) with it, which `make icons` draws with. Lite's icons were last
-generated with Pillow 12.1.0, and a different Pillow can antialias the glyphs slightly differently.
-`make check-icons` does not compare pixels, so regenerate with 12.1.0 unless the artwork is meant to
-change.
+Both targets need `garmin-graphics-generator` 0.7.0 or newer, the first release that can write an
+edition's icons into a directory and jungle of its own. It brings [Pillow](https://python-pillow.org)
+with it, which every icon is drawn with.
+
+Install it for the `python3` on `PATH`, not with pipx or into a separate venv: the Makefile runs the
+tool through that `python3`, so that one Pillow draws Lite's icons, Premium's and the cover. A
+different Pillow can antialias the glyphs differently, and the icons were generated with 12.1.0.
+`make check-icons` would catch Premium drifting from Lite, but not both drifting together, so
+regenerate with 12.1.0 unless the artwork is meant to change.
 
 ```bash
-pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0'
+python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0' 'Pillow==12.1.0'
 ```
 
 ## Store and README images
@@ -1137,7 +1145,7 @@ Every push to `main` and every pull request runs
 
 | Job | What it proves |
 | :-- | :------------- |
-| `consistency checks` | `make check-fonts`, `make check-icons` and `make check-manifests` pass. Pure Python, no SDK, seconds. |
+| `consistency checks` | `make check-fonts`, `make check-icons` and `make check-manifests` pass. Python, with `garmin-graphics-generator` and Pillow for `check-icons`, no SDK, seconds. |
 | `build (lite)`, `build (premium)` | the edition compiles, for one product per `deviceFamily`, and `make export` produces its store bundle. The Lite leg also runs `make check-lite` on the same products. |
 | `unit tests (lite)`, `unit tests (premium)` | `make test` passes for the edition: the Run No Evil suite, in the simulator, under a virtual display. |
 
@@ -1174,7 +1182,8 @@ SDK the SDK manager has selected.
 
 No workflow in this repository selects anything by a mutable name. The image is pinned by digest, and
 every action -- in `build.yml` and in [`release.yml`](#releases) alike -- by commit SHA, with the
-release it was published as in a trailing comment. A retargeted tag, through upstream compromise or a
+release it was published as in a trailing comment. So is the `garmin-graphics-generator` that
+`build.yml` installs for `check-icons`, and the Pillow beside it by exact version. A retargeted tag, through upstream compromise or a
 maintainer's mistake, would change the code a workflow runs with no diff here to show it. In
 `build.yml`, which holds no secret and is read-only, that costs a wrong CI result -- a red run turned
 green. In `release.yml` it costs more: that workflow has the signing key on its filesystem and a

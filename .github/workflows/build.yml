@@ -63,19 +63,25 @@ jobs:
           lfs: true
 
       # check-icons checks Premium's launcher icons with garmin-graphics-generator
-      # (#189), which is not on PyPI, so it is installed from its release tag. Only
-      # its icons command runs here, and that imports Pillow and nothing else, so the
-      # package goes in without its dependencies: rembg and onnxruntime are hundreds
-      # of megabytes the check never loads. A venv, because the runner's own Python
-      # is externally managed; its bin goes on PATH for the steps that follow, so
-      # make finds the command and a python3 with Pillow. Keep the tag in step with
-      # ICONS_TOOL_VERSION in the Makefile.
+      # (#189), which is not on PyPI, so it is installed from GitHub. Only its icons
+      # command runs here, and that imports Pillow and nothing else, so the package
+      # goes in without its dependencies: rembg and onnxruntime are hundreds of
+      # megabytes the check never loads. Pillow is pinned to the version the icons
+      # were generated with, since check-icons compares Premium's pixels with Lite's.
+      #
+      # Pinned to a commit SHA, with the release it was published as trailing, for the
+      # reason the actions are: a tag is a mutable pointer, and this is the code that
+      # gates the icons. Keep it in step with ICONS_TOOL_VERSION in the Makefile.
+      #
+      # A venv, because the runner's own Python is externally managed. Its bin goes on
+      # PATH for the steps that follow, so the python3 make runs the tool through is
+      # the one it is installed in.
       - name: garmin-graphics-generator
         run: |
           python3 -m venv "$RUNNER_TEMP/tools"
           "$RUNNER_TEMP/tools/bin/pip" install --quiet --no-deps \
             'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0'
-          "$RUNNER_TEMP/tools/bin/pip" install --quiet Pillow
+          "$RUNNER_TEMP/tools/bin/pip" install --quiet Pillow==12.1.0
           echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
 
       # Both targets read only what is committed, so they run on a bare runner in
