@@ -325,13 +325,45 @@ check-lite:
 # icons and the per-product jungle mapping that serves them are generated from the
 # SDK's device definitions rather than maintained by hand (#42). The generator
 # rewrites the block between the markers in monkey.jungle in place.
+#
+# Both editions, every time: Premium's icons are Lite's with a gold star (#189), so a
+# change to Lite's artwork is a change to Premium's too. Lite's come from the local
+# tools/make-launcher-icons.py, until #78 moves them to the shared command. Premium's
+# come from the shared garmin-graphics-generator, into premium/resources-icon-<size>/
+# and mapped from premium.jungle, which only a Premium build reads -- so Lite never
+# sees them, and make check-lite holds. premium/tools/launcher_icon.py is the
+# renderer, and also writes and checks the store cover, which the shared command
+# knows nothing about.
+#
+# 0.7.0 is the first release that can target an edition: its own manifest, jungle and
+# icon directory. --check needs no SDK, as Lite's does.
+ICONS_TOOL_VERSION := 0.7.0
+PREMIUM_ICONS := --manifest manifest-premium.xml --jungle premium.jungle --icon-root premium
+PREMIUM_FALLBACK := premium/resources-base/drawables/launcher_icon.png
+PREMIUM_COVER := premium/graphics/MatrixTimePremiumCover.png
+
+define require_icons_tool
+@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
+  found = 1; old = v[1] + 0 == 0 && v[2] + 0 < 7 } END { exit !found || old }' || { \
+  echo "make $@ needs garmin-graphics-generator $(ICONS_TOOL_VERSION) or newer on PATH; see README.md."; exit 1; }
+endef
+
 icons:
+	$(require_icons_tool)
 	@echo "Generating launcher icons..."
 	@python3 tools/make-launcher-icons.py
+	@echo "Generating Premium's launcher icons and store cover..."
+	@garmin-graphics-generator icons -R premium/tools/launcher_icon.py $(PREMIUM_ICONS) \
+	  --fallback-icon $(PREMIUM_FALLBACK)
+	@python3 premium/tools/launcher_icon.py cover $(PREMIUM_COVER)
 
 check-icons:
+	$(require_icons_tool)
 	@echo "Checking launcher icon configuration consistency..."
 	@python3 tools/make-launcher-icons.py --check
+	@echo "Checking Premium's launcher icons..."
+	@garmin-graphics-generator icons $(PREMIUM_ICONS) --check
+	@python3 premium/tools/launcher_icon.py check $(PREMIUM_FALLBACK) $(PREMIUM_COVER)
 
 # Every image in resources/graphics/ that is generated, regenerated from the current
 # build (#125). They used to be made by hand -- run the simulator, capture, resize,

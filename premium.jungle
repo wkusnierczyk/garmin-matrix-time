@@ -41,3 +41,68 @@ round-454x454.resourcePath = $(round-454x454.resourcePath);premium/resources-rou
 round-466x466.resourcePath = $(round-466x466.resourcePath);premium/resources-round-466x466
 rectangle-320x360.resourcePath = $(rectangle-320x360.resourcePath);premium/resources-rectangle-320x360
 rectangle-448x486.resourcePath = $(rectangle-448x486.resourcePath);premium/resources-rectangle-448x486
+
+# Premium's launcher icons: Lite's with a gold star (#189). One entry per product,
+# appended after the one monkey.jungle gives it, so Premium's resources-icon-<size>
+# is the later directory and its LauncherIcon wins. The entries are relative to this
+# file's directory, which is how monkeyc resolves them.
+#
+# The fallback in premium/resources-base covers less than Lite's does: a product that
+# monkey.jungle maps and this block does not yet would get Lite's per-size icon,
+# because a per-product entry outranks the base path. make check-icons reports such a
+# product as unmapped. Regenerate with make icons, which passes the renderer too.
+# BEGIN generated launcher icon mapping -- garmin-graphics-generator
+# Launcher icon size is per device, not per device family.
+# Regenerate with: garmin-graphics-generator icons --manifest manifest-premium.xml --jungle premium.jungle --icon-root premium --fallback-icon premium/resources-base/drawables/launcher_icon.png
+approachs50.resourcePath = $(approachs50.resourcePath);premium/resources-icon-56
+approachs7042mm.resourcePath = $(approachs7042mm.resourcePath);premium/resources-icon-60
+approachs7047mm.resourcePath = $(approachs7047mm.resourcePath);premium/resources-icon-70
+d2airx10.resourcePath = $(d2airx10.resourcePath);premium/resources-icon-70
+d2mach1.resourcePath = $(d2mach1.resourcePath);premium/resources-icon-60
+d2mach2.resourcePath = $(d2mach2.resourcePath);premium/resources-icon-65
+d2mach2pro.resourcePath = $(d2mach2pro.resourcePath);premium/resources-icon-65
+descentg2.resourcePath = $(descentg2.resourcePath);premium/resources-icon-60
+descentmk343mm.resourcePath = $(descentmk343mm.resourcePath);premium/resources-icon-60
+descentmk351mm.resourcePath = $(descentmk351mm.resourcePath);premium/resources-icon-60
+epix2.resourcePath = $(epix2.resourcePath);premium/resources-icon-60
+epix2pro42mm.resourcePath = $(epix2pro42mm.resourcePath);premium/resources-icon-60
+epix2pro47mm.resourcePath = $(epix2pro47mm.resourcePath);premium/resources-icon-60
+epix2pro51mm.resourcePath = $(epix2pro51mm.resourcePath);premium/resources-icon-60
+fenix843mm.resourcePath = $(fenix843mm.resourcePath);premium/resources-icon-60
+fenix847mm.resourcePath = $(fenix847mm.resourcePath);premium/resources-icon-65
+fenix8pro47mm.resourcePath = $(fenix8pro47mm.resourcePath);premium/resources-icon-65
+fenix943mm.resourcePath = $(fenix943mm.resourcePath);premium/resources-icon-60
+fenix947mm.resourcePath = $(fenix947mm.resourcePath);premium/resources-icon-65
+fenix9pro43mm.resourcePath = $(fenix9pro43mm.resourcePath);premium/resources-icon-60
+fenix9pro47mm.resourcePath = $(fenix9pro47mm.resourcePath);premium/resources-icon-65
+fenix9pro51mm.resourcePath = $(fenix9pro51mm.resourcePath);premium/resources-icon-65
+fenixe.resourcePath = $(fenixe.resourcePath);premium/resources-icon-60
+fr165.resourcePath = $(fr165.resourcePath);premium/resources-icon-54
+fr165m.resourcePath = $(fr165m.resourcePath);premium/resources-icon-54
+fr170.resourcePath = $(fr170.resourcePath);premium/resources-icon-54
+fr170m.resourcePath = $(fr170m.resourcePath);premium/resources-icon-54
+fr265.resourcePath = $(fr265.resourcePath);premium/resources-icon-60
+fr265s.resourcePath = $(fr265s.resourcePath);premium/resources-icon-60
+fr57042mm.resourcePath = $(fr57042mm.resourcePath);premium/resources-icon-54
+fr57047mm.resourcePath = $(fr57047mm.resourcePath);premium/resources-icon-65
+fr70.resourcePath = $(fr70.resourcePath);premium/resources-icon-54
+fr965.resourcePath = $(fr965.resourcePath);premium/resources-icon-65
+fr970.resourcePath = $(fr970.resourcePath);premium/resources-icon-65
+instinct3amoled45mm.resourcePath = $(instinct3amoled45mm.resourcePath);premium/resources-icon-60
+instinct3amoled50mm.resourcePath = $(instinct3amoled50mm.resourcePath);premium/resources-icon-60
+instinctcrossoveramoled.resourcePath = $(instinctcrossoveramoled.resourcePath);premium/resources-icon-38
+marq2.resourcePath = $(marq2.resourcePath);premium/resources-icon-60
+marq2aviator.resourcePath = $(marq2aviator.resourcePath);premium/resources-icon-60
+venu2.resourcePath = $(venu2.resourcePath);premium/resources-icon-70
+venu2plus.resourcePath = $(venu2plus.resourcePath);premium/resources-icon-70
+venu2s.resourcePath = $(venu2s.resourcePath);premium/resources-icon-61
+venu3.resourcePath = $(venu3.resourcePath);premium/resources-icon-70
+venu3s.resourcePath = $(venu3s.resourcePath);premium/resources-icon-70
+venu441mm.resourcePath = $(venu441mm.resourcePath);premium/resources-icon-54
+venu445mm.resourcePath = $(venu445mm.resourcePath);premium/resources-icon-65
+venusq2.resourcePath = $(venusq2.resourcePath);premium/resources-icon-40
+venusq2m.resourcePath = $(venusq2m.resourcePath);premium/resources-icon-40
+venux1.resourcePath = $(venux1.resourcePath);premium/resources-icon-65
+vivoactive5.resourcePath = $(vivoactive5.resourcePath);premium/resources-icon-56
+vivoactive6.resourcePath = $(vivoactive6.resourcePath);premium/resources-icon-54
+# END generated launcher icon mapping

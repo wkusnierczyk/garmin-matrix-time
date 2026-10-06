@@ -62,10 +62,26 @@ jobs:
         with:
           lfs: true
 
-      # Both targets are pure Python and read only what is committed, so they run
-      # on a bare runner in seconds. check-icons cross-checks its mapping against
-      # the SDK's device definitions when they are present and reports a SKIP when
-      # they are not, which is the case here.
+      # check-icons checks Premium's launcher icons with garmin-graphics-generator
+      # (#189), which is not on PyPI, so it is installed from its release tag. Only
+      # its icons command runs here, and that imports Pillow and nothing else, so the
+      # package goes in without its dependencies: rembg and onnxruntime are hundreds
+      # of megabytes the check never loads. A venv, because the runner's own Python
+      # is externally managed; its bin goes on PATH for the steps that follow, so
+      # make finds the command and a python3 with Pillow. Keep the tag in step with
+      # ICONS_TOOL_VERSION in the Makefile.
+      - name: garmin-graphics-generator
+        run: |
+          python3 -m venv "$RUNNER_TEMP/tools"
+          "$RUNNER_TEMP/tools/bin/pip" install --quiet --no-deps \
+            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.7.0'
+          "$RUNNER_TEMP/tools/bin/pip" install --quiet Pillow
+          echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
+
+      # Both targets read only what is committed, so they run on a bare runner in
+      # seconds. check-icons cross-checks its mappings against the SDK's device
+      # definitions when they are present and reports a SKIP when they are not,
+      # which is the case here.
       - name: Fonts
         run: make check-fonts
 

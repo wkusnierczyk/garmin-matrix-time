@@ -68,6 +68,9 @@ each change is recorded in full.
   Loading a preset leaves always-on brightness and the date as they are. (#172)
 * **Premium: three presets out of the box.** Slots 1 to 3 come filled with three looks, Green, Red
   and Blue, which can be loaded straight away, renamed, or saved over. (#183)
+* **Premium: its own launcher icon.** Premium's icon is Lite's with a gold star in the corner, so the
+  two editions tell apart in a launcher list, at every size a supported watch asks for. The store
+  listing gets a square cover image built from the same artwork. (#189)
 
 ## 0.2.1 -- 2026-09-21
 
