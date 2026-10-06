@@ -609,14 +609,17 @@ and the edition's own checks, [`tools/hero-checks.json`](tools/hero-checks.json)
 [`premium/tools/hero-checks.json`](premium/tools/hero-checks.json), by a vision model. Those ask, among
 other things, whether a numeral has crept into the rain and whether the always-on screen stayed
 without rain; Premium's also ask for at least three rain colours and a hollow time. Screening needs a
-Gemini API key, `GEMINI_API_KEY` or `GEMINI_KEY_FILE`, and the model it uses is on the free tier.
+Gemini API key, `GEMINI_API_KEY` or `GEMINI_KEY_FILE`. A key whose project has no credit is refused
+with HTTP 402, and every candidate is then rejected for want of a screen. `NO_SCREEN=1` runs the local
+checks alone and needs no key; the watch count, the numerals and the rest of the checks file are then
+yours to check by eye, screen by screen at full size.
 Candidates land in `.dev/scratchpad/hero/<edition>/candidates/`, numbered on from any already there, a
 rejected one marked `-rejected` rather than deleted, each beside a JSON record of every check. Nothing
 is ever written over the published hero: copying the chosen candidate into place is yours to do, and a
 pass narrows the field rather than replacing a look.
 
 The candidates come from the Gemini app rather than the API because image generation through the API
-has no free tier, and a subscription covers the app. `compose -g N` generates through the API instead,
+is paid, and a subscription covers the app. `compose -g N` generates through the API instead,
 for whoever wants to pay for it.
 
 Lite's published hero predates `make hero`: it was composed from the same prompt with an image model

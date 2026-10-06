@@ -433,9 +433,12 @@ graphics:
 # numbered on from any already there, and nothing is ever overwritten. Picking one and
 # copying it over the published hero is yours to do.
 #
-# Screening needs a Gemini API key, GEMINI_API_KEY or GEMINI_KEY_FILE=path; the vision
-# model it uses is on the free tier. Generating through the API is not, which is why
-# the candidates come from the app: compose -g is there for whoever wants to pay.
+# Screening needs a Gemini API key, GEMINI_API_KEY or GEMINI_KEY_FILE=path. A key whose
+# project has no credit is refused with HTTP 402, and every candidate is then rejected
+# for want of a screen; NO_SCREEN=1 runs the local checks alone and needs no key, and
+# the count, the numerals and the rest are then checked by eye. Generating through the
+# API is paid too, which is why the candidates come from the app: compose -g is there
+# for whoever wants to pay.
 #
 # 0.7.0 is the first release with compose. The PATH tool is fine here: nothing it
 # draws has to match a Pillow elsewhere, as the icons do.
@@ -457,6 +460,7 @@ endif
 CANDIDATES ?=
 export CANDIDATES
 GEMINI_KEY_FILE ?=
+NO_SCREEN ?=
 
 hero:
 	@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
@@ -473,13 +477,14 @@ ifeq ($(strip $(CANDIDATES)),)
 	@echo "Attach: $(HERO_DIR)/captures/watch-*.png"
 	@echo "Then:   make hero EDITION=$(EDITION) CANDIDATES=\"<the images the model returned>\""
 else
-	@test -n "$${GEMINI_API_KEY}$(GEMINI_KEY_FILE)" || { \
-	  echo "Screening needs a Gemini API key: set GEMINI_API_KEY, or pass GEMINI_KEY_FILE=path."; exit 1; }
+	@test -n "$(NO_SCREEN)$${GEMINI_API_KEY}$(GEMINI_KEY_FILE)" || { \
+	  echo "Screening needs a Gemini API key: set GEMINI_API_KEY, or pass GEMINI_KEY_FILE=path,"; \
+	  echo "or pass NO_SCREEN=1 to run the local checks alone."; exit 1; }
 	@eval "set -- $$CANDIDATES"; \
 	for file in "$$@"; do set -- "$$@" -c "$$file"; shift; done; \
 	garmin-graphics-generator compose -p $(HERO_PROMPT) -o $(HERO_DIR)/candidates \
-	  --checks $(HERO_CHECKS) $(HERO_SIZES) "$$@" \
-	  $(if $(GEMINI_KEY_FILE),--key-file "$(GEMINI_KEY_FILE)",) \
+	  $(if $(NO_SCREEN),--no-screen,--checks $(HERO_CHECKS)) $(HERO_SIZES) "$$@" \
+	  $(if $(NO_SCREEN),,$(if $(GEMINI_KEY_FILE),--key-file "$(GEMINI_KEY_FILE)",)) \
 	  $(HERO_DIR)/captures/watch-*.png
 endif
 
