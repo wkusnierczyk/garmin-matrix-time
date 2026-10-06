@@ -23,3 +23,11 @@ premium/graphics/MatrixTimePremium5.png filter=lfs diff=lfs merge=lfs -text
 premium/graphics/MatrixTimePremiumHero-draft.png filter=lfs diff=lfs merge=lfs -text
 premium/graphics/MatrixTimePremiumHero.png filter=lfs diff=lfs merge=lfs -text
 premium/graphics/MatrixTimePremiumHero-small.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-default.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-timeSize.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-trailLength.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-timeAlign.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-timeColor.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-rainColor.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-alwaysOnBrightness.png filter=lfs diff=lfs merge=lfs -text
+premium/graphics/MatrixTimePremium-date.png filter=lfs diff=lfs merge=lfs -text
