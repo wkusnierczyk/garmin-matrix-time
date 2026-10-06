@@ -881,8 +881,13 @@ or `make check-manifests` fails (see [Editions in the build](#editions-in-the-bu
 
 
 The included `Makefile` covers every build the project does, the store bundle included.
+`make help` lists every target with what it does and the variables it takes, and every variable
+with its value; it needs no SDK.
 
 ```bash
+# list every target and variable
+make help
+
 # build binaries from sources -- Lite, unless EDITION says otherwise
 make build
 
@@ -935,6 +940,9 @@ make check-icons
 # check that the two edition manifests agree, and that Premium leaves Lite alone
 make check-manifests
 make check-lite
+
+# check that every target and variable has a line in make help
+make check-help
 
 # clean up the project directory
 make clean
