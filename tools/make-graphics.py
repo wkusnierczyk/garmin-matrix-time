@@ -50,10 +50,13 @@ premium/graphics/ beside its store cover and never over Lite's:
   MatrixTimePremium4.png           white-to-green rain under a hollow white time
   MatrixTimePremium5.png           the always-on scene
   MatrixTimePremiumHero-draft.png  those five scattered across 1440x720
+  MatrixTimePremium-default.png    the defaults, for the README's Features table
+  MatrixTimePremium-<setting>.png  the defaults with that one setting changed, the same
 
 Each Premium image is a look rather than a moment, so each is a build of its own,
-compiled with its settings as the property defaults, in a copy of the tree. All five
-are captured in one container, the always-on one through graphics.jungle as Lite's is.
+compiled with its settings as the property defaults, in a copy of the tree. All
+thirteen are captured in one container, the always-on ones through graphics.jungle as
+Lite's is.
 The presets are not restated here: each preset build asks the face to load that
 slot, as the phone would, and the face loads what Presets.builtIn holds.
 
@@ -68,7 +71,7 @@ keeps them transparent instead.
 
 Usage:
   tools/make-graphics.py                   regenerate the eight Lite images it owns
-  tools/make-graphics.py --edition premium regenerate the six Premium ones
+  tools/make-graphics.py --edition premium regenerate the fourteen Premium ones
   tools/make-graphics.py --background none keep the transparency instead of white
   tools/make-graphics.py --timezone ...    choose the clock the captured face shows
 
@@ -144,9 +147,9 @@ SIZE_VARIATION = 5
 ORIENTATION_VARIATION = 20
 MAX_OVERLAP = 20
 
-# Premium's set (#188), beside its store cover. No capture and no banner: Lite's raw
-# capture is a reference nothing in the listing uses, and the README banner is Lite's
-# hero, scaled.
+# Premium's set (#188), beside its store cover. No capture and no draft banner: Lite's
+# raw capture is a reference nothing in the listing uses, and the README banner is cut
+# from the published hero by make hero, not from the draft.
 PREMIUM_GRAPHICS = os.path.join(PROJECT, "premium", "graphics")
 PREMIUM_GALLERY_NAME = "MatrixTimePremium{index}.png"
 PREMIUM_HERO_NAME = "MatrixTimePremiumHero-draft.png"
@@ -194,6 +197,42 @@ PREMIUM_LOOKS = (
     ),
     Look("always-on", PREMIUM_ALWAYS_ON_JUNGLE, {}),
 )
+
+
+# The README's Features table illustrates every Premium setting with one image (#190):
+# the face at its defaults with that one setting changed, so the image shows what the
+# setting does and nothing else. The first is the defaults themselves, beside Lite's
+# rain. Two settings borrow a gallery image instead: the time style, since a hollow
+# time in the rain's own green is hard to read, which is MatrixTimePremium4.png's
+# reason for a white one; and the presets, whose looks are the first three.
+PREMIUM_FEATURE_NAME = "MatrixTimePremium-{feature}.png"
+PREMIUM_FEATURES = (
+    ("default", Look("defaults", PREMIUM_WOKEN_JUNGLE, {})),
+    (
+        "timeSize",
+        Look("time size Extra extra large", PREMIUM_WOKEN_JUNGLE, {"timeSize": "6"}),
+    ),
+    (
+        "trailLength",
+        Look("trail length 25%", PREMIUM_WOKEN_JUNGLE, {"trailLength": "25"}),
+    ),
+    (
+        "timeAlign",
+        Look("time alignment Right", PREMIUM_WOKEN_JUNGLE, {"timeAlign": "2"}),
+    ),
+    ("timeColor", Look("time colour Amber", PREMIUM_WOKEN_JUNGLE, {"timeColor": "3"})),
+    ("rainColor", Look("rain colour Orange", PREMIUM_WOKEN_JUNGLE, {"rainColor": "4"})),
+    (
+        "alwaysOnBrightness",
+        Look(
+            "always-on brightness Dim",
+            PREMIUM_ALWAYS_ON_JUNGLE,
+            {"alwaysOnBrightness": "2"},
+        ),
+    ),
+    ("date", Look("date On", PREMIUM_WOKEN_JUNGLE, {"date": "1"})),
+)
+
 
 # 0.5.0 brought the shots command; 0.5.1 is what this needs, for two things the fifth
 # image depends on. Its hero retries the whole arrangement instead of abandoning an
@@ -283,17 +322,21 @@ def flatten(image, background):
 
 def write_gallery(shots, background, quiet, directory=GRAPHICS, name=GALLERY_NAME):
     """Writes the five 200px renders, in the order the store listing names them."""
+    for index, shot in enumerate(shots, start=1):
+        write_render(
+            shot, os.path.join(directory, name.format(index=index)), background, quiet
+        )
+
+
+def write_render(shot, path, background, quiet):
+    """Writes one watch render at the gallery's 200px width."""
     from PIL import Image
 
-    for index, shot in enumerate(shots, start=1):
-        with Image.open(shot.watch_path) as watch:
-            height = round(GALLERY_WIDTH * watch.height / watch.width)
-            resized = watch.convert("RGBA").resize(
-                (GALLERY_WIDTH, height), Image.LANCZOS
-            )
-        path = os.path.join(directory, name.format(index=index))
-        flatten(resized, background).save(path)
-        report(path, quiet)
+    with Image.open(shot.watch_path) as watch:
+        height = round(GALLERY_WIDTH * watch.height / watch.width)
+        resized = watch.convert("RGBA").resize((GALLERY_WIDTH, height), Image.LANCZOS)
+    flatten(resized, background).save(path)
+    report(path, quiet)
 
 
 def keep_hero_captures(shots, edition, quiet):
@@ -409,12 +452,12 @@ def capture(take_shots, shots_error, arguments, work, scene, count, jungle):
         sys.exit(f"{scene} capture failed: {error}")
 
 
-def capture_looks(shots_error, arguments, work):
+def capture_looks(looks, shots_error, arguments, work):
     """
-    One capture run of Premium's five looks, a build each, in one container.
+    One capture run of Premium's looks, a build each, in one container.
 
     Each build's settings are laid over a copy of the tree by the shared tool, so the
-    project is never written to. Returns one frame per look, in PREMIUM_LOOKS order.
+    project is never written to. Returns one frame per look, in the order given.
     """
     from garmin_graphics_generator import variants
     from garmin_graphics_generator.shots import Build, take_builds
@@ -427,7 +470,7 @@ def capture_looks(shots_error, arguments, work):
     # Checked against settings.xml before anything is built: a value no setting lists
     # would compile, be clamped to the default by the face, and be captured as the
     # wrong look without a word.
-    for look in PREMIUM_LOOKS:
+    for look in looks:
         for key, value in look.settings.items():
             setting = resources.settings.get(key)
             if setting is None:
@@ -439,18 +482,18 @@ def capture_looks(shots_error, arguments, work):
     # over one copy in turn puts back what the previous build changed.
     try:
         overlays = variants.overlay_files(
-            PROJECT, resources, [look.settings for look in PREMIUM_LOOKS]
+            PROJECT, resources, [look.settings for look in looks]
         )
     except variants.VariantsError as error:
         sys.exit(f"cannot set Premium's looks: {error}")
     builds = [
         Build(f"{index:02d}", look.jungle, files or None)
-        for index, (look, files) in enumerate(zip(PREMIUM_LOOKS, overlays), start=1)
+        for index, (look, files) in enumerate(zip(looks, overlays), start=1)
     ]
 
     if not arguments.silent:
         print(f"Capturing {len(builds)} Premium looks of {arguments.device}:")
-        for look in PREMIUM_LOOKS:
+        for look in looks:
             print(f"  {look.name}")
 
     try:
@@ -507,7 +550,10 @@ def make_lite(arguments, work):
 def make_premium(arguments, work):
     """Captures Premium and writes premium/graphics, but for the published hero and cover."""
     generator_class, _, shots_error = load_generator("premium")
-    shots = capture_looks(shots_error, arguments, work)
+    # The gallery and the README's feature images in one run, in one container.
+    features = [look for _, look in PREMIUM_FEATURES]
+    frames = capture_looks(list(PREMIUM_LOOKS) + features, shots_error, arguments, work)
+    shots = frames[: len(PREMIUM_LOOKS)]
 
     if not arguments.silent:
         print("Writing premium/graphics:")
@@ -527,6 +573,15 @@ def make_premium(arguments, work):
         name=PREMIUM_HERO_NAME,
         small_name=None,
     )
+    for (feature, _), frame in zip(PREMIUM_FEATURES, frames[len(PREMIUM_LOOKS) :]):
+        write_render(
+            frame,
+            os.path.join(
+                PREMIUM_GRAPHICS, PREMIUM_FEATURE_NAME.format(feature=feature)
+            ),
+            arguments.background,
+            arguments.silent,
+        )
     keep_hero_captures(shots, "premium", arguments.silent)
 
 
@@ -534,7 +589,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Regenerate an edition's generated store images from the "
         "simulator: Lite's in resources/graphics, Premium's in premium/graphics. The "
-        "composed hero, Lite's banner and Premium's cover are left alone."
+        "composed heroes, their banners and Premium's cover are left alone."
     )
     parser.add_argument(
         "-e",

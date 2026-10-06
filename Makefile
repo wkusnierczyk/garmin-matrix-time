@@ -382,8 +382,8 @@ check-icons:
 # for months (#80). A capture is derived from the app but is not generated output, so
 # nothing reported them stale.
 #
-# The exceptions are MatrixTimeHero.png and MatrixTimeHero-small.png, which are
-# composed with an image model and are what the store serves (#130); see make hero.
+# The exceptions are MatrixTimeHero.png, which the store serves, and its banner
+# MatrixTimeHero-small.png, both composed with an image model (#130); see make hero.
 # This target writes MatrixTimeHero-draft.png and its banner instead, and never those
 # two, so a capture run cannot overwrite an adopted hero. Recomposing it is owed
 # whenever what the face draws changes.
@@ -427,11 +427,12 @@ graphics:
 # The first fills in the edition's prompt and writes it to HERO_DIR/prompt.txt, to
 # paste into the Gemini app with HERO_DIR/captures/watch-*.png attached. The second
 # hands each image the app returned to garmin-graphics-generator compose, which
-# crops and resizes it to exactly the store's 1440x720 (and Lite's banner size), and
+# crops and resizes it to exactly the store's 1440x720 and the banner's 900x450, and
 # screens it: the size and the 2048 KB limit locally, and the watch count and the
 # edition's checks file by a vision model. Candidates land in HERO_DIR/candidates,
-# numbered on from any already there, and nothing is ever overwritten. Picking one and
-# copying it over the published hero is yours to do.
+# numbered on from any already there, and nothing is ever overwritten. Picking one is
+# yours to do, and so is copying it into place: candidate-NN.png over the published
+# hero, and candidate-NN-900x450.png over its banner, the -small file beside it.
 #
 # Screening needs a Gemini API key, GEMINI_API_KEY or GEMINI_KEY_FILE=path. A key whose
 # project has no credit is refused with HTTP 402, and every candidate is then rejected
@@ -444,14 +445,13 @@ graphics:
 # draws has to match a Pillow elsewhere, as the icons do.
 HERO_TOOL_VERSION := 0.7.0
 HERO_DIR := .dev/scratchpad/hero/$(EDITION)
+HERO_SIZES := -s 1440x720 -s 900x450
 ifeq ($(EDITION),premium)
   HERO_PROMPT := premium/tools/hero-prompt.txt
   HERO_CHECKS := premium/tools/hero-checks.json
-  HERO_SIZES := -s 1440x720
 else
   HERO_PROMPT := tools/hero-prompt.txt
   HERO_CHECKS := tools/hero-checks.json
-  HERO_SIZES := -s 1440x720 -s 900x450
 endif
 # CANDIDATES is not split by make: make's word functions split on every space, and
 # downloaded images are often named with spaces. The recipe takes it from the

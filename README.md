@@ -1,13 +1,12 @@
 # Garmin Matrix Time
 
-[![build](https://github.com/wkusnierczyk/garmin-matrix-time/actions/workflows/build.yml/badge.svg)](https://github.com/wkusnierczyk/garmin-matrix-time/actions/workflows/build.yml)
-
-A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face that displays the current time with the Digital Rain design in the background.
-
-![Matrix Time](resources/graphics/MatrixTimeHero-small.png)
-
-Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps/71aed235-c2f2-4b33-b29f-836e83497853) or through the Connect IQ mobile app.
-
+[![build](https://github.com/wkusnierczyk/garmin-matrix-time/actions/workflows/build.yml/badge.svg)](https://github.com/wkusnierczyk/garmin-matrix-time/actions/workflows/build.yml)<br/>
+A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face that displays the current time with the Digital Rain design in the background.<br/>
+![Matrix Time Premium](premium/graphics/MatrixTimePremiumHero-small.png)<br/>
+The banner shows Premium, the paid edition, which is not published yet. Lite, the free edition, is
+available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps/71aed235-c2f2-4b33-b29f-836e83497853) or through the Connect IQ mobile app; see
+[Editions](#editions) for what each one offers. What changed between releases is in
+[`CHANGELOG.md`](CHANGELOG.md).
 > **Note**  
 > Matrix Time is part of a [collection of unconventional Garmin watch faces](https://github.com/wkusnierczyk/garmin-watch-faces). It has been developed for fun, as a proof of concept, and as a learning experience.
 > It is shared _as is_ as an open source project, with no commitment to long term maintenance and further feature development.
@@ -17,20 +16,36 @@ Available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 >
 > All feedback is wholeheartedly welcome.
 
-## Contents
+## Table of Contents
 
-* [Matrix time](#matrix-time)
-* [Features](#features)
-* [Editions](#editions)
-* [Fonts](#fonts)
-* [Launcher icon](#launcher-icon)
-* [Store and README images](#store-and-readme-images)
-* [Build, test, deploy](#build-test-deploy)
-* [Upstream bug reports](#upstream-bug-reports)
+- [Matrix time](#matrix-time)
+- [Editions](#editions)
+- [Features](#features)
+  - [Premium settings](#premium-settings)
+- [Fonts](#fonts)
+- [Launcher icon](#launcher-icon)
+  - [Premium launcher icon](#premium-launcher-icon)
+- [Store and README images](#store-and-readme-images)
+- [Build, test, deploy](#build-test-deploy)
+  - [Git LFS](#git-lfs)
+  - [A developer key](#a-developer-key)
+  - [From Visual Studio Code](#from-visual-studio-code)
+  - [From the command line](#from-the-command-line)
+  - [Previewing the settings](#previewing-the-settings)
+  - [Editions in the build](#editions-in-the-build)
+  - [Unit tests](#unit-tests)
+  - [Sideloading to the watch](#sideloading-to-the-watch)
+  - [Continuous integration](#continuous-integration)
+  - [Releases](#releases)
+- [Upstream bug reports](#upstream-bug-reports)
+  - [Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)
+  - [libmtp: one Garmin USB id listed twice, under a misspelled name](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)
 
-What changed between releases is in [`CHANGELOG.md`](CHANGELOG.md).
+<sub>**Navigation:** ↑↑ table of contents · ↑ parent section · ← previous at this level · ↓ subsection · next at this level →</sub>
 
 ## Matrix time
+<sub>[↑↑ TOC](#table-of-contents) · [Editions →](#editions)</sub>
+
 
 Matrix Time displays the current time as digits with [Digital Rain](https://en.wikipedia.org/wiki/Digital_rain) in the background.
 
@@ -52,18 +67,57 @@ The rain is laid out on a rectangular grid, so on a round watch the corners of t
 **Always-on display**  
 Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, shifted to a different corner of a small square every minute. Lite dims it to two thirds of its normal brightness; Premium draws it at full brightness by default, and its **Always-on brightness** setting can dim it the same way. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it filled at the Extra large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at the five sizes below Extra large, the same size at Extra large, and smaller at Extra extra large. Premium's larger, heavier time also moves further each minute: it is shifted a tenth of the screen width each way from the centre, where Lite's is shifted a sixteenth, because at a twelfth a few pixels of the Extra large time stay lit for three minutes. At a tenth the time still stays well inside the glass at every corner of the square. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 5.97% for Premium. Raising the wrist wakes the watch face and brings the rain back.
 
+## Editions
+<sub>[↑↑ TOC](#table-of-contents) · [← Matrix time](#matrix-time) · [Features →](#features)</sub>
+
+
+Matrix Time comes in two editions, built from this one source tree:
+
+* **Lite** is the free edition, the one in the Connect IQ store today. It is **frozen** as of
+  2026-09-24: it gets defect fixes only, and new features go to Premium.
+* **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
+  separate app, with an application id of its own, so it installs alongside Lite rather than over it.
+  It is not published yet. Its features so far are its settings -- time size, trail length, time
+  style, time alignment, time and rain colours, always-on brightness and the date, and presets of
+  them, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
+  [Fonts](#fonts). Its launcher icon carries a gold star, see
+  [Premium launcher icon](#premium-launcher-icon).
+
+Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
+has goes in `premium/`: code in `premium/source/`, resources for every product in
+`premium/resources-base/`, per-resolution resources, such as fonts, in `premium/resources-<family>/`, and
+per-device launcher icons in `premium/resources-icon-<size>/`.
+Each edition has a jungle and a manifest of its own, `lite.jungle` with `manifest.xml` and
+`premium.jungle` with `manifest-premium.xml`; see [Editions in the build](#editions-in-the-build) for how
+to build each, and for what keeps Premium out of Lite.
+
 ## Features
+<sub>[↑↑ TOC](#table-of-contents) · [← Editions](#editions) · [↓ Premium settings](#premium-settings) · [Fonts →](#fonts)</sub>
 
-The Matrix Time watch face supports the following features:
 
-|Screenshot|Description|
-|-|:-|
-|![](resources/graphics/MatrixTime4.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time.
-|![](resources/graphics/MatrixTime5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it filled at Extra large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
+Lite has the first two of these features, and Premium has them all. Each Premium setting is shown on
+the face at its defaults with that one setting changed, unless the row says otherwise;
+[Premium settings](#premium-settings) describes every setting in full.
+
+|Lite|Premium|Feature|
+|:-:|:-:|:-|
+|![Lite's digital rain](resources/graphics/MatrixTime4.png)|![Premium at its defaults](premium/graphics/MatrixTimePremium-default.png)|**Digital rain**<br/> An implementation of the digital rain design is used as a background for the current time. Lite draws a small time on a black box that keeps the rain out of the time field. Premium draws a larger, bolder time with no box, so the rain falls right up to the digits; shown at its defaults.
+|![Lite's always-on screen](resources/graphics/MatrixTime5.png)|![Premium's always-on screen](premium/graphics/MatrixTimePremium5.png)|**Always-on display**<br/> In low-power mode the rain is left out and the time alone is drawn and moved to a different corner of a small square every minute. Lite draws it filled, at twice its woken size; Premium draws it filled at Extra large, whatever the woken time's size and style, at the brightness its settings choose. See **Always-on display** above for why the rain cannot stay.
+||![Premium at time size Extra extra large](premium/graphics/MatrixTimePremium-timeSize.png)|**Time size**<br/> Seven sizes, from Extra extra small, Lite's size, to Extra extra large; Medium is the default. Shown at Extra extra large.
+||![Premium at trail length 25%](premium/graphics/MatrixTimePremium-trailLength.png)|**Trail length**<br/> How far each column of rain fades behind its head: 25%, 50% or 75% of the screen; 50%, Lite's, is the default. Shown at 25%, which also draws about half the glyphs each frame.
+||![Premium with a hollow time](premium/graphics/MatrixTimePremium4.png)|**Time style**<br/> Filled or Hollow; Filled is the default. A hollow time is an outline, with the rain falling through the digits. Shown hollow in white at Extra large over the White to green rain, since a hollow time in the rain's own colour is hard to read.
+||![Premium with the time at the right](premium/graphics/MatrixTimePremium-timeAlign.png)|**Time alignment**<br/> Left, Centre or Right; Centre, Lite's, is the default. Shown at the right.
+||![Premium with an amber time](premium/graphics/MatrixTimePremium-timeColor.png)|**Time colour**<br/> Green, White, Cyan, Amber, Orange or Red; Green is the default. Shown in Amber.
+||![Premium with orange rain](premium/graphics/MatrixTimePremium-rainColor.png)|**Rain colour**<br/> Green, Cyan, Blue, Amber, Orange, Red or White, or a gradient, White to green or Green to teal; Green is the default. Any time colour goes with any rain colour. Shown in Orange.
+||![Premium's always-on screen at Dim](premium/graphics/MatrixTimePremium-alwaysOnBrightness.png)|**Always-on brightness**<br/> How bright the always-on time is: Bright, Dimmed or Dim; Bright is the default, and Dim is how Lite draws it. Shown at Dim.
+||![Premium with the date](premium/graphics/MatrixTimePremium-date.png)|**Date**<br/> Off or On: today's date under the time on the woken screen. Off is the default. Shown On.
+||![Premium's Red preset](premium/graphics/MatrixTimePremium2.png)|**Presets**<br/> Five slots, each a saved look that comes back in one step; three come filled, Green, Red and Blue. Shown: Red. See [Presets](#presets).
 
 Lite has no customisation settings. It does ship a `resources/properties/properties.xml`, but the single property it declares is a schema marker with no entry in any settings screen, so nothing shows up in Connect IQ or on the watch. It is there because a build with no declared property has no property table at all, and reading a property from a table that does not exist takes the app down with an error no `catch` clause sees (#91, #93). It costs 96 bytes in the `.prg`.
 
 ### Premium settings
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Features](#features)</sub>
+
 
 Premium adds eight settings, and [presets](#presets) of them. They can be changed in the Connect IQ app, and on the watch from the
 face's Customize menu, where each one is a menu item showing its current value; selecting it steps to
@@ -154,9 +208,9 @@ Three slots come filled, and the other two are empty:
 
 | Slot | Name | Time size | Trail length | Time style | Time alignment | Time colour | Rain colour |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| 1 | Green | Medium | 25% | Filled | Right | White | Green |
-| 2 | Red | Large | 25% | Filled | Left | Orange | Red |
-| 3 | Blue | Extra extra large | 75% | Hollow | Centre | Cyan | Blue |
+| 1 | Green<br/><img src="premium/graphics/MatrixTimePremium1.png" width="100" alt="Green preset"> | Medium | 25% | Filled | Right | White | Green |
+| 2 | Red<br/><img src="premium/graphics/MatrixTimePremium2.png" width="100" alt="Red preset"> | Large | 25% | Filled | Left | Orange | Red |
+| 3 | Blue<br/><img src="premium/graphics/MatrixTimePremium3.png" width="100" alt="Blue preset"> | Extra extra large | 75% | Hollow | Centre | Cyan | Blue |
 
 They are loaded and saved over like any other slot. Saving over one replaces its look for good.
 
@@ -177,29 +231,9 @@ when it is saved over. A setting added in a later version is not in a preset sav
 loading that preset leaves the new setting as it is. The presets themselves are stored on the watch,
 not in the Connect IQ app's settings, so a save made on the watch is never overwritten from the phone.
 
-## Editions
-
-Matrix Time comes in two editions, built from this one source tree:
-
-* **Lite** is the free edition, the one in the Connect IQ store today. It is **frozen** as of
-  2026-09-24: it gets defect fixes only, and new features go to Premium.
-* **Premium** is the paid edition. It is Lite plus whatever lives under `premium/`, and it is a
-  separate app, with an application id of its own, so it installs alongside Lite rather than over it.
-  It is not published yet. Its features so far are its settings -- time size, trail length, time
-  style, time alignment, time and rain colours, always-on brightness and the date, and presets of
-  them, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
-  [Fonts](#fonts). Its launcher icon carries a gold star, see
-  [Premium launcher icon](#premium-launcher-icon).
-
-Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
-has goes in `premium/`: code in `premium/source/`, resources for every product in
-`premium/resources-base/`, per-resolution resources, such as fonts, in `premium/resources-<family>/`, and
-per-device launcher icons in `premium/resources-icon-<size>/`.
-Each edition has a jungle and a manifest of its own, `lite.jungle` with `manifest.xml` and
-`premium.jungle` with `manifest-premium.xml`; see [Editions in the build](#editions-in-the-build) for how
-to build each, and for what keeps Premium out of Lite.
-
 ## Fonts
+<sub>[↑↑ TOC](#table-of-contents) · [← Features](#features) · [Launcher icon →](#launcher-icon)</sub>
+
 
 The Matrix Time watch face uses custom fonts:
 
@@ -391,6 +425,8 @@ generated with `--project-dir premium` and not by pointing the scaler at Premium
 root: that overwrites Lite's generated `fonts.xml` in every family directory.
 
 ## Launcher icon
+<sub>[↑↑ TOC](#table-of-contents) · [← Fonts](#fonts) · [↓ Premium launcher icon](#premium-launcher-icon) · [Store and README images →](#store-and-readme-images)</sub>
+
 
 The launcher icon is the digital rain held still: glyphs from the same typeface, in the same green
 and from the same letters-only charset, that the watch face draws with.
@@ -476,6 +512,8 @@ device asks for. It is a fallback only: it applies to a product added to `manife
 `make icons` has been rerun.
 
 ### Premium launcher icon
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Launcher icon](#launcher-icon)</sub>
+
 
 Premium's launcher icon is Lite's with a **gold star** in the top-right corner, on a small black disc
 so that it reads against the rain. The rain is Lite's to the pixel, drawn by Lite's own renderer, so
@@ -522,11 +560,13 @@ python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusn
 ```
 
 ## Store and README images
+<sub>[↑↑ TOC](#table-of-contents) · [← Launcher icon](#launcher-icon) · [Build, test, deploy →](#build-test-deploy)</sub>
+
 
 Each edition has a store listing of its own, and so a set of images of its own: Lite's in
 `resources/graphics/`, which also illustrate this file, and Premium's in `premium/graphics/`. Most of
 them are **generated output** of `make graphics`; do not edit those by hand. The exceptions are the
-published heroes and Lite's banner, which are composed with an image model and picked by hand -- with
+published heroes and their banners, which are composed with an image model and picked by hand -- with
 `make hero` for Premium's, and before `make hero` existed for Lite's -- and which `make graphics`
 deliberately does not write; and Premium's store cover, which is drawn from the launcher icon's
 artwork by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
@@ -540,7 +580,7 @@ Lite's, in `resources/graphics/`:
 | `MatrixTime4.png` | the same | the [Features](#features) table above | `make graphics` |
 | `MatrixTime5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table | `make graphics` |
 | `MatrixTimeHero.png` | the five captures recomposed at 1440 x 720, watches overlapping and seen from several viewpoints | store listing, social | composed by hand |
-| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file | composed by hand |
+| `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file, until Premium's replaced it | composed by hand |
 | `MatrixTimeHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics` |
 | `MatrixTimeHero-draft-small.png` | the same composition at 900 x 450 | the same | `make graphics` |
 
@@ -548,20 +588,24 @@ Premium's, in `premium/graphics/`:
 
 | file | what it is | where it is used | made by |
 |:--|:--|:--|:--|
-| `MatrixTimePremium1.png` to `MatrixTimePremium3.png` | the three built-in presets, Green, Red and Blue, set into the watch render, 200 px wide | store gallery | `make graphics EDITION=premium` |
-| `MatrixTimePremium4.png` | the same, of white-to-green rain under a hollow white time at Extra large | store gallery | `make graphics EDITION=premium` |
-| `MatrixTimePremium5.png` | the same, of the always-on screen | store gallery | `make graphics EDITION=premium` |
+| `MatrixTimePremium1.png` to `MatrixTimePremium3.png` | the three built-in presets, Green, Red and Blue, set into the watch render, 200 px wide | store gallery, and the [Features](#features) and [Presets](#presets) tables | `make graphics EDITION=premium` |
+| `MatrixTimePremium4.png` | the same, of white-to-green rain under a hollow white time at Extra large | store gallery, and the [Features](#features) table | `make graphics EDITION=premium` |
+| `MatrixTimePremium5.png` | the same, of the always-on screen | store gallery, and the [Features](#features) table | `make graphics EDITION=premium` |
 | `MatrixTimePremiumHero.png` | the five captures recomposed at 1440 x 720, watches overlapping and seen from several viewpoints | store listing | `make hero EDITION=premium`, picked by hand |
+| `MatrixTimePremiumHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file | `make hero EDITION=premium`, with the hero |
 | `MatrixTimePremiumHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics EDITION=premium` |
+| `MatrixTimePremium-default.png` | the face at its defaults, set into the watch render, 200 px wide | the [Features](#features) table | `make graphics EDITION=premium` |
+| `MatrixTimePremium-<setting>.png`, for `timeSize`, `trailLength`, `timeAlign`, `timeColor`, `rainColor`, `alwaysOnBrightness` and `date` | the same, with that one setting changed from its default | the [Features](#features) table | `make graphics EDITION=premium` |
 | `MatrixTimePremiumCover.png` | the launcher icon's artwork, 512 x 512 | store listing | `make icons` |
 
-Premium has no raw capture and no banner: nothing in its listing uses the one, and the banner at the
-top of this file is Lite's.
+Premium has no raw capture, since nothing in its listing uses one, and no draft banner. The banner at
+the top of this file is Premium's published hero at 900 x 450, written by `make hero` beside the hero
+from the same image; Lite's, from before Premium had a hero, is kept with the hero it was cut from.
 
 **Each Premium image is a look, not a moment.** Lite's four woken images are four frames of one build;
 Premium's are four builds, and with the always-on one that makes five, each compiled with its settings
-as the property defaults in a copy of the tree, so the tree itself is never written to. All five are
-captured in one container. The presets are
+as the property defaults in a copy of the tree, so the tree itself is never written to. The eight
+feature images are eight more builds, and all thirteen are captured in one container. The presets are
 not restated anywhere: each preset build sets `presetLoad`, the phone's *Load preset* request, to its
 slot, and the face loads that slot's built-in look as it starts, exactly as it would a request from the
 phone. So the first three images show whatever `Presets.builtIn` holds, and follow it when it changes.
@@ -603,8 +647,8 @@ rain colour and in the time's colour, size, position and style, and that each ke
 hollow digits included.
 
 The second step crops each image about its centre to 2:1 and resizes it to **exactly 1440 x 720**,
-which the store validates and rejects anything else for, and, for Lite, to the 900 x 450 banner too,
-as the same image rather than a second composition. It then screens it: the size, the store's 2048 KB
+which the store validates and rejects anything else for, and to the 900 x 450 banner too, as the
+same image rather than a second composition. It then screens it: the size, the store's 2048 KB
 limit, and that the crop was not enlarged, locally; and the watch count, any case cut off by the edge,
 and the edition's own checks, [`tools/hero-checks.json`](tools/hero-checks.json) or
 [`premium/tools/hero-checks.json`](premium/tools/hero-checks.json), by a vision model. Those ask, among
@@ -616,8 +660,9 @@ checks alone and needs no key; the watch count, the numerals and the rest of the
 yours to check by eye, screen by screen at full size.
 Candidates land in `.dev/scratchpad/hero/<edition>/candidates/`, numbered on from any already there, a
 rejected one marked `-rejected` rather than deleted, each beside a JSON record of every check. Nothing
-is ever written over the published hero: copying the chosen candidate into place is yours to do, and a
-pass narrows the field rather than replacing a look.
+is ever written over the published hero. Copying the chosen candidate into place is yours to do, both
+files of it: `candidate-NN.png` over the hero, and `candidate-NN-900x450.png` over its banner, the
+`-small` file beside it. A pass narrows the field rather than replacing a look.
 
 The candidates come from the Gemini app rather than the API because image generation through the API
 is paid, and a subscription covers the app. `compose -g N` generates through the API instead,
@@ -676,7 +721,7 @@ onto is always the artwork that rendered it.
 # regenerate all eight Lite images it owns
 make graphics
 
-# regenerate the six Premium ones
+# regenerate the fourteen Premium ones
 make graphics EDITION=premium
 
 # on an arm64 machine, where the Connect IQ tester image runs emulated
@@ -696,6 +741,8 @@ output in the sense a build is, so it drifts silently. That is how #54 could dro
 charset and leave every one of the images then in the directory showing numerals for months (#80).
 
 ## Build, test, deploy
+<sub>[↑↑ TOC](#table-of-contents) · [← Store and README images](#store-and-readme-images) · [↓ Git LFS](#git-lfs) · [Upstream bug reports →](#upstream-bug-reports)</sub>
+
 
 To modify and build the sources, you need to have installed:
 
@@ -708,12 +755,14 @@ The [Monkey C Visual Studio Code Extension](https://developer.garmin.com/connect
 reference guide covers the extension in full; what follows is the part of it this project actually uses.
 
 ### Git LFS
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [A developer key →](#a-developer-key)</sub>
 
-Twenty-one binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
+
+Thirty binaries in this repository are [Git LFS](https://git-lfs.com) objects: the three source
 typefaces, `resources/fonts/MatrixCodeNFI.ttf`, `resources/fonts/SUSEMono-Regular.ttf` and Premium's
 `premium/resources/fonts/SUSEMono-ExtraBold.ttf`; the launcher icon
 fallback, `resources/drawables/launcher_icon.png`; the ten hero and screenshot graphics under
-`resources/graphics/`; and Premium's seven under `premium/graphics/`. Everything else is stored
+`resources/graphics/`; and Premium's sixteen under `premium/graphics/`. Everything else is stored
 normally, the generated bitmap fonts, the per-device launcher icons and Premium's store cover
 included -- they are build output of the typefaces and the icon artwork, small, and worth diffing.
 
@@ -766,6 +815,8 @@ This is how the first CI run failed (#102): `actions/checkout` does not fetch LF
 asked, so the runner reproduced a `git-lfs`-less clone exactly.
 
 ### A developer key
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← Git LFS](#git-lfs) · [From Visual Studio Code →](#from-visual-studio-code)</sub>
+
 
 Every build is signed, so nothing compiles until a developer key exists. Generate one from the command
 palette with `Monkey C: Generate a Developer Key`, or by hand:
@@ -785,6 +836,8 @@ be undone by a new one. `.gitignore` guards `developer_key*` as a second line of
 keep the key in the repository.
 
 ### From Visual Studio Code
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← A developer key](#a-developer-key) · [From the command line →](#from-the-command-line)</sub>
+
 
 `Cmd+Shift+P` on macOS, `Ctrl+Shift+P` on Windows and Linux, opens the command palette. The commands
 that matter here:
@@ -824,6 +877,8 @@ rather than the project. `Edit Products` edits one edition's manifest; copy the 
 or `make check-manifests` fails (see [Editions in the build](#editions-in-the-build)).
 
 ### From the command line
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← From Visual Studio Code](#from-visual-studio-code) · [Previewing the settings →](#previewing-the-settings)</sub>
+
 
 The included `Makefile` covers every build the project does, the store bundle included.
 
@@ -860,7 +915,7 @@ make icons
 # and its banner are left alone
 make graphics
 
-# ... Premium's six in premium/graphics instead; its composed hero and cover are left alone
+# ... Premium's fourteen in premium/graphics instead; its composed hero, banner and cover are left alone
 make graphics EDITION=premium
 
 # ... on an arm64 machine, where the simulator container runs emulated
@@ -910,7 +965,7 @@ bundle to the store is manual either way, through the store's web form.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
-six in `premium/graphics/` for Premium. The published heroes, Lite's banner and Premium's cover are
+fourteen in `premium/graphics/` for Premium. The published heroes, their banners and Premium's cover are
 left alone. It needs Docker running and
 [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer for Lite, 0.6.0 or newer for Premium, and no SDK: the capture runs the Connect IQ simulator
@@ -951,6 +1006,8 @@ foreground while the watch face runs; press Ctrl-C when you are done. `make test
 `monkeydo`, but captures its output and does return.
 
 ### Previewing the settings
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← From the command line](#from-the-command-line) · [Editions in the build →](#editions-in-the-build)</sub>
+
 
 `make preview` captures the face once per combination of its settings and lays the frames out as one
 labelled contact sheet, which is how a setting is reviewed before it merges (#140). It is for review,
@@ -1009,6 +1066,8 @@ pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/gar
 ```
 
 ### Editions in the build
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← Previewing the settings](#previewing-the-settings) · [Unit tests →](#unit-tests)</sub>
+
 
 Each edition is `monkey.jungle`, which holds every setting the two share, followed by the edition's own
 jungle, which names its manifest and adds what is its alone:
@@ -1069,6 +1128,8 @@ Three checks keep the editions honest:
 has the same file and the same `lite.jungle`; that is the unit tests' job.
 
 ### Unit tests
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← Editions in the build](#editions-in-the-build) · [Sideloading to the watch →](#sideloading-to-the-watch)</sub>
+
 
 `make test` compiles a unit-test binary, loads it into the simulator and reports the result. The suite
 lives in `source/tests/` and runs on Garmin's Run No Evil framework, which only exists inside the
@@ -1180,6 +1241,8 @@ line rather than the exit status. A run that cannot reach the simulator prints n
 reported as a failure, which is the intended behaviour.
 
 ### Sideloading to the watch
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← Unit tests](#unit-tests) · [Continuous integration →](#continuous-integration)</sub>
+
 
 `make sideload` builds the binary and copies it into `GARMIN/Apps` on a watch connected by USB, which
 is the whole of what installing a development build takes: the watch face appears in the watch face
@@ -1231,6 +1294,8 @@ For the manual route, or for sideloading from another platform, see
 [developer.garmin.com/connect-iq/connect-iq-basics/your-first-app](https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/).
 
 ### Continuous integration
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← Sideloading to the watch](#sideloading-to-the-watch) · [Releases →](#releases)</sub>
+
 
 Every push to `main` and every pull request runs
 [`.github/workflows/build.yml`](.github/workflows/build.yml), which does three things:
@@ -1306,6 +1371,8 @@ suite's verdict is still read off the anchored `PASSED (` line rather than `monk
 which is `1` whether every test passed or one failed (#23).
 
 ### Releases
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Build, test, deploy](#build-test-deploy) · [← Continuous integration](#continuous-integration)</sub>
+
 
 A tag is a **code release** of the repository: one tag, one GitHub release, one `CHANGELOG.md`
 section, shared by Lite and Premium. Each edition's **published version** is the `version` in its own
@@ -1410,12 +1477,17 @@ downloadable, correctly versioned, signed bundle is the useful part; the draft k
 step a decision.
 
 ## Upstream bug reports
+<sub>[↑↑ TOC](#table-of-contents) · [← Build, test, deploy](#build-test-deploy) · [↓ Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
+
 
 Two defects found while building this face turned out to be in the tools rather than in it, and were
 reported where they belong. Both are worth knowing about if you are working on a Connect IQ project of
 your own, because in each case the symptom points somewhere other than the cause.
 
+<a id="connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared"></a>
 ### Connect IQ: `Properties.getValue` takes the app down when no property is declared
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [libmtp: one Garmin USB id listed twice, under a misspelled name →](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)</sub>
+
 
 [forums.garmin.com bug report](https://forums.garmin.com/developer/connect-iq/i/bug-reports/properties-getvalue-crashes-the-app-uncatchably-instead-of-throwing-invalidkeyexception-when-no-property-is-declared)
 · [#91](https://github.com/wkusnierczyk/garmin-matrix-time/issues/91),
@@ -1433,7 +1505,10 @@ crashes identically. What works is declaring at least one property, which is why
 
 Measured on SDK 9.2.0, `epix2pro47mm`.
 
+<a id="libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name"></a>
 ### libmtp: one Garmin USB id listed twice, under a misspelled name
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
+
 
 [libmtp#434](https://github.com/libmtp/libmtp/issues/434) ·
 [libmtp#435](https://github.com/libmtp/libmtp/pull/435)
