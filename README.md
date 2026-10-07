@@ -51,7 +51,7 @@ available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
 Matrix Time displays the current time as digits with [Digital Rain](https://en.wikipedia.org/wiki/Digital_rain) in the background.
 
 **Stepped, not smooth**  
-Every frame advances each column of rain by exactly one row, and a watch face is given at most one frame a second: `onUpdate` is called about once a second while the watch is awake, and only once a minute once it has dropped into low power. The rain therefore steps rather than flows. It also steps only while the watch is awake, because the always-on screen leaves the rain out altogether; see **Always-on display** below. The callback that would add frames in low power, `onPartialUpdate`, is a memory-in-pixel mechanism and is deliberately not implemented here: on an AMOLED product it is the burn-in protector, not the frame rate, that decides what the always-on screen may draw.
+Every frame advances each column of rain by exactly one row, and a watch face is given about one frame a second while the watch is awake: that is how often `onUpdate` is called. The rain therefore steps rather than flows. It also steps only while the watch is awake, because the always-on screen leaves the rain out altogether; see **Always-on display** below. The callback that would add frames in low power, `onPartialUpdate`, is a memory-in-pixel mechanism and is deliberately not implemented here: on an AMOLED product it is the burn-in protector, not the frame rate, that decides what the always-on screen may draw.
 
 **Letters only**  
 The rain is drawn from the letters `a`-`z` alone. Matrix Code NFI maps letters to katakana-style glyphs but draws digits as recognisable digits, so a charset including `0`-`9` scattered numerals through the rain that competed with the clock for attention. The time is the only number on the screen.
@@ -1490,8 +1490,8 @@ step a decision.
 <sub>[↑↑ TOC](#table-of-contents) · [← Build, test, deploy](#build-test-deploy) · [↓ Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
 
 
-Three defects found while building this face turned out to be in the tools rather than in it, and
-were reported where they belong. All three are worth knowing about if you are working on a Connect IQ
+Three defects met while building and running this face turned out to lie, at least in part, in the
+tools and the platform under it, and were reported where they belong. All three are worth knowing about if you are working on a Connect IQ
 project of your own, because in each case the symptom points somewhere other than the cause.
 
 <a id="connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared"></a>
@@ -1523,20 +1523,29 @@ Measured on SDK 9.2.0, `epix2pro47mm`.
 [forums.garmin.com bug report](https://forums.garmin.com/developer/connect-iq/i/bug-reports/watch-face-onupdate-runs-in-always-on-before-onentersleep-and-far-more-often-than-once-a-minute)
 · [#191](https://github.com/wkusnierczyk/garmin-matrix-time/issues/191)
 
-A watch face is documented to get `onEnterSleep` as the watch prepares to enter always-on, and then
-`onUpdate` once a minute. On an epix Pro (Gen 2), neither holds. `onEnterSleep` runs after the display
-has already switched to always-on, and over 18 hours `onUpdate` was called in always-on 375 times
-before `onEnterSleep` had been called. In always-on, `onUpdate` also came about 16 times a minute, in
-runs a second apart.
+A watch face is documented to get `onEnterSleep` as the watch prepares to enter always-on, and
+`onUpdate` once a minute from then on. On an epix Pro (Gen 2), neither held in what was measured:
 
-A face that picks its always-on scene from a flag set in `onEnterSleep`, as Garmin's own Analog
-sample does and as this face did, therefore draws its woken scene in some always-on frames. On AMOLED
-the burn-in protector then shuts the always-on screen off, and it stays off until the face restarts.
-To the user the always-on face simply disappears, and nothing is logged. The cure is to read
-`System.getDisplayMode()` in `onUpdate` as well, as Garmin's AMOLED FAQ recommends, and to draw the
-always-on scene whenever either it or the flag says the watch is asleep. The display mode catches the
-frames the callback is late for; the flag, kept alongside, costs at most a few frames of the always-on
-scene on waking, when it is the one that lags. #191 tracks that change here.
+* `onEnterSleep` ran after the display had already switched to always-on, in all four logged cases.
+* In always-on, `onUpdate` averaged about 16 calls a minute over 18 hours, often in runs of one call
+  a second.
+* Over the same 18 hours, `onUpdate` was called in always-on 375 times before `onEnterSleep` had
+  told the face. The counter cannot say whether the callback was late, or the face had been started
+  while the watch was already asleep, a case the documentation does not cover. The report asks
+  Garmin which.
+
+This face picks its always-on scene from a flag that `onEnterSleep` sets and that starts out as
+awake, so in frames like those it draws its woken scene, rain and all, while the watch is in
+always-on. (The 375 were counted by a diagnostic build that drew the always-on scene in them
+instead.) On AMOLED the burn-in protector then shuts the always-on screen off, and it stays off until
+the face restarts. To the user the always-on face simply disappears, and nothing is logged. Garmin's
+own Analog sample keeps the same kind of flag, though only to decide whether to draw its second hand.
+
+Garmin's AMOLED FAQ recommends `System.getDisplayMode()` for telling the modes apart. The fix, which
+#191 tracks, is to read it in `onUpdate` and draw the always-on scene whenever either it or the flag
+says the watch is asleep. In every logged transition the display mode changed first, so it is what catches
+those frames. The flag stays as a second signal in case the display mode is ever the one that lags; on
+each logged wake that would have meant one to three frames of the always-on scene.
 
 Measured on SDK 9.2.0, `epix2pro47mm`, software 27.18.
 
