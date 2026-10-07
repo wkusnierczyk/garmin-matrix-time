@@ -70,7 +70,9 @@ const
     // left before 10:00. Measured again the same way, unpadded, nothing changed: 11 is still
     // the first divisor to leave no pixel lit for three minutes, 12 still leaves 4 to 44 on six
     // of the seven families, the most lit is still 5.97%, and the ink's margin to the glass is
-    // the same on every family.
+    // the same on every family. At 8 the unpadded "7:22" now stays inside the glass, but
+    // two-digit hours, which the padding never touched, leave it on every round family by the
+    // same margins as before, so 8 is still out.
     //
     // LOW_POWER_POSITIONS and the edition's LOW_POWER_JITTER_DIVISOR, below, are read by
     // RainMath.jitter; the colour is used below.

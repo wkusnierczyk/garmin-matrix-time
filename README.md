@@ -156,19 +156,20 @@ there the watch is the only way to change them.
   always-on screen is not affected: it is drawn filled at Extra large whichever style is chosen
   here.
 * **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
-  is where Lite draws it, and is the default. Premium does not pad the hour: before 10:00 the time
-  is four characters, as in `7:25`, where Lite's is five, with a blank before the hour. So a
-  left-aligned time starts at its margin at every hour, and the **Date** under it lines up with the
-  hour. In return the time grows by one character when the hour reaches 10: at the left the colon
-  and the minutes move one character right, at the centre the whole time moves half a character, and
-  at the right only the hour grows. Lite keeps the blank, so its centred time never moves. The
-  margin is not fixed: it is worked out from the screen's curve at the top and bottom of the time,
-  plus half a character, so no digit is cut off by a round screen's edge at any time size. At the
-  416x416 reference that puts the time 9 pixels in at Extra extra small, 26 at Medium, 33 at Large
-  and 47 at Extra extra large. A rectangular screen gets the same margin as the circle that fits it,
-  so the time sits the same way on every shape. The always-on screen ignores this setting and stays
-  centred, so its burn-in figures above hold. Its hour is unpadded as well, and those figures were
-  measured again with it.
+  is where Lite draws it, and is the default. Premium does not pad the hour: at a single-digit hour
+  the time is four characters, as in `7:25`, where Lite's is five, with a blank before the hour. So
+  a left-aligned time starts at its margin at every hour, and the **Date** under it lines up with
+  the hour. In return the time changes width whenever the hour gains or loses a digit: at 10:00, at
+  1:00 on a 12-hour clock and at midnight on a 24-hour clock, and on a switch between 12- and
+  24-hour mode from 13:00 to 21:59. The colon and the minutes then move by one character at the left
+  and by half a character at the centre; at the right only the hour changes. Lite keeps the blank,
+  so its centred time never moves. The margin is not fixed: it is worked out from the screen's curve
+  at the top and bottom of the time, plus half a character, so no digit is cut off by a round
+  screen's edge at any time size. At the 416x416 reference that puts the time 9 pixels in at Extra
+  extra small, 26 at Medium, 33 at Large and 47 at Extra extra large. A rectangular screen gets the
+  same margin as the circle that fits it, so the time sits the same way on every shape. The
+  always-on screen ignores this setting and stays centred, so its burn-in figures above hold. Its
+  hour is unpadded as well, and those figures were measured again with it.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
@@ -291,10 +292,10 @@ The table below lists all font sizes provided for the supported screen resolutio
 
 The Premium time sizes are all drawn in **SUSEMono ExtraBold**, weight 800, where Lite draws
 Regular: on the woken screen and the always-on one, filled and hollow. It is the same typeface in a
-heavier weight, and just as monospace, so every character of the time is one equal cell and a new
-minute never moves it; unlike Lite, Premium does not pad the hour to five cells (see **Time
-alignment** under [Premium settings](#premium-settings)). The weight is a static instance of the
-variable font Google Fonts publishes, made with
+heavier weight, and just as monospace, so every character of the time is one equal cell, and the
+time changes width only when its hour gains or loses a digit. Unlike Lite, Premium does not pad the
+hour to five cells; see **Time alignment** under [Premium settings](#premium-settings). The weight
+is a static instance of the variable font Google Fonts publishes, made with
 [`fonttools`](https://github.com/fonttools/fonttools):
 
 ```bash
@@ -1008,15 +1009,16 @@ family, that the seven time sizes grow at every resolution, and that the only Li
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
 that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
 and Premium's Extra extra small the date's `-` as well, with one advance in every family, since the
-fixed-width time depends on it, and that every glyph of a Premium time font fills its whole cell, as
-wide as its advance and as tall as the line, since the time alignment setting keeps that box on the
-glass and counts on no digit reaching outside it. For the hollow fonts it also checks that each file
-carries the stroke the scaler's rule gives for its family, that the size tables give the same
-strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the `stroke`
-attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so switching
-style never moves the time. `check-icons` does the same for both editions' launcher icons and their
-per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store cover; see
-[Launcher icon](#launcher-icon).
+time depends on equal cells: Lite's is always five wide, and Premium's changes width only when its
+hour gains or loses a digit. It also checks that every glyph of a Premium time font fills its whole
+cell, as wide as its advance and as tall as the line, since the time alignment setting keeps that
+box on the glass and counts on no digit reaching outside it. For the hollow fonts it also checks
+that each file carries the stroke the scaler's rule gives for its family, that the size tables give
+the same strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the
+`stroke` attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so
+switching style never moves the time. `check-icons` does the same for both editions' launcher icons
+and their per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store
+cover; see [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
 accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both

@@ -256,9 +256,12 @@ module RainMath {
     // and the two then read as one block. With the padding, the date started one cell left of
     // a single-digit hour when the time was at the left, and sat half a cell off it when
     // centred -- from 1:00 to 9:59 twice a day on a 12-hour clock -- and on the watch that
-    // looked wrong. Unpadded, the two line up at every hour. The price is what #7 avoided:
-    // the time grows by a cell when the hour reaches 10, so its colon moves a cell at the left
-    // and half a cell at the centre. On the watch that was judged the smaller cost
+    // looked wrong. Unpadded, the two line up at every hour, but for the few pixels
+    // DateField.xOf moves the date in at the left at the two smallest time sizes. The price
+    // is what #7 avoided: the time changes width whenever the hour gains or loses a digit --
+    // at 10:00, at 1:00 on a 12-hour clock, at midnight on a 24-hour one, and on a switch of
+    // clock mode from 13:00 to 21:59 -- and its colon and minutes then move a cell at the
+    // left and half a cell at the centre. On the watch that was judged the smaller cost
     // (2026-10-07). The call is about the look, not a flaw found in #7's reasoning.
     //
     // The always-on time is drawn from this too, so it is unpadded as well; the burn-in
