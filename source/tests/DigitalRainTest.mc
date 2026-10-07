@@ -71,8 +71,9 @@ class DigitalRainTest {
     (:test)
     static function theSceneCanChangeBetweenPowerStatesOnTheSameGrid(logger as Test.Logger) as Boolean {
 
-        // View switches between the two scenes on the sleep callbacks without rebuilding
-        // anything, so they have to share one initialised grid.
+        // View switches between the two scenes from one frame to the next, on the sleep
+        // flag or the display mode, without rebuilding anything, so they have to share
+        // one initialised grid.
         var rain = new DigitalRain();
         var dc = _scratchDc();
         var time = Time.now();

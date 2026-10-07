@@ -19,7 +19,8 @@ class View extends WatchUi.WatchFace {
     //
     // Which scene to draw comes from two signals, and the always-on one is drawn
     // unless both say the watch is awake (#191): this flag, which the sleep callbacks
-    // set, and System.getDisplayMode(), read in every frame by inLowPower.
+    // set, and System.getDisplayMode(), which inLowPower reads in every frame the flag
+    // says awake.
     //
     // The flag alone was the design until #191: #68 kept it over the poll, whose timing
     // against the sleep transition was unverified. Measured on an epix Pro (Gen 2), it
@@ -32,9 +33,9 @@ class View extends WatchUi.WatchFace {
     // stayed off until the face restarted. The display mode catches those frames.
     //
     // The flag stays as the second signal in case the display mode is ever the one
-    // that lags. It costs little: in each of the four logged wakes, one to three
-    // frames came in high power before onExitSleep cleared the flag, and those still
-    // draw the always-on scene, as every wake did before.
+    // that lags. It costs little: in every logged wake, one to three frames came in
+    // high power before onExitSleep cleared the flag, and those still draw the
+    // always-on scene, as every wake did before.
     //
     // DISPLAY_MODE_OFF, the screen off, counts as asleep. onUpdate is not called while
     // the display is off, so that is moot, but the small scene is the safe default for
@@ -81,6 +82,12 @@ class View extends WatchUi.WatchFace {
     // function returns true unconditionally. Only the trigger is forced --
     // drawLowPower reads _time and _width and nothing the system sets in always-on,
     // so the captured pixels are the pixels of a genuine always-on frame.
+    //
+    // The real test calls System.getDisplayMode() with no has-guard. That is safe only
+    // because the function is API 5.0.0 and #13 raised minApiLevel to 5.0.0 in both
+    // manifests. Lowering minApiLevel needs a "System has :getDisplayMode" guard here
+    // first: the compiler checks calls against the device API files, not against
+    // minApiLevel, so an older firmware would install the face and fail at runtime.
     //
     // Exactly one of these two definitions is compiled. monkey.jungle excludes
     // forceLowPower, so every ordinary build -- make build, run, test, sideload,

@@ -688,11 +688,16 @@ menus: Display Mode is a GUI-only setting and is not one of the keys the simulat
 resets to High Power on every launch. The forcing is two annotated definitions of one function in
 `source/View.mc`, of which exactly one is ever compiled -- `monkey.jungle` excludes the forced one, and
 `graphics.jungle`, layered over it for this capture alone, excludes the real one instead. Every build
-the store or a watch ever sees therefore picks the branch from `onEnterSleep` and
+the store or a watch ever sees therefore picks the branch from the sleep callbacks and
 `System.getDisplayMode()`, and the forced definition is absent from the `.prg` rather than merely
 unreached. What `drawLowPower` paints depends on the clock, the screen width and the settings, and on
 nothing the system sets in always-on, so the captured frame is a real always-on frame with only its
 trigger forced.
+
+The same reset is what the woken captures rely on. The real branch draws the always-on scene unless
+`System.getDisplayMode()` reports high power, so a simulator that came up in any other mode would
+capture the always-on time in place of the rain. Today it always comes up in High Power, and a capture
+shows the rain.
 
 The capture builds are `monkey.jungle;graphics.jungle;lite.jungle` and
 `monkey.jungle;graphics.jungle;premium.jungle`: the edition jungle still comes last, as it does in every

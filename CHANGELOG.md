@@ -81,8 +81,8 @@ each change is recorded in full.
   dark, across later sleeps, until the face was restarted, for example by opening the activity list
   and backing out. The watch can start an always-on frame before telling the face it is asleep, and
   the face then drew its full rain in always-on, which the burn-in protector shuts the screen off for.
-  The face now also asks the watch which mode the screen is in, every frame, and draws the always-on
-  time whenever either says asleep. Both editions. (#191)
+  The face now also asks the watch which mode the screen is in, and draws the always-on time whenever
+  either says asleep. Both editions. (#191)
 
 ## 0.2.1 -- 2026-09-21
 
