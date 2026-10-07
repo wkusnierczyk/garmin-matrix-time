@@ -10,9 +10,8 @@ import Toybox.Lang;
 //
 // Premium's hour is not padded (#196): at a single-digit hour the time is four cells, "7:25",
 // where Lite's is five, " 7:25" (#7). A left-aligned time therefore starts at its margin at
-// every hour, and the date under it lines up with the hour at the left and the centre alike,
-// but for the few pixels DateField.xOf moves it in at the two smallest sizes. It used to
-// keep Lite's fixed 5-cell box, which started a single-digit hour one blank cell in and
+// every hour, and the date under it lines up with the hour at the left and the centre alike.
+// It used to keep Lite's fixed 5-cell box, which started a single-digit hour one blank cell in and
 // left the date a cell further out than the hour. Without the padding the time changes
 // width whenever the hour gains or loses a digit: at the left the colon and the minutes
 // move one cell, at the centre half a cell, and at the right only the hour changes. That is
@@ -31,6 +30,13 @@ import Toybox.Lang;
 // needs no Dc, and the margin can then be settled before the first frame. The margin
 // therefore grows with the time size, and is worked out from whichever font is loaded,
 // so a new size needs nothing here.
+//
+// The time and the date share that margin (#202). The date sits under the time, where a
+// round screen's chord is shorter, so it needs a margin of its own to keep its corners on
+// the glass, and at the two smallest time sizes that one is the larger: up to 8 pixels at
+// XXS on 416x416. The time takes it too, so the two start, or end, together at every size.
+// It does so whether or not the date is on, so that turning the date on never moves the
+// time. sharedXOf is that rule; xOf is the time's margin alone.
 //
 // A rectangular screen has no edge to clip against, but takes the margin of the circle
 // that fits it, so that the time sits the same way on every shape.
@@ -97,6 +103,16 @@ module TimeAlign {
         var radius = (width < height ? width : height) / 2;
         var margin = insetAt(radius, reach) + fontHeight / GAP_DIVISOR;
         return align == LEFT ? center - radius + margin : center + radius - margin;
+    }
+
+    // The x the time and the date are both drawn at (#202): at the centre the centre, and at
+    // the left or right whichever of xOf's margin for the time and the date's own margin
+    // under it is further in, which is what DateField.xOf returns for the time's x. Taken
+    // whether or not the date is shown, so the date font's height is always passed.
+    function sharedXOf(align as Number, width as Number, height as Number, timeFontHeight as Number,
+            dateFontHeight as Number) as Number {
+        return DateField.xOf(align, xOf(align, width, height, timeFontHeight), width, height,
+            DateField.yOf(height, timeFontHeight, dateFontHeight), dateFontHeight);
     }
 
     // Always vertically centred, like Lite's JUSTIFY; only the horizontal anchor moves.
