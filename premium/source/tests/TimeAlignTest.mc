@@ -198,19 +198,21 @@ class TimeAlignTest {
 
 
     // The whole path a change takes, App.onSettingsChanged to the drawText the time is drawn
-    // with: the anchor follows the setting, and the margin follows the time size.
+    // with: the anchor follows the setting, and the margin follows the time size. With the
+    // date off, as here, the time still takes the margin it shares with the date (#202).
     (:test)
     static function theWokenTimeIsDrawnWhereTheSettingSays(logger as Test.Logger) as Boolean {
         var width = System.getDeviceSettings().screenWidth;
         var height = System.getDeviceSettings().screenHeight;
+        var dateHeight = Graphics.getFontHeight(DateField.load());
         var filled = TimeStyle.FILLED;
         for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
             var left = drawnWith(TimeAlign.LEFT, size, filled, false);
             var center = drawnWith(TimeAlign.CENTER, size, filled, false);
             var right = drawnWith(TimeAlign.RIGHT, size, filled, false);
-            Test.assertEqualMessage(left[0], TimeAlign.xOf(TimeAlign.LEFT, width, height, left[2]), "size " + size + ": left x");
+            Test.assertEqualMessage(left[0], TimeAlign.sharedXOf(TimeAlign.LEFT, width, height, left[2], dateHeight), "size " + size + ": left x");
             Test.assertEqualMessage(center[0], width / 2, "size " + size + ": centre x");
-            Test.assertEqualMessage(right[0], TimeAlign.xOf(TimeAlign.RIGHT, width, height, right[2]), "size " + size + ": right x");
+            Test.assertEqualMessage(right[0], TimeAlign.sharedXOf(TimeAlign.RIGHT, width, height, right[2], dateHeight), "size " + size + ": right x");
             Test.assertEqualMessage(left[1], Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER, "size " + size + ": left anchor");
             Test.assertEqualMessage(center[1], JUSTIFY, "size " + size + ": centre anchor");
             Test.assertEqualMessage(right[1], Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER, "size " + size + ": right anchor");

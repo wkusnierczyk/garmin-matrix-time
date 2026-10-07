@@ -165,11 +165,15 @@ there the watch is the only way to change them.
   and by half a character at the centre; at the right only the hour changes. Lite keeps the blank,
   so its centred time never moves. The margin is not fixed: it is worked out from the screen's curve
   at the top and bottom of the time, plus half a character, so no digit is cut off by a round
-  screen's edge at any time size. At the 416x416 reference that puts the time 9 pixels in at Extra
-  extra small, 26 at Medium, 33 at Large and 47 at Extra extra large. A rectangular screen gets the
-  same margin as the circle that fits it, so the time sits the same way on every shape. The
-  always-on screen ignores this setting and stays centred, so its burn-in figures above hold. Its
-  hour is unpadded as well, and those figures were measured again with it.
+  screen's edge at any time size. The date's line under the time needs a margin of its own, since a
+  round screen is narrower there, and the time and the date take whichever of the two is larger, so
+  that they always start, or end, together. At the smallest time sizes that is the date's. The time
+  keeps that margin with the date off too, so turning the date on never moves it. At the 416x416
+  reference that puts the time 16 pixels in at Extra extra small, 26 at Medium, 33 at Large and 47
+  at Extra extra large. A rectangular screen gets the same margin as the circle that fits it, so the
+  time sits the same way on every shape. The always-on screen ignores this setting and stays
+  centred, so its burn-in figures above hold. Its hour is unpadded as well, and those figures were
+  measured again with it.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
@@ -196,14 +200,13 @@ there the watch is the only way to change them.
   the default, so the face looks as Lite does until it is turned on. The date is drawn at the Extra
   extra small time size whatever the time size, in the time colour, on a black box, so it stays
   legible over the rain whichever time style is chosen. The time itself has no box; the date keeps
-  one because it is always drawn that small. It follows the **Time alignment** setting: at the left
-  or right it lines up with the edge of the time, unless the circle that fits the screen is already
-  narrower at the date's height, in which case it sits further in, so no digit is cut off. That
-  happens under the smaller time sizes, by a few pixels. It is a fixed width, ten characters every
-  day. The hour has no blank before it (see **Time alignment**), so the date lines up with a
-  single-digit hour just as with a double-digit one: at the centre both are centred, and at the left
-  or right their edges meet, but for the few pixels just described. The always-on screen is not
-  affected: it shows the time alone, so its burn-in figures above hold.
+  one because it is always drawn that small. It follows the **Time alignment** setting, and at the
+  left or right it shares the time's margin: the two start, or end, at the same x at every time
+  size, and both stay clear of a round screen's edge. It is a fixed width, ten characters every day.
+  The hour has no blank before it (see **Time alignment**), so the date lines up with a single-digit
+  hour just as with a double-digit one: at the centre both are centred, and at the left or right
+  their edges meet. The always-on screen is not affected: it shows the time alone, so its burn-in
+  figures above hold.
 
 #### Presets
 

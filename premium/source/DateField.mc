@@ -16,7 +16,7 @@ import Toybox.Lang;
 // entry in premium/resources/fonts/charsets.json adds "-" to the time's glyphs for it.
 //
 // The date sits under the time's box and follows the time alignment (#154), so the two
-// read as one block; see xOf. Premium's hour is unpadded so that the block lines up at a
+// read as one block: at the left or right they share one margin (#202); see xOf. Premium's hour is unpadded so that the block lines up at a
 // single-digit hour too (#196). It is drawn on a black box, as Lite's time is (#50), since
 // text this small is not legible over the rain. The time lost its box in #174 and the date
 // kept it: a boxless date reads as the boxless XXS time does, with rain glyphs touching its
@@ -52,12 +52,12 @@ module DateField {
         return height / 2 + (timeFontHeight + 1) / 2 + (dateFontHeight + 1) / 2;
     }
 
-    // The x of the date, anchored as TimeAlign.justifyOf anchors the time. Flush with the
-    // time where the glass allows it. The date is lower than the time, where a round
-    // screen's chord is shorter, so it may have to sit further in to keep every corner of
-    // its box on the glass: at the margin TimeAlign works out for a box reaching as far
-    // from the centre as the date's lower edge does, and whichever of the two is further
-    // in wins.
+    // Whichever is further in of timeX, the time's own margin, and the date's: the margin
+    // TimeAlign works out for a box reaching as far from the centre as the date's lower edge
+    // does. The date is lower than the time, where a round screen's chord is shorter, so its
+    // own margin can be the larger. The result is anchored as TimeAlign.justifyOf anchors
+    // the time, and since #202 it is where both are drawn: TimeAlign.sharedXOf passes the
+    // time's margin in, so the time moves in with the date rather than the date alone.
     function xOf(align as Number, timeX as Number, width as Number, height as Number, y as Number,
             dateFontHeight as Number) as Number {
         if (align == TimeAlign.CENTER) {
