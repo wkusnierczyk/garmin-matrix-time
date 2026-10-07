@@ -32,9 +32,11 @@ EDITION ?= lite
 ifeq ($(EDITION),lite)
   MANIFEST := manifest.xml
   APP := MatrixTime
+  BETA_ID :=
 else ifeq ($(EDITION),premium)
   MANIFEST := manifest-premium.xml
   APP := MatrixTimePremium
+  BETA_ID := bc099595-de3c-4c6a-8ce1-3d162673fade
 else
   $(error EDITION must be lite or premium, not "$(EDITION)")
 endif
@@ -55,7 +57,23 @@ RELEASE ?=
 # product in the edition's manifest, not one device's binary. Written under export/,
 # which "make clean" already removes -- it is an upload artefact, not a build tree.
 EXPORT_DIR := export
-EXPORT := $(EXPORT_DIR)/$(APP).iq
+
+# Which store app "make export" packages for (#201). public is the edition's own listing,
+# under the application id in its manifest, and is what release.yml exports. beta is the
+# edition's store beta: a separate Connect IQ app with an id of its own, BETA_ID above,
+# which tools/export-beta.sh puts into a copy of the tree, so the tracked manifest keeps
+# the public id. The beta bundle has its own name, so that the two cannot be mistaken for
+# each other in export/ -- uploading a public bundle publishes it at once (#121). Lite has
+# no beta app, so a Lite beta is refused until its id is added. Only export reads this.
+## public, the store listing, or beta, the edition's store beta; export only
+VERSION ?= public
+ifeq ($(VERSION),public)
+  EXPORT := $(EXPORT_DIR)/$(APP).iq
+else ifeq ($(VERSION),beta)
+  EXPORT := $(EXPORT_DIR)/$(APP)-beta.iq
+else
+  $(error VERSION must be public or beta, not "$(VERSION)")
+endif
 
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
 # file on Lite's path; CI passes one product per device family.
@@ -306,9 +324,14 @@ sideload:
 # warnings, errors, and whatever monkeyc adds next.
 EXPORT_STATUS := __monkeyc_status__:
 
-## Build the signed .iq store bundle [EDITION]
+## Build the signed .iq store bundle [EDITION VERSION]
 export:
 	$(require_sdk)
+ifeq ($(VERSION),beta)
+	@test -n "$(BETA_ID)" || { echo "$(APP) has no store beta: set its BETA_ID in the Makefile first."; exit 1; }
+	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" EDITION="$(EDITION)" MANIFEST="$(MANIFEST)" APP="$(APP)" \
+	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
+else
 	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
 	@mkdir -p $(EXPORT_DIR)
 	@{ $(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT); echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
@@ -318,6 +341,7 @@ export:
 	  { print; fflush() } \
 	  END { exit status + 0 }'
 	@echo "Export complete: $(EXPORT)"
+endif
 
 ## Check the fonts and their size tables
 check-fonts:
