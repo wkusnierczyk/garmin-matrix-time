@@ -328,7 +328,7 @@ Stroke column. All twelve are configured in `premium/resources/fonts/` and gener
 resolution. The size table below is a copy of [`premium/fonts.md`](premium/fonts.md), which the
 scaler writes.
 The date of the [date setting](#premium-settings) is drawn in the Extra extra small font, which
-holds a hyphen for it besides the time's digits, space and colon; it has no font of its own, because
+holds a hyphen for it besides the time's digits and colon; it has no font of its own, because
 the scaler names a bitmap by typeface and size, and a date font at that size would overwrite the
 time's bitmap.
 
@@ -1007,18 +1007,19 @@ against `premium/resources/fonts/` and `premium/fonts.md`, and also that Premium
 `resolutions.json` is Lite's, that `premium.jungle` adds the Premium font directory for every
 family, that the seven time sizes grow at every resolution, and that the only Lite font ids Premium
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
-that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
-and Premium's Extra extra small the date's `-` as well, with one advance in every family, since the
-time depends on equal cells: Lite's is always five wide, and Premium's changes width only when its
-hour gains or loses a digit. It also checks that every glyph of a Premium time font fills its whole
-cell, as wide as its advance and as tall as the line, since the time alignment setting keeps that
-box on the glass and counts on no digit reaching outside it. For the hollow fonts it also checks
-that each file carries the stroke the scaler's rule gives for its family, that the size tables give
-the same strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the
-`stroke` attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so
-switching style never moves the time. `check-icons` does the same for both editions' launcher icons
-and their per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store
-cover; see [Launcher icon](#launcher-icon).
+that every time font holds exactly its edition's time charset -- digits, space and colon in Lite,
+digits and colon in Premium, which draws no space since its hour is unpadded -- and Premium's Extra
+extra small the date's `-` as well, with one advance in every family, since the time depends on
+equal cells: Lite's is always five wide, and Premium's changes width only when its hour gains or
+loses a digit. It also checks that every glyph of a Premium time font fills its whole cell, as wide
+as its advance and as tall as the line, since the time alignment setting keeps that box on the glass
+and counts on no digit reaching outside it. For the hollow fonts it also checks that each file
+carries the stroke the scaler's rule gives for its family, that the size tables give the same
+strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the `stroke`
+attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so switching
+style never moves the time. `check-icons` does the same for both editions' launcher icons and their
+per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store cover; see
+[Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
 accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both
