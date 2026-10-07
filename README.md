@@ -881,8 +881,14 @@ or `make check-manifests` fails (see [Editions in the build](#editions-in-the-bu
 
 
 The included `Makefile` covers every build the project does, the store bundle included.
+`make help` lists every target with what it does and the variables it takes, and every variable
+with its value; it needs no SDK. `SDK_BIN` and `DEV_KEY` are left out of the targets' lists, since
+every target that runs the SDK locally takes them.
 
 ```bash
+# list every target and variable
+make help
+
 # build binaries from sources -- Lite, unless EDITION says otherwise
 make build
 
@@ -935,6 +941,9 @@ make check-icons
 # check that the two edition manifests agree, and that Premium leaves Lite alone
 make check-manifests
 make check-lite
+
+# check that every target and variable has a line in make help
+make check-help
 
 # clean up the project directory
 make clean
@@ -1302,7 +1311,7 @@ Every push to `main` and every pull request runs
 
 | Job | What it proves |
 | :-- | :------------- |
-| `consistency checks` | `make check-fonts`, `make check-icons` and `make check-manifests` pass. Python, with `garmin-graphics-generator` and Pillow for `check-icons`, no SDK, seconds. |
+| `consistency checks` | `make check-fonts`, `make check-icons`, `make check-manifests` and `make check-help` pass, and `make help` runs. Python, with `garmin-graphics-generator` and Pillow for `check-icons`, no SDK, seconds. |
 | `build (lite)`, `build (premium)` | the edition compiles, for one product per `deviceFamily`, and `make export` produces its store bundle. The Lite leg also runs `make check-lite` on the same products. |
 | `unit tests (lite)`, `unit tests (premium)` | `make test` passes for the edition: the Run No Evil suite, in the simulator, under a virtual display. |
 

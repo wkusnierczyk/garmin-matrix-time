@@ -99,6 +99,13 @@ jobs:
       - name: Edition manifests
         run: make check-manifests
 
+      # Every target in .PHONY and every ?= variable has a "## " help line (#168). make
+      # help runs too, because it must work with no SDK, and this runner has none.
+      - name: Make help
+        run: |
+          make check-help
+          make help
+
   build:
     name: build (${{ matrix.edition }})
     runs-on: ubuntu-latest

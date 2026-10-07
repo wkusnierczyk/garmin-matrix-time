@@ -5,15 +5,19 @@
 #   ~/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg
 # macOS only. On another platform, pass CIQ_HOME or SDK_BIN explicitly.
 # Override for CI or a pinned build:  make build SDK_BIN=/path/to/sdk/bin
+## The SDK manager's directory: SDK_BIN's default, and the devices sideload knows
 CIQ_HOME ?= $(HOME)/Library/Application Support/Garmin/ConnectIQ
 # Trailing slashes are stripped in the shell: the file's format is not guaranteed,
 # and make's own text functions split on whitespace, which the macOS path contains.
+## The Connect IQ SDK's bin directory, for every target that runs the SDK locally
 SDK_BIN  ?= $(shell sed -e 's:/*$$::' "$(CIQ_HOME)/current-sdk.cfg" 2>/dev/null)/bin
 
 # Path to your developer key (generated via SDK manager or openssl)
+## The developer key every local build signs with
 DEV_KEY ?= ../garmin-keys/developer_key
 
 # The device to simulate (must match one in manifest.xml)
+## The product to build for, one of manifest.xml's
 DEVICE ?= epix2pro47mm
 
 # Which edition to build: lite, the free one, or premium, the paid one (#135). One
@@ -23,6 +27,7 @@ DEVICE ?= epix2pro47mm
 # The edition jungle comes LAST in the list, always. It appends its exclusion to
 # base.excludeAnnotations; a jungle layered after it that replaced the list, as
 # graphics.jungle does, would silently drop it. See monkey.jungle.
+## lite, the free edition, or premium, the paid one
 EDITION ?= lite
 ifeq ($(EDITION),lite)
   MANIFEST := manifest.xml
@@ -43,6 +48,7 @@ OUTPUT := $(APP).prg
 # embeds the absolute build path and line numbers -- which is what "make check-lite"
 # does with it (#35, finding 4). Empty, the default, keeps the debug symbols the
 # simulator and the profiler use.
+## Non-empty builds the .prg without debug information, as export does
 RELEASE ?=
 
 # The store bundle "make export" produces: one signed package covering every
@@ -53,6 +59,7 @@ EXPORT := $(EXPORT_DIR)/$(APP).iq
 
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
 # file on Lite's path; CI passes one product per device family.
+## The products check-lite compares Lite on
 DEVICES ?= $(DEVICE)
 
 # How long "make sideload" keeps looking for a watch before giving up. Empty --
@@ -62,18 +69,22 @@ DEVICES ?= $(DEVICE)
 # carries both. EVERY is the gap between one look and the next: a look is a single
 # mtp-detect that answers in well under a second, but it opens a USB session to do
 # it, so the loop is deliberately unhurried rather than tight.
+## How long sideload waits for a watch: 1 for 300 s, or a number of seconds
 WAIT ?=
+## Seconds between sideload's looks for a watch
 EVERY ?= 60
 
 # TCP port the Connect IQ simulator listens on. Probing the port reports that the
 # simulator is accepting connections, which is what monkeydo needs -- the app being
 # launched is not enough, since "open -a" returns long before the port is up.
+## The port the simulator listens on
 SIM_PORT ?= 1234
 
 # Container platform for "make graphics". The Connect IQ tester image the capture
 # runs in is built for amd64 only, so an arm64 machine has to ask for it explicitly
 # and accept emulation: PLATFORM=linux/amd64. Empty on an amd64 machine, where
 # Docker picks the right one by itself.
+## The container platform; linux/amd64 on an arm64 machine
 PLATFORM ?=
 
 # The zone "make graphics" captures in, and so the time the captured face shows.
@@ -81,6 +92,7 @@ PLATFORM ?=
 # exports what it inherits, so a target testing $(TZ) would follow the developer's
 # own clock setting rather than an explicit choice, and behave differently on two
 # machines for no visible reason.
+## The time zone of the time the captured face shows
 TZ_NAME ?=
 # =================================================
 
@@ -99,7 +111,7 @@ SUBMAKE := $(MAKE)
 
 # Fail with a readable message rather than "No such file or directory".
 # Checked inside the recipes rather than at parse time, so targets that need no
-# SDK -- clean, check-fonts, check-icons -- still work on a machine without one.
+# SDK -- clean, help, and every check but check-lite -- still work on a machine without one.
 # The test goes through the shell with the path quoted: make's own text functions
 # split on whitespace, and the macOS path contains "Application Support".
 define require_sdk
@@ -121,10 +133,12 @@ TEST_FLAGS := -w -y "$(DEV_KEY)" -d $(DEVICE) -f "$(JUNGLES)" --unit-test
 EXPORT_FLAGS := -e -r -w -y "$(DEV_KEY)" -f "$(JUNGLES)"
 
 .PHONY: all build sim run test sideload export check-fonts check-manifests check-lite \
-        icons check-icons graphics hero preview clean
+        icons check-icons graphics hero preview clean help check-help
 
+## The default: build [DEVICE EDITION RELEASE]
 all: build
 
+## Build the .prg for DEVICE and EDITION [DEVICE EDITION RELEASE]
 build:
 	$(require_sdk)
 	@echo "Building $(EDITION) for $(DEVICE)..."
@@ -137,6 +151,7 @@ build:
 # separately from require_sdk, which only covers monkeyc: a partial SDK without
 # connectiq would otherwise fail silently in the background and be reported, sixty
 # seconds later, as a port that never opened.
+## Start the simulator unless it is running [SIM_PORT]
 sim:
 	$(require_sdk)
 	@if nc -z 127.0.0.1 $(SIM_PORT) 2>/dev/null; then \
@@ -170,6 +185,7 @@ sim:
 # a hang even though the app started (#73). Announce the whole sequence up front
 # rather than after the fact: there is no point at which the push can be observed
 # to have finished. #66 was the same mistake one step earlier in this target.
+## Build, start the simulator, load the face [DEVICE EDITION RELEASE SIM_PORT]
 run: build sim
 	@echo "Loading $(OUTPUT) into simulator..."
 	@echo "monkeydo then stays attached to relay the app's console output, so this"
@@ -186,6 +202,7 @@ run: build sim
 # is unambiguous -- "PASSED (passed=N, failed=0, errors=0)" or "FAILED (...)" in the
 # first column -- so the grep is anchored there rather than matching the word anywhere
 # in the log, where a test name could supply it (#23).
+## Run the unit tests in the simulator [DEVICE EDITION SIM_PORT]
 test: sim
 	$(require_sdk)
 	@echo "Running Unit Tests..."
@@ -231,6 +248,7 @@ test: sim
 # device has to be known before the binary is compiled, and a prerequisite would
 # have built for the default DEVICE before the watch was ever consulted. The
 # binary is still always current, which is what that ordering is for.
+## Build for the plugged-in watch and install it [DEVICE EDITION RELEASE WAIT EVERY CIQ_HOME]
 sideload:
 	$(require_sdk)
 	@tools/sideload.sh wait "$(WAIT)" "$(EVERY)" || exit 1
@@ -288,6 +306,7 @@ sideload:
 # warnings, errors, and whatever monkeyc adds next.
 EXPORT_STATUS := __monkeyc_status__:
 
+## Build the signed .iq store bundle [EDITION]
 export:
 	$(require_sdk)
 	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
@@ -300,6 +319,7 @@ export:
 	  END { exit status + 0 }'
 	@echo "Export complete: $(EXPORT)"
 
+## Check the fonts and their size tables
 check-fonts:
 	@echo "Checking font configuration consistency..."
 	@python3 tools/check-font-config.py
@@ -308,6 +328,7 @@ check-fonts:
 # in it but the application id, name and version. Checked rather than generated:
 # the duplicate is small, a generator would be one more step to forget before a
 # commit, and a check in CI cannot be forgotten (#135). Pure Python, no SDK.
+## Check that the two edition manifests agree
 check-manifests:
 	@echo "Checking the edition manifests against each other..."
 	@python3 tools/check-manifests.py
@@ -317,6 +338,7 @@ check-manifests:
 # byte what it was. The script builds Lite twice per product, here and in a copy of
 # the tree with the Premium files deleted, and compares the release PRGs. Release,
 # not debug, because a debug build embeds the build path (#35, finding 4).
+## Check that Premium leaves the Lite build alone [DEVICES]
 check-lite:
 	$(require_sdk)
 	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" tools/check-lite-invariant.sh $(DEVICES)
@@ -358,6 +380,7 @@ define require_icons_tool
   echo "python3 on PATH (python3 -m pip install ...); see README.md."; exit 1; }
 endef
 
+## Regenerate the launcher icons and the cover
 icons:
 	$(require_icons_tool)
 	@echo "Generating launcher icons..."
@@ -367,6 +390,7 @@ icons:
 	  --fallback-icon $(PREMIUM_FALLBACK)
 	@python3 premium/tools/launcher_icon.py cover $(PREMIUM_COVER)
 
+## Check the launcher icons and the cover
 check-icons:
 	$(require_icons_tool)
 	@echo "Checking launcher icon configuration consistency..."
@@ -412,6 +436,7 @@ check-icons:
 #
 # Both editions also keep the full-size watch renders in HERO_DIR/captures, which is
 # what make hero sends to the image model.
+## Regenerate the edition's store images [EDITION PLATFORM TZ_NAME]
 graphics:
 	@echo "Regenerating the $(EDITION) store images..."
 	@python3 tools/make-graphics.py --edition $(EDITION) \
@@ -458,11 +483,15 @@ endif
 # environment and splits it with Python's shlex, which honours quotes as a shell does
 # but never runs anything, so a name holding ; or $(...) is only ever a name. A
 # leading ~ is expanded: CANDIDATES="'$HOME/Downloads/Gemini image.png' ~/Downloads/b.png".
+## The images the model returned, for hero to size and screen
 CANDIDATES ?=
 export CANDIDATES
+## A file holding the Gemini API key hero screens with
 GEMINI_KEY_FILE ?=
+## Non-empty runs hero's local checks alone, with no API key
 NO_SCREEN ?=
 
+## Print the hero prompt, or screen CANDIDATES [EDITION CANDIDATES GEMINI_KEY_FILE NO_SCREEN]
 hero:
 	@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
 	  found = 1; old = v[1] + 0 == 0 && v[2] + 0 < 7 } END { exit !found || old }' || { \
@@ -525,12 +554,17 @@ endif
 # runs emulated. The full Premium sweep is 28 builds a scene, about an hour; one
 # setting of three values in both scenes took six minutes.
 PREVIEW_DIR := .dev/scratchpad/preview/$(EDITION)
+## The screens preview captures: woken, always-on or both
 SCENES ?= woken always-on
 SCENE_JUNGLE_woken := monkey.jungle;$(EDITION).jungle
 SCENE_JUNGLE_always-on := monkey.jungle;graphics.jungle;$(EDITION).jungle
+## The settings preview varies; empty is every one, unless GRID or CASES is set
 VARY ?=
+## Two settings preview crosses, across and down
 GRID ?=
+## A JSON file listing the combinations preview captures
 CASES ?=
+## Anything else for garmin-graphics-generator shots
 PREVIEW_FLAGS ?=
 ifeq ($(EDITION),premium)
   PREVIEW_RESOURCES := --resources resources --resources premium/resources-base
@@ -542,6 +576,7 @@ else
   PREVIEW_PLAN := --cases $(PREVIEW_DIR)/defaults.json
 endif
 
+## Capture the face across its settings [EDITION DEVICE SCENES VARY GRID CASES PREVIEW_FLAGS PLATFORM TZ_NAME]
 preview:
 	@garmin-graphics-generator --about 2>/dev/null | awk '/version:/ { split($$NF, v, "."); \
 	  found = 1; old = v[1] + 0 == 0 && v[2] + 0 < 6 } END { exit !found || old }' || { \
@@ -563,6 +598,24 @@ preview:
 	  $(PREVIEW_FLAGS)
 	@echo "Contact sheet: $(PREVIEW_DIR)/contact-sheet.png"
 
+## Remove every build output
 clean:
 	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
 	@echo "Clean complete."
+
+# The help is the "## " line above each target and each ?= variable, so a description
+# cannot drift from what it describes; tools/make-help.py reads them out. make passes
+# the variables' values in, since only make can resolve them -- SDK_BIN, for one, is
+# read from the SDK manager. Needs no SDK: SDK_BIN without one is only a path that
+# leads nowhere, which is said rather than tripping require_sdk (#168).
+## List the targets and the variables
+help:
+	@python3 tools/make-help.py Makefile \
+	  $(foreach v,$(shell python3 tools/make-help.py Makefile --variables),'$(v)=$(subst ','\'',$($(v)))')
+	@test -x "$(SDK_BIN)/monkeyc" || echo "No Connect IQ SDK at SDK_BIN: the targets that run the SDK locally need one."
+
+# Fails on a target in .PHONY, or a ?= variable, with no "## " line above it. Run in CI.
+## Check that every target and variable has help
+check-help:
+	@echo "Checking the help..."
+	@python3 tools/make-help.py Makefile --check
