@@ -50,8 +50,9 @@ each change is recorded in full.
   size, so no digit is cut off by a round screen's edge. Premium does not pad the hour with a blank
   as Lite does, so at a single-digit hour the time is `7:25`, not ` 7:25`. A left-aligned time
   therefore starts at its margin at every hour, and the time changes width by one character
-  whenever the hour gains or loses a digit. The always-on time stays centred, and is unpadded too.
-  (#154, #196)
+  whenever the hour gains or loses a digit. At the left or right the time shares its margin with
+  the date, whether or not the date is shown, so turning the date on never moves it. The always-on
+  time stays centred, and is unpadded too. (#154, #196, #202)
 * **Premium: a larger always-on time.** The always-on screen draws the time filled at the Extra
   large size, whatever the settings for the woken screen. It is bigger and bolder than Lite's, and
   moves further each minute than Lite's does, which keeps it well inside the burn-in limits on every
@@ -62,11 +63,10 @@ each change is recorded in full.
   (#161)
 * **Premium: the date.** A date setting shows today's date under the time on the woken screen, as
   2026-09-29, at the Extra extra small time size and in the time colour. It follows the time
-  alignment and lines up with the time at every hour, single-digit ones included, except that at
-  the left, under the two smallest time sizes, it sits a few pixels further in to stay clear of a
-  round screen's edge. Off, Lite's look, is the default. It is drawn on a black box, since text that
-  small does not read over the rain; the time no longer has one. The always-on screen shows the time
-  alone. (#163, #174, #196)
+  alignment and lines up with the time at every hour and every time size, and the two stay clear of
+  a round screen's edge. Off, Lite's look, is the default. It is drawn on a black box, since text
+  that small does not read over the rain; the time no longer has one. The always-on screen shows the
+  time alone. (#163, #174, #196, #202)
 * **Premium: presets.** Five slots, each a saved look that can be loaded back in one step: time size,
   trail length, time style, time alignment, time colour and rain colour. Load and save are at the top
   of the watch's Customize menu and in the Connect IQ app, where the slots can also be renamed.

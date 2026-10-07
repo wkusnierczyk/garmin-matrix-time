@@ -288,23 +288,47 @@ class DigitalRain {
     // at the left and right comes from the height of the font being drawn, so a change of
     // time size moves it too. Graphics.getFontHeight needs no Dc, so unlike the ramp this
     // can be settled before the first frame.
+    //
+    // At the left and right the time and the date share one margin, the larger of the time's
+    // and the date's own (#202), whether or not the date is on, so that turning the date on
+    // never moves the time; see TimeAlign.sharedXOf. The date's margin needs the date font's
+    // height, which _dateFontHeight keeps.
     (:premium)
     function applyTimeAlign() as Void {
         var align = TimeAlign.selected();
-        _timeX = TimeAlign.xOf(align, _width, _height, Graphics.getFontHeight(_timeFont));
+        _timeX = TimeAlign.sharedXOf(align, _width, _height, Graphics.getFontHeight(_timeFont), _dateFontHeight());
         _timeJustify = TimeAlign.justifyOf(align);
     }
 
+    // The date font's height, XXS's line, which the shared margin needs while the date is off
+    // too (#202). Measured once and kept, since it is fixed for the product: from the date
+    // font when one is held, and otherwise from an XXS loaded for the measurement and let go
+    // at once, so that a face with no date still holds no date font. 0 until then.
+    (:premium)
+    private var _dateHeight as Number = 0;
+
+    (:premium)
+    private function _dateFontHeight() as Number {
+        if (_dateHeight == 0) {
+            var font = _dateFont;
+            if (font == null) {
+                font = DateField.load();
+            }
+            _dateHeight = Graphics.getFontHeight(font);
+        }
+        return _dateHeight;
+    }
+
     // Premium's date (#163): the font it is drawn in, or null while the date is off, so that
-    // a face with no date holds no date font; and where applyDate put it.
+    // a face with no date holds no date font; and the y applyDate put it at. Its x is the
+    // time's, _timeX, which applyTimeAlign has already put at the margin the two share (#202).
     (:premium)
     private var
         _dateFont as Graphics.FontType or Null = null,
-        _dateX as Number = 0,
         _dateY as Number = 0;
 
     // Called at start-up and whenever the settings change, after applyTimeAlign: the date
-    // sits under the time's box, so its height moves it down, and follows the time's x.
+    // sits under the time's box, so its height moves it down.
     (:premium)
     function applyDate() as Void {
         if (!DateField.shown()) {
@@ -320,9 +344,7 @@ class DigitalRain {
         } else if (_dateFont == null) {
             _dateFont = DateField.load();
         }
-        var dateHeight = Graphics.getFontHeight(_dateFont as Graphics.FontType);
-        _dateY = DateField.yOf(_height, Graphics.getFontHeight(_timeFont), dateHeight);
-        _dateX = DateField.xOf(TimeAlign.selected(), _timeX, _width, _height, _dateY, dateHeight);
+        _dateY = DateField.yOf(_height, Graphics.getFontHeight(_timeFont), _dateFontHeight());
     }
 
     // For DateFieldTest only; (:debug) for the reason timeFont gives.
@@ -331,7 +353,7 @@ class DigitalRain {
         return _dateFont;
     }
 
-    // For TimeAlignTest only; (:debug) for the reason timeFont gives.
+    // For TimeAlignTest and DateFieldTest only; (:debug) for the reason timeFont gives.
     (:debug :premium)
     function timePlacement() as Array<Number> {
         return [_timeX, _timeJustify];
@@ -702,7 +724,7 @@ class DigitalRain {
         var info = Gregorian.info(_time, Time.FORMAT_SHORT);
         var date = DateField.textOf(info.year, info.month as Number, info.day);
         dc.setColor(_timeColor, Graphics.COLOR_BLACK);
-        dc.drawText(_dateX, _dateY, font, date, _timeJustify);
+        dc.drawText(_timeX, _dateY, font, date, _timeJustify);
 
     }
 
