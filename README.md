@@ -39,6 +39,7 @@ available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
   - [Releases](#releases)
 - [Upstream bug reports](#upstream-bug-reports)
   - [Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)
+  - [Connect IQ: `onUpdate` runs in always-on before `onEnterSleep`](#connect-iq-onupdate-runs-in-always-on-before-onentersleep)
   - [libmtp: one Garmin USB id listed twice, under a misspelled name](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)
 
 <sub>**Navigation:** ↑↑ table of contents · ↑ parent section · ← previous at this level · ↓ subsection · next at this level →</sub>
@@ -1489,13 +1490,13 @@ step a decision.
 <sub>[↑↑ TOC](#table-of-contents) · [← Build, test, deploy](#build-test-deploy) · [↓ Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
 
 
-Two defects found while building this face turned out to be in the tools rather than in it, and were
-reported where they belong. Both are worth knowing about if you are working on a Connect IQ project of
-your own, because in each case the symptom points somewhere other than the cause.
+Three defects found while building this face turned out to be in the tools rather than in it, and
+were reported where they belong. All three are worth knowing about if you are working on a Connect IQ
+project of your own, because in each case the symptom points somewhere other than the cause.
 
 <a id="connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared"></a>
 ### Connect IQ: `Properties.getValue` takes the app down when no property is declared
-<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [libmtp: one Garmin USB id listed twice, under a misspelled name →](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)</sub>
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [Connect IQ: `onUpdate` runs in always-on before `onEnterSleep` →](#connect-iq-onupdate-runs-in-always-on-before-onentersleep)</sub>
 
 
 [forums.garmin.com bug report](https://forums.garmin.com/developer/connect-iq/i/bug-reports/properties-getvalue-crashes-the-app-uncatchably-instead-of-throwing-invalidkeyexception-when-no-property-is-declared)
@@ -1514,9 +1515,32 @@ crashes identically. What works is declaring at least one property, which is why
 
 Measured on SDK 9.2.0, `epix2pro47mm`.
 
+<a id="connect-iq-onupdate-runs-in-always-on-before-onentersleep"></a>
+### Connect IQ: `onUpdate` runs in always-on before `onEnterSleep`
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared) · [libmtp: one Garmin USB id listed twice, under a misspelled name →](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)</sub>
+
+
+[forums.garmin.com bug report](https://forums.garmin.com/developer/connect-iq/i/bug-reports/watch-face-onupdate-runs-in-always-on-before-onentersleep-and-far-more-often-than-once-a-minute)
+· [#191](https://github.com/wkusnierczyk/garmin-matrix-time/issues/191)
+
+A watch face is documented to get `onEnterSleep` as the watch prepares to enter always-on, and then
+`onUpdate` once a minute. On an epix Pro (Gen 2), neither holds. `onEnterSleep` runs after the display
+has already switched to always-on, and over 18 hours `onUpdate` was called in always-on 375 times
+before `onEnterSleep` had been called. In always-on, `onUpdate` also came about 16 times a minute, in
+runs a second apart.
+
+A face that picks its always-on scene from a flag set in `onEnterSleep`, as Garmin's own Analog
+sample does and as this face did, therefore draws its woken scene in some always-on frames. On AMOLED
+the burn-in protector then shuts the always-on screen off, and it stays off until the face restarts.
+To the user the always-on face simply disappears, and nothing is logged. The cure is to read
+`System.getDisplayMode()` in `onUpdate`, as Garmin's AMOLED FAQ recommends; #191 tracks that change
+here.
+
+Measured on SDK 9.2.0, `epix2pro47mm`, software 27.18.
+
 <a id="libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name"></a>
 ### libmtp: one Garmin USB id listed twice, under a misspelled name
-<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← Connect IQ: `onUpdate` runs in always-on before `onEnterSleep`](#connect-iq-onupdate-runs-in-always-on-before-onentersleep)</sub>
 
 
 [libmtp#434](https://github.com/libmtp/libmtp/issues/434) ·
