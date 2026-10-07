@@ -14,8 +14,10 @@ each change is recorded in full.
 
 ## 1.0.0 -- 2026-10-07
 
-The first release of Matrix Time Premium, the paid edition: everything below marked Premium. Lite,
-the free edition, gets the fix under Fixed and is otherwise unchanged.
+The first release of Matrix Time Premium, the paid edition: everything below marked Premium. It is a
+separate app, for the same watches, and installs alongside Lite rather than over it. Lite, the free
+edition, gets the fix under Fixed and is otherwise unchanged; it goes from 0.2.1 to 1.0.0 because
+the two editions share their release numbers.
 
 ### Added
 
@@ -24,11 +26,6 @@ the free edition, gets the fix under Fixed and is otherwise unchanged.
   extra small is Lite's size; Medium, two and a half times it, is the default, and Extra extra large,
   four times it, spans about 80% of the screen and still fits a round screen with the time at the
   left or right. The rain is unaffected. (#32, #155, #153, #166)
-
-  The sizes were renamed when Extra large and Extra extra large were added (#166): the five offered
-  before, Small, Medium, Large, Extra large and Extra extra large, are now Extra extra small, Extra
-  small, Small, Medium and Large. Nothing changes size: a face with a size chosen keeps it, under the
-  new name, and the default is the same size as before.
 * **Premium: a choice of trail length.** The rain can fade to black over 25%, 50% or 75% of the
   screen. 50% is Lite's length and the default. A shorter trail also draws less each frame, so it
   saves battery; a longer one fades more smoothly. (#53)
@@ -42,11 +39,11 @@ the free edition, gets the fix under Fixed and is otherwise unchanged.
   more strongly against the rain, and the outline of the hollow time has room to show it through. The
   always-on screen stays well inside the burn-in limits on every supported watch. (#144)
 * **Premium: the settings on the watch.** The face's Customize menu lists all the settings with
-  their current values, and selecting one steps to the next value. They were in the Connect IQ app
-  only, which also left a sideloaded face with no way to change them. (#148)
+  their current values, and selecting one steps to the next value, so a face sideloaded without the
+  Connect IQ app can be set up too. (#148)
 * **Premium: a choice of time and rain colours.** The time can be green, white, cyan, amber, orange
   or red, and the always-on time follows it. The rain can be green, cyan, blue, amber, orange,
-  red or white, or change hue as it fades: white to green, a white-hot head cooling to green, or
+  red or white, or change hue as it fades: white to green (a white-hot head cooling to green) or
   green to teal. Green, Lite's look, is the default for both. (#143, #171)
 * **Premium: a choice of time alignment.** The time can sit at the left, centre or right of the woken
   screen. Centre, Lite's look, is the default. The margin follows the screen's curve and the time
@@ -68,14 +65,14 @@ the free edition, gets the fix under Fixed and is otherwise unchanged.
   2026-09-29, at the Extra extra small time size and in the time colour. It follows the time
   alignment and lines up with the time at every hour and every time size, and the two stay clear of
   a round screen's edge. Off, Lite's look, is the default. It is drawn on a black box, since text
-  that small does not read over the rain; the time no longer has one. The always-on screen shows the
-  time alone. (#163, #174, #196, #202)
+  that small does not read over the rain. The always-on screen shows the time alone. (#163, #174,
+  #196, #202)
 * **Premium: presets.** Five slots, each a saved look that can be loaded back in one step: time size,
   trail length, time style, time alignment, time colour and rain colour. Load and save are at the top
   of the watch's Customize menu and in the Connect IQ app, where the slots can also be renamed.
-  Loading a preset leaves always-on brightness and the date as they are. (#172)
-* **Premium: three presets out of the box.** Slots 1 to 3 come filled with three looks, Green, Red
-  and Blue, which can be loaded straight away, renamed, or saved over. (#183)
+  Loading a preset leaves always-on brightness and the date as they are. Slots 1 to 3 come filled
+  with three looks, Green, Red and Blue, which can be loaded straight away, renamed, or saved over.
+  (#172, #183)
 * **Premium: its own launcher icon.** Premium's icon is Lite's with a gold star in the corner, so the
   two editions can be told apart in a launcher list, at every size a supported watch asks for. The store
   listing gets a square cover image built from the same artwork. (#189)
