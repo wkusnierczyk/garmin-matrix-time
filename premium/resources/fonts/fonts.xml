@@ -6,8 +6,9 @@
          it writes premium/resources-FAMILY/fonts and leaves Lite's font trees alone.
 
          Every time font Premium draws, in SUSE Mono ExtraBold (#144): XXS, XS, S, M, L, XL
-         and XXL of the time size setting, and the five hollow ones, L hollow being the
-         always-on font too (#145, #153). The ids predate the names: the sizes moved two steps
+         and XXL of the time size setting, and the five hollow ones. The filled XL, TimeHuge,
+         is the always-on font too (#164; in today's names, the hollow L before it, #153,
+         and the hollow M before that, #145). The ids predate the names: the sizes moved two steps
          down when XL and XXL were added (#166), and the ids stayed, since Time and TimeLarge
          override Lite's. TimeSize maps one to the other. TimeHuge and TimeExtraHuge are the
          new XL and XXL.
