@@ -156,15 +156,20 @@ there the watch is the only way to change them.
   always-on screen is not affected: it is drawn filled at Extra large whichever style is chosen
   here.
 * **Time alignment** -- Left, Centre or Right: where the time sits across the woken screen. Centre
-  is where Lite draws it, and is the default. At the left or right the time keeps its fixed width of
-  five characters, so it never moves as the hour changes; before 10:00 on a 12-hour clock a
-  left-aligned time therefore starts one blank character in from its margin. The margin is not
-  fixed: it is worked out from the screen's curve at the top and bottom of the time, plus half a
-  character, so no digit is cut off by a round screen's edge at any time size. At the 416x416
-  reference that puts the time 9 pixels in at Extra extra small, 26 at Medium, 33 at Large and 47 at
-  Extra extra large. A rectangular screen gets the same margin as the circle that fits it, so the
-  time sits the same way on every shape. The always-on screen is not affected: it stays centred, so
-  its burn-in figures above hold.
+  is where Lite draws it, and is the default. Premium does not pad the hour: at a single-digit hour
+  the time is four characters, as in `7:25`, where Lite's is five, with a blank before the hour. So
+  a left-aligned time starts at its margin at every hour, and the **Date** under it lines up with
+  the hour. In return the time changes width whenever the hour gains or loses a digit: at 10:00, at
+  1:00 on a 12-hour clock and at midnight on a 24-hour clock, and on a switch between 12- and
+  24-hour mode from 13:00 to 21:59. The colon and the minutes then move by one character at the left
+  and by half a character at the centre; at the right only the hour changes. Lite keeps the blank,
+  so its centred time never moves. The margin is not fixed: it is worked out from the screen's curve
+  at the top and bottom of the time, plus half a character, so no digit is cut off by a round
+  screen's edge at any time size. At the 416x416 reference that puts the time 9 pixels in at Extra
+  extra small, 26 at Medium, 33 at Large and 47 at Extra extra large. A rectangular screen gets the
+  same margin as the circle that fits it, so the time sits the same way on every shape. The
+  always-on screen ignores this setting and stays centred, so its burn-in figures above hold. Its
+  hour is unpadded as well, and those figures were measured again with it.
 * **Time colour** -- Green, White, Cyan, Amber, Orange or Red: the colour of the time. Green is the
   colour Lite draws, and is the default. The always-on screen follows it, at the brightness the
   **Always-on brightness** setting chooses. The burn-in protector counts lit pixels, not their
@@ -194,9 +199,10 @@ there the watch is the only way to change them.
   one because it is always drawn that small. It follows the **Time alignment** setting: at the left
   or right it lines up with the edge of the time, unless the circle that fits the screen is already
   narrower at the date's height, in which case it sits further in, so no digit is cut off. That
-  happens under the smaller time sizes, by a few pixels. Like the time, it is a fixed width, ten
-  characters every day. The time's blank padding character before 10:00 on a 12-hour clock therefore
-  leaves a left-aligned date one character further out than the hour. The always-on screen is not
+  happens under the smaller time sizes, by a few pixels. It is a fixed width, ten characters every
+  day. The hour has no blank before it (see **Time alignment**), so the date lines up with a
+  single-digit hour just as with a double-digit one: at the centre both are centred, and at the left
+  or right their edges meet, but for the few pixels just described. The always-on screen is not
   affected: it shows the time alone, so its burn-in figures above hold.
 
 #### Presets
@@ -286,8 +292,10 @@ The table below lists all font sizes provided for the supported screen resolutio
 
 The Premium time sizes are all drawn in **SUSEMono ExtraBold**, weight 800, where Lite draws
 Regular: on the woken screen and the always-on one, filled and hollow. It is the same typeface in a
-heavier weight, and just as monospace, so the time is still five equal cells wide at every hour. The
-weight is a static instance of the variable font Google Fonts publishes, made with
+heavier weight, and just as monospace, so every character of the time is one equal cell, and the
+time changes width only when its hour gains or loses a digit. Unlike Lite, Premium does not pad the
+hour to five cells; see **Time alignment** under [Premium settings](#premium-settings). The weight
+is a static instance of the variable font Google Fonts publishes, made with
 [`fonttools`](https://github.com/fonttools/fonttools):
 
 ```bash
@@ -1001,15 +1009,16 @@ family, that the seven time sizes grow at every resolution, and that the only Li
 repeats are the two it redraws in ExtraBold, `Time` and `TimeLarge`, at Lite's sizes. It also checks
 that every time font, Lite's and Premium's, holds exactly the time charset, digits, space and colon,
 and Premium's Extra extra small the date's `-` as well, with one advance in every family, since the
-fixed-width time depends on it, and that every glyph of a Premium time font fills its whole cell, as
-wide as its advance and as tall as the line, since the time alignment setting keeps that box on the
-glass and counts on no digit reaching outside it. For the hollow fonts it also checks that each file
-carries the stroke the scaler's rule gives for its family, that the size tables give the same
-strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the `stroke`
-attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so switching
-style never moves the time. `check-icons` does the same for both editions' launcher icons and their
-per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store cover; see
-[Launcher icon](#launcher-icon).
+time depends on equal cells: Lite's is always five wide, and Premium's changes width only when its
+hour gains or loses a digit. It also checks that every glyph of a Premium time font fills its whole
+cell, as wide as its advance and as tall as the line, since the time alignment setting keeps that
+box on the glass and counts on no digit reaching outside it. For the hollow fonts it also checks
+that each file carries the stroke the scaler's rule gives for its family, that the size tables give
+the same strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the
+`stroke` attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so
+switching style never moves the time. `check-icons` does the same for both editions' launcher icons
+and their per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store
+cover; see [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
 accept connections, and then load the binary into it. Neither hangs waiting for the simulator: both
@@ -1155,7 +1164,8 @@ The tests cover the arithmetic behind the scene rather than the pixels: the trai
 grid's size and origin, the round-display cull, the always-on jitter and the clock string all live in
 `source/utils/RainMath.mc` as pure functions, and `RainMathTest` checks them against expected values
 and against the properties they are supposed to hold, including the size of each edition's jitter
-square. `DigitalRainTest` covers what cannot be reduced
+square and each edition's clock string: Lite's always five characters, Premium's with no blank
+before a single-digit hour. `DigitalRainTest` covers what cannot be reduced
 to numbers -- the head and shade indices inside the drawing loop -- by drawing enough frames into a
 scratch bitmap for every index the ring can produce.
 
