@@ -925,6 +925,9 @@ make run
 # build the signed .iq store bundle, for every supported device
 make export
 
+# ... Premium's, under the id of its store beta, as export/MatrixTimePremium-beta.iq
+make export EDITION=premium VERSION=beta
+
 # build for the connected watch and install the binary on it
 make sideload
 
@@ -989,6 +992,23 @@ this is the only build that exercises the packaging step, so it is worth running
 even when nothing about the devices has changed. A `v*` tag runs the same target in CI for each edition
 the tag releases and attaches the output to a draft release (see [Releases](#releases)); uploading a
 bundle to the store is manual either way, through the store's web form.
+
+`VERSION` chooses which store app `make export` packages for (#201). `public`, the default, is the
+edition's own listing, under the application id in its manifest; it is what the release workflow
+exports, and it refuses a manifest that carries the beta id. `beta` is the edition's store beta, a
+separate Connect IQ app with an id of its own, which the Makefile records per edition as `BETA_ID`.
+[`tools/export-beta.sh`](tools/export-beta.sh) copies the tree as `make check-lite` does, puts the
+beta id into the copy's manifest, runs the ordinary export there, checks the id inside the finished
+bundle, and only then writes `export/<app>-beta.iq`. It removes the previous beta bundle first, so a
+failed run cannot leave an old one at the path that gets uploaded. The tracked manifest keeps the
+public id throughout, even if the run is interrupted. A copy rather than a jungle setting, because
+`monkeyc` will not let a second jungle set `project.manifest` again, nor take `-m` together with
+`-f`. The bundle is a 7-zip archive, so the check needs a `tar` that reads 7-zip, which macOS's
+does; on Linux install `bsdtar` (Debian and Ubuntu: `libarchive-tools`). It is looked for before the
+build. A beta keeps the manifest's version, and the beta app, like the listing, takes a version
+once, so a second beta of one release needs a new version. Lite has no store beta, so `make export
+VERSION=beta` refuses Lite until its `BETA_ID` is set. Only `export` reads `VERSION`, and only from
+the command line: one exported in the shell is ignored.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
@@ -1416,12 +1436,14 @@ edition's store listing shows. An edition moves to the tag's version only when t
 * a release that changes both sets both manifests, and both editions publish as the tag's version;
 * so the two published versions can differ, but whichever is newer equals the tag that released it.
 
-Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
-the store bundle of each edition the tag releases, signs it with the real developer key, and attaches
-it to a **draft** GitHub release carrying that version's `CHANGELOG.md` section as its notes. The
-bundles are named by edition and tag, `MatrixTime-v0.3.0.iq` and `MatrixTimePremium-v0.3.0.iq`.
-Publishing the draft, and uploading each bundle to its Connect IQ store listing afterwards, both stay
-manual.
+Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which
+builds the store bundle of each edition the tag releases, signs it with the real developer key, and
+attaches it to a **draft** GitHub release carrying that version's `CHANGELOG.md` section as its
+notes. The bundles are named by edition and tag, `MatrixTime-v0.3.0.iq` and
+`MatrixTimePremium-v0.3.0.iq`. Publishing the draft, and uploading each bundle to its Connect IQ
+store listing afterwards, both stay manual. A beta of the same code goes to the edition's store beta
+instead: `make export EDITION=premium VERSION=beta`, run locally from the tagged commit, which the
+workflow does not build (see [From the command line](#from-the-command-line)).
 
 ```bash
 # the version of each edition the release changes, and a dated CHANGELOG.md section, come first
