@@ -7,16 +7,17 @@ import Toybox.Lang;
 // The date under the woken time (#163), the first of the data fields #33 asks for: shown
 // or not. Off is the default, so the face looks as it did until the date is turned on.
 //
-// It is ISO 8601, 2026-09-05, zero-padded, and so as fixed in width as the time: ten
-// cells of the monospace time font at every date. Formats with month or weekday names were
-// tried and dropped. In a monospace face the letters are spaced as widely as the digits,
-// and they would have added some thirty glyphs to the font.
+// It is ISO 8601, 2026-09-05, zero-padded, and so fixed in width: ten cells of the monospace
+// time font at every date. Formats with month or weekday names were tried and dropped. In a
+// monospace face the letters are spaced as widely as the digits, and they would have added
+// some thirty glyphs to the font.
 //
 // It is drawn at XXS, the smallest time size, whatever the time size, in XXS's own font. Its
 // entry in premium/resources/fonts/charsets.json adds "-" to the time's glyphs for it.
 //
 // The date sits under the time's box and follows the time alignment (#154), so the two
-// read as one block; see xOf. It is drawn on a black box, as Lite's time is (#50), since
+// read as one block; see xOf. Premium's hour is unpadded so that the block lines up at a
+// single-digit hour too (#196). It is drawn on a black box, as Lite's time is (#50), since
 // text this small is not legible over the rain. The time lost its box in #174 and the date
 // kept it: a boxless date reads as the boxless XXS time does, with rain glyphs touching its
 // ends, and the date has no larger size to escape to. The always-on screen draws no date,

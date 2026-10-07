@@ -196,9 +196,10 @@ class DateFieldTest {
     (:test)
     static function noDateIsDrawnWhenOffOrAlwaysOn(logger as Test.Logger) as Boolean {
         var off = drawnWith(DateField.OFF, TimeAlign.CENTER, TimeSize.MEDIUM, false)[0];
-        Test.assertEqualMessage(off.text.length(), 5, "off: the time is drawn last, got " + off.text);
+        // A colon, not a length: the unpadded time is four characters or five (#196).
+        Test.assertMessage(off.text.find(":") != null, "off: the time is drawn last, got " + off.text);
         var alwaysOn = drawnWith(DateField.ON, TimeAlign.CENTER, TimeSize.MEDIUM, true)[0];
-        Test.assertEqualMessage(alwaysOn.text.length(), 5, "always-on: the time is drawn last, got " + alwaysOn.text);
+        Test.assertMessage(alwaysOn.text.find(":") != null, "always-on: the time is drawn last, got " + alwaysOn.text);
         Test.assertEqualMessage(alwaysOn.x, System.getDeviceSettings().screenWidth / 2
             + RainMath.jitter(0, System.getDeviceSettings().screenWidth)[0], "always-on: the time is centred");
         return true;

@@ -301,10 +301,11 @@ class RainMathTest {
 
 
     //
-    // The clock string.
+    // The clock string. Lite pads the hour (#7) and Premium does not (#196), so each edition
+    // tests its own; the hours that differ are 0 to 9.
     //
 
-    (:test)
+    (:test :lite)
     static function aTwentyFourHourClockShowsTheHourAsGiven(logger as Test.Logger) as Boolean {
         Test.assertEqualMessage(RainMath.timeText(0, 0, true), " 0:00", "midnight");
         Test.assertEqualMessage(RainMath.timeText(9, 5, true), " 9:05", "a single-digit hour and minute");
@@ -314,7 +315,7 @@ class RainMathTest {
     }
 
 
-    (:test)
+    (:test :lite)
     static function aTwelveHourClockReadsMidnightAndNoonAsTwelve(logger as Test.Logger) as Boolean {
         Test.assertEqualMessage(RainMath.timeText(0, 0, false), "12:00", "midnight is 12, not 0");
         Test.assertEqualMessage(RainMath.timeText(12, 0, false), "12:00", "noon is 12, not 0");
@@ -326,18 +327,65 @@ class RainMathTest {
     }
 
 
-    (:test)
+    (:test :lite)
     static function theClockIsAlwaysFiveCellsWide(logger as Test.Logger) as Boolean {
-        // #7. The hour is padded with %2d on purpose: SUSEMono is monospace, in Lite's
-        // Regular and Premium's ExtraBold alike (#144), so the padding space is one digit
-        // cell wide and the centre-justified time never shifts as the hour crosses
-        // 9 -> 10 or between the two clock modes. %d would make it jump, which is why
-        // this is a test and not a comment.
+        // #7. Lite pads the hour with %2d on purpose: SUSEMono is monospace, so the padding
+        // space is one digit cell wide and the centre-justified time never shifts as the
+        // hour crosses 9 -> 10 or between the two clock modes. %d would make it jump, which
+        // is why this is a test and not a comment.
         for (var hour = 0; hour < 24; ++hour) {
             Test.assertEqualMessage(RainMath.timeText(hour, 0, true).length(), 5,
                 "24-hour clock at " + hour + ":00");
             Test.assertEqualMessage(RainMath.timeText(hour, 0, false).length(), 5,
                 "12-hour clock at " + hour + ":00");
+        }
+        return true;
+    }
+
+
+    (:test :premium)
+    static function premiumShowsATwentyFourHourClockUnpadded(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(RainMath.timeText(0, 0, true), "0:00", "midnight");
+        Test.assertEqualMessage(RainMath.timeText(9, 5, true), "9:05", "a single-digit hour, with the minute still padded");
+        Test.assertEqualMessage(RainMath.timeText(10, 0, true), "10:00", "the first two-digit hour");
+        Test.assertEqualMessage(RainMath.timeText(12, 0, true), "12:00", "noon");
+        Test.assertEqualMessage(RainMath.timeText(13, 45, true), "13:45", "an afternoon hour");
+        Test.assertEqualMessage(RainMath.timeText(23, 59, true), "23:59", "the last minute of the day");
+        return true;
+    }
+
+
+    (:test :premium)
+    static function premiumShowsATwelveHourClockUnpadded(logger as Test.Logger) as Boolean {
+        Test.assertEqualMessage(RainMath.timeText(0, 0, false), "12:00", "midnight is 12, not 0");
+        Test.assertEqualMessage(RainMath.timeText(12, 0, false), "12:00", "noon is 12, not 0");
+        Test.assertEqualMessage(RainMath.timeText(1, 30, false), "1:30", "the small hours are themselves");
+        Test.assertEqualMessage(RainMath.timeText(9, 0, false), "9:00", "and so is nine");
+        Test.assertEqualMessage(RainMath.timeText(10, 0, false), "10:00", "and ten");
+        Test.assertEqualMessage(RainMath.timeText(13, 0, false), "1:00", "13 reads as 1");
+        Test.assertEqualMessage(RainMath.timeText(21, 0, false), "9:00", "21 reads as 9");
+        Test.assertEqualMessage(RainMath.timeText(22, 0, false), "10:00", "22 reads as 10");
+        Test.assertEqualMessage(RainMath.timeText(23, 0, false), "11:00", "23 reads as 11");
+        return true;
+    }
+
+
+    (:test :premium)
+    static function premiumsClockGrowsByACellAtTen(logger as Test.Logger) as Boolean {
+        // #196. Premium does not pad the hour, so that a date under the time lines up with a
+        // single-digit hour: the time is four cells before 10:00 and five from it, and never
+        // starts with a blank. This test is here so that #7's padding is not put back as a fix.
+        for (var hour = 0; hour < 24; ++hour) {
+            var full = RainMath.timeText(hour, 0, true);
+            var twelve = RainMath.timeText(hour, 0, false);
+            // A 12-hour clock shows a single digit from 1 to 9, in the morning and the evening.
+            var singleTwelve = hour % 12 >= 1 && hour % 12 <= 9;
+            Test.assertEqualMessage(full.length(), hour < 10 ? 4 : 5,
+                "24-hour clock at " + hour + ":00, got \"" + full + "\"");
+            Test.assertEqualMessage(twelve.length(), singleTwelve ? 4 : 5,
+                "12-hour clock at " + hour + ":00, got \"" + twelve + "\"");
+            Test.assertMessage(full.find(" ") == null && twelve.find(" ") == null,
+                "no blank at " + hour + ":00, got \"" + full + "\" and \"" + twelve + "\"");
         }
         return true;
     }

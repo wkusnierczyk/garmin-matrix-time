@@ -8,10 +8,14 @@ import Toybox.Lang;
 // The time alignment setting: the woken time at the left, centre or right of the screen
 // (#154). Centre is the default, and is where Lite draws it.
 //
-// The time stays the fixed 5-cell box it is at the centre, `%2d`'s padding cell included
-// (#7), so nothing moves when the hour goes from 9 to 10 or between 12- and 24-hour mode.
-// Before 10:00 in 12-hour mode a left-aligned time therefore starts one blank cell in from
-// its margin, and that is accepted.
+// Premium's hour is not padded (#196): before 10:00 the time is four cells, "7:25", where
+// Lite's is five, " 7:25" (#7). A left-aligned time therefore starts at its margin at every
+// hour, and the date under it lines up with the hour at the left and the centre alike. It
+// used to keep Lite's fixed 5-cell box, which started a single-digit hour one blank cell in
+// and left the date a cell further out than the hour. Without the padding the time grows by
+// a cell when the hour reaches 10: at the left the colon and the minutes move one cell
+// right, at the centre the whole time moves half a cell, and at the right only the hour
+// grows. That is accepted; RainMath.timeText says why.
 //
 // The margin is not fixed. It starts where the screen's circle crosses the top and bottom
 // edges of the box drawText fills, which is the font height tall and centred on the

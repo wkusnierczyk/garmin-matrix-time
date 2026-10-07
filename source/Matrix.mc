@@ -66,6 +66,12 @@ const
     // Lite's filled Regular TimeLarge is at 1.40% there. A larger always-on font, or another
     // divisor, has to be measured again.
     //
+    // Premium's hour then lost its padding (#196), which moves the centred time half a cell
+    // left before 10:00. Measured again the same way, unpadded, nothing changed: 11 is still
+    // the first divisor to leave no pixel lit for three minutes, 12 still leaves 4 to 44 on six
+    // of the seven families, the most lit is still 5.97%, and the ink's margin to the glass is
+    // the same on every family.
+    //
     // LOW_POWER_POSITIONS and the edition's LOW_POWER_JITTER_DIVISOR, below, are read by
     // RainMath.jitter; the colour is used below.
     LOW_POWER_TIME_COLOR = 0x00AA00,
@@ -674,7 +680,9 @@ class DigitalRain {
     }
 
     // Premium anchors it where the time alignment says (#154); the always-on screen passes
-    // JUSTIFY. It never draws a box, on either screen (#174).
+    // JUSTIFY. It never draws a box, on either screen (#174). Premium's RainMath.timeText does
+    // not pad the hour, so the time lines up with the date under it (#196); this reads the
+    // same as Lite's but draws "7:25" where Lite draws " 7:25".
     (:premium)
     private function _drawTime(dc as Graphics.Dc, x as Number, y as Number, font as Graphics.FontType, color as Graphics.ColorType, justify as Number) as Void {
 

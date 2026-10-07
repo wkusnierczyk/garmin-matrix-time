@@ -494,8 +494,10 @@ for w, h, shape in targets:
 ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(targets)} families"
    + (f" (not {twin_bad[:3]})" if twin_bad else ""))
 
-# The time is padded with %2d so that it is always five cells wide and a centre-justified
-# time never shifts (#7). That holds only while every glyph of a time font -- digits, space
+# Lite pads the hour with %2d so that its time is always five cells wide and a
+# centre-justified time never shifts (#7). Premium does not pad (#196), but its time still
+# relies on equal cells: a new minute must not move it, and the date under it is ten cells
+# wide at every date. Both hold only while every glyph of a time font -- digits, space
 # and colon -- has one advance, which a typeface or weight change could quietly break
 # (#144). Checked on the generated files, Lite's and Premium's, in every family.
 # Each font must hold exactly the Time charset -- a monospace font that lost its space or

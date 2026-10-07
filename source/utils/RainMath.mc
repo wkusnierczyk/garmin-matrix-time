@@ -231,13 +231,13 @@ module RainMath {
     // The clock string. `hour` is 0-23 as Gregorian.FORMAT_SHORT reports it; on a 12-hour
     // watch it is mapped to a 12-hour clock where 0 and 12 both read as 12.
     //
-    // The hour is padded with %2d on purpose -- do not "fix" it to %d. SUSEMono is
-    // monospace in both weights drawn, Regular in Lite and ExtraBold in Premium (#144),
-    // every glyph including the space and the colon sharing one advance, so the
+    // Lite pads the hour with %2d on purpose -- do not "fix" it to %d. SUSEMono is
+    // monospace, every glyph including the space and the colon sharing one advance, so the
     // padding space occupies exactly one digit cell. That keeps the string a constant five
-    // cells wide for every hour, and a centre-justified time therefore never shifts as the
-    // hour crosses 9 -> 10 or between 12- and 24-hour mode. %d would make it jump. See #7,
-    // filed as a bug and closed as intentional.
+    // cells wide for every hour, and Lite's centred time therefore never shifts as the hour
+    // crosses 9 -> 10 or between 12- and 24-hour mode. %d would make it jump. See #7, filed
+    // as a bug and closed as intentional. Premium does not pad; see its definition below.
+    (:lite)
     function timeText(hour as Number, minute as Number, is24Hour as Boolean) as String {
 
         var shown = hour;
@@ -245,6 +245,33 @@ module RainMath {
             shown = ((hour + 11) % 12) + 1;
         }
         return Lang.format("$1$:$2$", [shown.format("%2d"), minute.format("%02d")]);
+
+    }
+
+    // Premium's clock string is Lite's with the hour unpadded: "7:25", not " 7:25" (#196).
+    //
+    // This reverses #7 for Premium on purpose. Do not restore the padding on the strength of
+    // Lite's note above. #7 is right for a time drawn alone and centred, which is Lite's.
+    // Premium can draw a date under the time, anchored and justified as the time is (#163),
+    // and the two then read as one block. With the padding, the date started one cell left of
+    // a single-digit hour when the time was at the left, and sat half a cell off it when
+    // centred -- from 1:00 to 9:59 twice a day on a 12-hour clock -- and on the watch that
+    // looked wrong. Unpadded, the two line up at every hour. The price is what #7 avoided:
+    // the time grows by a cell when the hour reaches 10, so its colon moves a cell at the left
+    // and half a cell at the centre. On the watch that was judged the smaller cost
+    // (2026-10-07). The call is about the look, not a flaw found in #7's reasoning.
+    //
+    // The always-on time is drawn from this too, so it is unpadded as well; the burn-in
+    // simulation was run again for it and its figures are unchanged (see
+    // LOW_POWER_JITTER_DIVISOR in Matrix.mc).
+    (:premium)
+    function timeText(hour as Number, minute as Number, is24Hour as Boolean) as String {
+
+        var shown = hour;
+        if (!is24Hour) {
+            shown = ((hour + 11) % 12) + 1;
+        }
+        return Lang.format("$1$:$2$", [shown.format("%d"), minute.format("%02d")]);
 
     }
 
