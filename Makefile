@@ -75,12 +75,11 @@ VERSION ?= public
 ifneq ($(findstring environment,$(origin VERSION)),)
   override VERSION := public
 endif
-ifeq ($(VERSION),public)
-  EXPORT := $(EXPORT_DIR)/$(APP).iq
-else ifeq ($(VERSION),beta)
+# Checked in export itself, the one target that reads it, so that no other target fails on it.
+ifeq ($(VERSION),beta)
   EXPORT := $(EXPORT_DIR)/$(APP)-beta.iq
 else
-  $(error VERSION must be public or beta, not "$(VERSION)")
+  EXPORT := $(EXPORT_DIR)/$(APP).iq
 endif
 
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
@@ -341,6 +340,7 @@ ifeq ($(VERSION),beta)
 	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" EDITION="$(EDITION)" MANIFEST="$(MANIFEST)" APP="$(APP)" \
 	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
 else
+	@test "$(VERSION)" = public || { echo 'VERSION must be public or beta, not "$(VERSION)".'; exit 1; }
 	$(require_sdk)
 	@id=$$(sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p' $(MANIFEST) | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
 	  beta=$$(printf '%s' "$(BETA_ID)" | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
