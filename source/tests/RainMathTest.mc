@@ -374,7 +374,8 @@ class RainMathTest {
     static function premiumsClockGrowsByACellAtTen(logger as Test.Logger) as Boolean {
         // #196. Premium does not pad the hour, so that a date under the time lines up with a
         // single-digit hour: the time is four cells before 10:00 and five from it, and never
-        // starts with a blank. This test is here so that #7's padding is not put back as a fix.
+        // starts with a blank. This test is here so that #7's padding is not put back as a fix:
+        // Premium's time fonts no longer hold a space (#200).
         for (var hour = 0; hour < 24; ++hour) {
             var full = RainMath.timeText(hour, 0, true);
             var twelve = RainMath.timeText(hour, 0, false);
