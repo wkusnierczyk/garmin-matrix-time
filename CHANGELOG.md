@@ -12,7 +12,10 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
-## Unreleased
+## 1.0.0 -- 2026-10-07
+
+The first release of Matrix Time Premium, the paid edition: everything below marked Premium. Lite,
+the free edition, gets the fix under Fixed and is otherwise unchanged.
 
 ### Added
 
