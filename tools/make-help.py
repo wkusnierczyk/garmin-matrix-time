@@ -31,6 +31,7 @@ VARIABLE_RE = re.compile(r'\s*(?:(?:export|override)\s+)*([A-Z][A-Z0-9_]*)\s*\?=
 TAKES_RE = re.compile(r'(.*?) *\[([A-Z0-9_ ]+)\]$')
 NAME_WIDTH = 17
 VALUE_WIDTH = 18
+DESCRIPTION_WIDTH = 50
 WIDTH = 100
 
 
@@ -105,7 +106,7 @@ def check(path):
 
 def columns(lead, text, column):
     """lead, then text wrapped in a column of its own; below lead if lead is too wide."""
-    body = textwrap.wrap(text, WIDTH - column, break_long_words=False) or ['']
+    body = textwrap.wrap(text, max(WIDTH - column, 20), break_long_words=False) or ['']
     if len(lead) >= column - 1:
         print(lead)
     else:
@@ -116,7 +117,11 @@ def columns(lead, text, column):
 
 def show(path, values):
     targets, variables, *_ = parse(path)
-    column = 2 + NAME_WIDTH + max((len(what) for what, _ in targets.values()), default=0) + 2
+    # A description longer than DESCRIPTION_WIDTH puts its variables on the next line,
+    # rather than pushing the column for every target past the edge.
+    longest = max((len(what) for what, _ in targets.values() if len(what) <= DESCRIPTION_WIDTH),
+                  default=0)
+    column = 2 + NAME_WIDTH + longest + 2
     print("Usage: make [target] [VARIABLE=value ...]; with no target, make builds.")
     print()
     print("Targets")
