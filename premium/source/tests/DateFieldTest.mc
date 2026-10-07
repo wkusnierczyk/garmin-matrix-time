@@ -46,6 +46,35 @@ class DateFieldTest {
         return [dc, fonts[0], fonts[1] as Graphics.FontType];
     }
 
+    // Applies the date switch, alignment and size the way Connect IQ does, draws one woken
+    // frame, and returns [the time's x, the date's x], the date's -1 while it is off. The
+    // time's is read from timePlacement, since with the date on the last drawText is the
+    // date's; TimeAlignTest checks that the time is drawn at it.
+    private static function placedWith(date as Number, align as Number, size as Number) as Array<Number> {
+        var app = Application.getApp() as App;
+        var view = (app.getInitialView() as Array)[0] as View;
+        var saved = [
+            Properties.getValue(DateField.PROPERTY),
+            Properties.getValue(TimeAlign.PROPERTY),
+            Properties.getValue(TimeSize.PROPERTY)
+        ];
+
+        Properties.setValue(DateField.PROPERTY, date);
+        Properties.setValue(TimeAlign.PROPERTY, align);
+        Properties.setValue(TimeSize.PROPERTY, size);
+        app.onSettingsChanged();
+        var rain = view.digitalRain().forTime(new Time.Moment(0));
+        var dc = new RecordingDc();
+        rain.draw(dc as Graphics.Dc);
+        var placed = [rain.timePlacement()[0], date == DateField.ON ? dc.x : -1] as Array<Number>;
+
+        Properties.setValue(DateField.PROPERTY, saved[0] as Number);
+        Properties.setValue(TimeAlign.PROPERTY, saved[1] as Number);
+        Properties.setValue(TimeSize.PROPERTY, saved[2] as Number);
+        app.onSettingsChanged();
+        return placed;
+    }
+
     // As TimeAlignTest.onTheGlass.
     private static function onTheGlass(x as Number, y as Number) as Boolean {
         var settings = System.getDeviceSettings();
@@ -114,6 +143,14 @@ class DateFieldTest {
         Test.assertEqual(DateField.xOf(TimeAlign.CENTER, 208, 416, 416, 278, 35), 208);
         Test.assertEqual(DateField.xOf(TimeAlign.LEFT, 47, 416, 416, 296, 35), 47);
         Test.assertEqual(DateField.xOf(TimeAlign.RIGHT, 369, 416, 416, 296, 35), 369);
+
+        // And the time goes where the date goes (#202): under XXS both sit at 16 rather than
+        // the time's own 9, and from L up both stay at the time's margin.
+        Test.assertEqual(TimeAlign.sharedXOf(TimeAlign.LEFT, 416, 416, 35, 35), 16);
+        Test.assertEqual(TimeAlign.sharedXOf(TimeAlign.RIGHT, 416, 416, 35, 35), 400);
+        Test.assertEqual(TimeAlign.sharedXOf(TimeAlign.CENTER, 416, 416, 35, 35), 208);
+        Test.assertEqual(TimeAlign.sharedXOf(TimeAlign.LEFT, 416, 416, 104, 35), 33);
+        Test.assertEqual(TimeAlign.sharedXOf(TimeAlign.RIGHT, 416, 416, 139, 35), 369);
         return true;
     }
 
@@ -179,7 +216,7 @@ class DateFieldTest {
             var dc = drawn[0];
             var timeHeight = Graphics.getFontHeight(TimeSize.load(size));
             var y = DateField.yOf(height, timeHeight, dateHeight);
-            var x = DateField.xOf(align, TimeAlign.xOf(align, width, height, timeHeight), width, height, y, dateHeight);
+            var x = TimeAlign.sharedXOf(align, width, height, timeHeight, dateHeight);
             Test.assertEqualMessage(dc.text.length(), 10, "align " + align + ": an ISO date is drawn, got " + dc.text);
             Test.assertMessage(dc.text.find("-") == 4, "align " + align + ": an ISO date is drawn, got " + dc.text);
             Test.assertEqualMessage(dc.x, x, "align " + align + ": the date's x");
@@ -187,6 +224,26 @@ class DateFieldTest {
             Test.assertEqualMessage(dc.justify, TimeAlign.justifyOf(align), "align " + align + ": anchored as the time");
             Test.assertMessage(dc.font != null && Graphics.getFontHeight(dc.font as Graphics.FontType) == dateHeight,
                 "size " + size + ", align " + align + ": the date is drawn in XXS");
+        }
+        return true;
+    }
+
+
+    // The time and the date share one edge at the left and the right (#202), at every time
+    // size: the date's x is the time's, and the time's is the same with the date on and off,
+    // so turning the date on never moves the time.
+    (:test)
+    static function theTimeAndTheDateShareTheirEdge(logger as Test.Logger) as Boolean {
+        var aligns = [TimeAlign.LEFT, TimeAlign.RIGHT];
+        for (var size = TimeSize.EXTRA_EXTRA_SMALL; size <= TimeSize.EXTRA_EXTRA_LARGE; ++size) {
+            for (var i = 0; i < aligns.size(); ++i) {
+                var align = aligns[i] as Number;
+                var on = placedWith(DateField.ON, align, size);
+                var off = placedWith(DateField.OFF, align, size);
+                var where = "size " + size + ", align " + align;
+                Test.assertEqualMessage(on[1], on[0], where + ": the date's x is the time's");
+                Test.assertEqualMessage(off[0], on[0], where + ": the time does not move when the date is turned on");
+            }
         }
         return true;
     }
