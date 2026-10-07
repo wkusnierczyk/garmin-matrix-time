@@ -1533,8 +1533,10 @@ A face that picks its always-on scene from a flag set in `onEnterSleep`, as Garm
 sample does and as this face did, therefore draws its woken scene in some always-on frames. On AMOLED
 the burn-in protector then shuts the always-on screen off, and it stays off until the face restarts.
 To the user the always-on face simply disappears, and nothing is logged. The cure is to read
-`System.getDisplayMode()` in `onUpdate`, as Garmin's AMOLED FAQ recommends; #191 tracks that change
-here.
+`System.getDisplayMode()` in `onUpdate` as well, as Garmin's AMOLED FAQ recommends, and to draw the
+always-on scene whenever either it or the flag says the watch is asleep. The display mode catches the
+frames the callback is late for; the flag, kept alongside, costs at most a few frames of the always-on
+scene on waking, when it is the one that lags. #191 tracks that change here.
 
 Measured on SDK 9.2.0, `epix2pro47mm`, software 27.18.
 
