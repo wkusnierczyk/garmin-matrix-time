@@ -1,5 +1,6 @@
 using Toybox.Application.Properties;
 using Toybox.Graphics;
+using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi;
 
@@ -16,28 +17,38 @@ class View extends WatchUi.WatchFace {
     // low-power scene has to be a different, much smaller one -- see
     // DigitalRain.drawLowPower.
     //
-    // The state is tracked from the sleep callbacks rather than read per frame.
-    // System.getDisplayMode() is the alternative, and since #13 raised minApiLevel to
-    // 5.0.0 it is available on every product in the manifest. It was investigated and
-    // left alone (#68).
+    // Which scene to draw comes from two signals, and the always-on one is drawn
+    // unless both say the watch is awake (#191): this flag, which the sleep callbacks
+    // set, and System.getDisplayMode(), read in every frame by inLowPower.
     //
-    // It does report one state the callbacks cannot distinguish: DISPLAY_MODE_OFF, the
-    // screen off, as against DISPLAY_MODE_LOW_POWER for always-on. Both arrive here as
-    // _lowPower == true. That distinction is unreachable from onUpdate, though, because
-    // onUpdate is not called at all while the display is off -- a branch on
-    // DISPLAY_MODE_OFF would never be taken, and the simulator cannot produce the state
-    // to show otherwise: its Display Mode menu offers High Power and Always-On and
-    // nothing else.
+    // The flag alone was the design until #191: #68 kept it over the poll, whose timing
+    // against the sleep transition was unverified. Measured on an epix Pro (Gen 2), it
+    // is the flag that lags. onEnterSleep arrives after the display mode has already
+    // switched to always-on, and in 18 hours onUpdate was called in always-on 375
+    // times while the flag still said awake -- whether because the callback was late
+    // or because the face had been started while the watch was already asleep, when
+    // the flag starts out awake and no onEnterSleep may follow. Each such frame drew
+    // the full rain, the burn-in protector shut the always-on screen off, and it
+    // stayed off until the face restarted. The display mode catches those frames.
     //
-    // What that leaves is a poll in place of a flag the callbacks set synchronously,
-    // with the poll's timing against the sleep transition unverified. Read a beat early
-    // it draws the full rain in always-on mode, which is exactly what the burn-in
-    // protector shuts the screen off for.
+    // The flag stays as the second signal in case the display mode is ever the one
+    // that lags. It costs little: in each of the four logged wakes, one to three
+    // frames came in high power before onExitSleep cleared the flag, and those still
+    // draw the always-on scene, as every wake did before.
+    //
+    // DISPLAY_MODE_OFF, the screen off, counts as asleep. onUpdate is not called while
+    // the display is off, so that is moot, but the small scene is the safe default for
+    // any mode that is not high power.
     private var _lowPower as Boolean = false;
 
     // There is deliberately no onPartialUpdate. Per-second partial updates are a MIP
     // mechanism; on an AMOLED product the burn-in protector governs the always-on
-    // scene instead, and onUpdate is called once a minute while asleep.
+    // scene instead.
+    //
+    // Nor does the always-on scene count on onUpdate's rate. It is documented as once
+    // a minute while asleep, but on an epix Pro (Gen 2) it averaged about 16 calls a
+    // minute, often in runs of one a second (#191). The scene takes its position from
+    // the clock, not from the call count, so it still moves once a minute.
 
     function initialize() {
         WatchFace.initialize();
@@ -83,7 +94,7 @@ class View extends WatchUi.WatchFace {
     // remember to check.
     (:realLowPower)
     private function inLowPower() as Boolean {
-        return _lowPower;
+        return _lowPower || System.getDisplayMode() != System.DISPLAY_MODE_HIGH_POWER;
     }
 
     (:forceLowPower)
