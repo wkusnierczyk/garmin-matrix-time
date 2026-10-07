@@ -267,6 +267,10 @@ module RainMath {
     // The always-on time is drawn from this too, so it is unpadded as well; the burn-in
     // simulation was run again for it and its figures are unchanged (see
     // LOW_POWER_JITTER_DIVISOR in Matrix.mc).
+    //
+    // Premium's time fonts have held no space since #200. Padding the hour again would draw a
+    // missing glyph, not a blank cell, so it would also need the space back in
+    // premium/resources/fonts/charsets.json and the fonts regenerated.
     (:premium)
     function timeText(hour as Number, minute as Number, is24Hour as Boolean) as String {
 

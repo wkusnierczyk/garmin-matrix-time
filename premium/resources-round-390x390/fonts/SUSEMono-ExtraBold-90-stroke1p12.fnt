@@ -1,7 +1,7 @@
 info face="SUSEMono-ExtraBold.ttf" size=90 bold=0 italic=0 charset="" unicode=0 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=2,1
-common lineHeight=114 base=89 scaleW=672 scaleH=114 pages=1 packed=0
+common lineHeight=114 base=89 scaleW=616 scaleH=114 pages=1 packed=0
 page id=0 file="SUSEMono-ExtraBold-90-stroke1p12.png"
-chars count=12
+chars count=11
 char id=48 x=0 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
 char id=49 x=56 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
 char id=50 x=112 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
@@ -12,5 +12,4 @@ char id=54 x=336 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 
 char id=55 x=392 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
 char id=56 x=448 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
 char id=57 x=504 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
-char id=32 x=560 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
-char id=58 x=616 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15
+char id=58 x=560 y=0 width=54 height=114 xoffset=0 yoffset=0 xadvance=54 page=0 chnl=15

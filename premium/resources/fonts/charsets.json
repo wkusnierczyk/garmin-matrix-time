@@ -1,50 +1,50 @@
 [
     {
-        "fontCharset": "0123456789 :-",
+        "fontCharset": "0123456789:-",
         "fontId": "Time"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeMedium"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeLarge"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeExtraLarge"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeExtraExtraLarge"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeHuge"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeExtraHuge"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeLargeHollow"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeExtraLargeHollow"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeExtraExtraLargeHollow"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeHugeHollow"
     },
     {
-        "fontCharset": "0123456789 :",
+        "fontCharset": "0123456789:",
         "fontId": "TimeExtraHugeHollow"
     }
 ]

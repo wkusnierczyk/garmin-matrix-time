@@ -231,6 +231,10 @@ ok(charsets.get('Time') == charsets.get('TimeLarge'),
    + (f" ({charsets.get('Time')!r} vs {charsets.get('TimeLarge')!r})"
       if charsets.get('Time') != charsets.get('TimeLarge') else ""))
 
+# Lite pads the hour with %2d (#7), so its time draws a space before 10:00 and its charset
+# must keep one. Premium's does not (#200); see PREMIUM_TIME_CHARSET.
+ok(' ' in charsets.get('Time', ''), "Lite's Time charset holds the space its %2d hour draws")
+
 # ------------------------------------------------------------------- derived docs
 # The Font column may read "SUSEMono regular, hollow", and a table with a hollow font in
 # it has a sixth column, the stroke, blank for a filled font (#72).
@@ -348,6 +352,10 @@ STROKE_RE = re.compile(r'<font\s+id="(\w+)"[^>]*\sstroke="([^"]+)"')
 # the scaler names a bitmap by face and size, so one at XXS's size would overwrite XXS's.
 DATE_FONT_ID = 'Time'
 DATE_EXTRA = '-'
+# Premium draws the hour unpadded (#196), so its time fonts hold the digits and the colon and
+# no space (#200). Stated here rather than derived from Lite's charset, so that a change to
+# Lite's cannot quietly change what Premium's fonts are held to.
+PREMIUM_TIME_CHARSET = '0123456789:'
 
 ok(open(f'{PDIR}/resolutions.json').read() == open('resources/fonts/resolutions.json').read(),
    f"{PDIR}/resolutions.json is identical to Lite's")
@@ -414,9 +422,12 @@ pcharsets = {c['fontId']: c['fontCharset'] for c in json.load(open(f'{PDIR}/char
 ok(set(pcharsets) == set(psize),
    f"premium charsets.json covers exactly the fonts premium fonts.xml declares "
    f"(charsets {sorted(pcharsets)}, fonts {sorted(psize)})")
-ok(all(c == charsets.get('Time') + (DATE_EXTRA if f == DATE_FONT_ID else '') for f, c in pcharsets.items()),
-   "every Premium time font has Lite's Time charset, so each size can draw the same string, "
-   f"and {DATE_FONT_ID} adds {DATE_EXTRA!r} for the date and nothing else")
+off_charset = sorted((f, c) for f, c in pcharsets.items()
+                     if c != PREMIUM_TIME_CHARSET + (DATE_EXTRA if f == DATE_FONT_ID else ''))
+ok(not off_charset,
+   "every Premium time font has the digits and the colon and no space, so each size can draw the "
+   f"same unpadded string, and {DATE_FONT_ID} adds {DATE_EXTRA!r} for the date and nothing else"
+   + (f" (not {off_charset[:3]})" if off_charset else ""))
 
 pjungle = open('premium.jungle').read()
 bad = 0
@@ -498,13 +509,15 @@ ok(not twin_bad, f"every hollow font has its filled twin's metrics in all {len(t
 # centre-justified time never shifts (#7). Premium does not pad (#196), but its time still
 # relies on equal cells: it is to change width only when the hour gains or loses a digit,
 # not with every minute, and the date under it is ten cells wide at every date. Both hold
-# only while every glyph of a time font -- digits, space and colon -- has one advance,
-# which a typeface or weight change could quietly break (#144). Checked on the generated
-# files, Lite's and Premium's, in every family.
-# Each font must hold exactly the Time charset -- a monospace font that lost its space or
-# colon would otherwise pass -- and every one expected must be found and read, so that a
+# only while every glyph of a time font -- digits and colon, and Lite's space -- has one
+# advance, which a typeface or weight change could quietly break (#144). Checked on the
+# generated files, Lite's and Premium's, in every family.
+# Each font must hold exactly its edition's time charset -- a monospace Lite font that lost
+# its space or colon would otherwise pass, and so would a Premium font that kept the space it
+# no longer draws (#200) -- and every one expected must be found and read, so that a
 # missing file cannot make the check pass by examining nothing.
-time_glyphs = {str(ord(c)) for c in charsets.get('Time', '')}
+time_glyphs = {'lite': {str(ord(c)) for c in charsets.get('Time', '')},
+               'premium': {str(ord(c)) for c in PREMIUM_TIME_CHARSET}}
 time_ids = {'lite': sorted(f for f in refsize if f.startswith('Time')),
             'premium': sorted(f for f in psize if f.startswith('Time'))}
 proportional, examined = [], 0
@@ -519,15 +532,15 @@ for w, h, shape in targets:
                 proportional.append((d, fid, 'missing')); continue
             glyphs = fnt_metrics(f'{d}/{fn}')[1]
             advances = {g['xadvance'] for g in glyphs.values()}
-            want = time_glyphs | ({str(ord(c)) for c in DATE_EXTRA}
-                                  if edition == 'premium' and fid == DATE_FONT_ID else set())
+            want = time_glyphs[edition] | ({str(ord(c)) for c in DATE_EXTRA}
+                                           if edition == 'premium' and fid == DATE_FONT_ID else set())
             if set(glyphs) != want or len(advances) != 1:
                 proportional.append((d, fid, sorted(advances), sorted(want ^ set(glyphs))))
             examined += 1
 want_examined = len(targets) * (len(time_ids['lite']) + len(time_ids['premium']))
-ok(not proportional and examined == want_examined and time_glyphs,
-   f"every time font, Lite and Premium, holds exactly the Time charset (digits, space, colon), "
-   f"and Premium's {DATE_FONT_ID} the date's {DATE_EXTRA!r} too, with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
+ok(not proportional and examined == want_examined and all(time_glyphs.values()),
+   f"every time font holds exactly its edition's time charset, Lite's digits, space and colon, "
+   f"Premium's digits and colon, and Premium's {DATE_FONT_ID} the date's {DATE_EXTRA!r} too, with one advance, in all {len(targets)} families ({examined} of {want_examined} fonts)"
    + (f" (not {proportional[:3]})" if proportional else ""))
 
 # Premium's time alignment (#154) keeps the box drawText fills on the glass, and relies on
