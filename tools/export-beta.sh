@@ -89,10 +89,17 @@ echo "Exporting $APP as its beta, $BETA_ID, from a copy of the tree..."
 MAKEFLAGS= MFLAGS= make -C "$copy" --no-print-directory export EDITION="$EDITION" VERSION=public \
      BETA_ID= EXPORT="$inner" SDK_BIN="$sdk" DEV_KEY="$key"
 
-# The bundle, not the copy's manifest, is what gets uploaded: check the id inside it, and only
-# then give it its name under export/. Its manifest is monkeyc's own rewrite.
-bundled="$("$untar" -xOf "$copy/$inner" manifest.xml 2> /dev/null | application_id)" || true
-test -n "$bundled" || { echo "Could not read manifest.xml from the bundle" >&2; exit 1; }
+# The bundle, not the copy's manifest, is what gets uploaded: check it, and only then give it
+# its name under export/. First the whole archive, every entry read and its checksum tested, so
+# that a bundle damaged past its manifest cannot pass on a good manifest; then the manifest,
+# extracted to a file so that tar's own status is seen rather than lost in a pipe. It is
+# monkeyc's rewrite of the manifest.
+"$untar" -xOf "$copy/$inner" > /dev/null 2> "$work/untar.log" ||
+    { cat "$work/untar.log" >&2; echo "The bundle does not read back whole" >&2; exit 1; }
+"$untar" -xOf "$copy/$inner" manifest.xml > "$work/manifest.xml" 2> "$work/untar.log" ||
+    { cat "$work/untar.log" >&2; echo "Could not read manifest.xml from the bundle" >&2; exit 1; }
+bundled="$(application_id < "$work/manifest.xml")"
+test -n "$bundled" || { echo "The bundle's manifest.xml names no application id" >&2; exit 1; }
 test "$(normal "$bundled")" = "$(normal "$BETA_ID")" ||
     { echo "The bundle carries id $bundled, not the beta's $BETA_ID" >&2; exit 1; }
 
