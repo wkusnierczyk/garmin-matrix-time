@@ -75,6 +75,15 @@ each change is recorded in full.
   built-in presets, a white-to-green rain under a hollow time, and the always-on screen, with a hero
   composed from the five. (#188)
 
+### Fixed
+
+* **The always-on time no longer disappears.** On some watches it went dark after a while and stayed
+  dark, across later sleeps, until the face was restarted, for example by opening the activity list
+  and backing out. The watch can start an always-on frame before telling the face it is asleep, and
+  the face then drew its full rain in always-on, which the burn-in protector shuts the screen off for.
+  The face now also asks the watch which mode the screen is in, and draws the always-on time whenever
+  either says asleep. Both editions. (#191)
+
 ## 0.2.1 -- 2026-09-21
 
 Everything since the first release. The always-on screen was rewritten, the digits left the rain,

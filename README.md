@@ -688,10 +688,16 @@ menus: Display Mode is a GUI-only setting and is not one of the keys the simulat
 resets to High Power on every launch. The forcing is two annotated definitions of one function in
 `source/View.mc`, of which exactly one is ever compiled -- `monkey.jungle` excludes the forced one, and
 `graphics.jungle`, layered over it for this capture alone, excludes the real one instead. Every build
-the store or a watch ever sees therefore takes the branch from `onEnterSleep` as before, and the forced
-definition is absent from the `.prg` rather than merely unreached. What `drawLowPower` paints depends
-on the clock, the screen width and the settings, and on nothing the system sets in always-on, so the
-captured frame is a real always-on frame with only its trigger forced.
+the store or a watch ever sees therefore picks the branch from the sleep callbacks and
+`System.getDisplayMode()`, and the forced definition is absent from the `.prg` rather than merely
+unreached. What `drawLowPower` paints depends on the clock, the screen width and the settings, and on
+nothing the system sets in always-on, so the captured frame is a real always-on frame with only its
+trigger forced.
+
+The same reset is what the woken captures rely on. The real branch draws the always-on scene unless
+`System.getDisplayMode()` reports high power, so a simulator that came up in any other mode would
+capture the always-on time in place of the rain. Today it always comes up in High Power, and a capture
+shows the rain.
 
 The capture builds are `monkey.jungle;graphics.jungle;lite.jungle` and
 `monkey.jungle;graphics.jungle;premium.jungle`: the edition jungle still comes last, as it does in every
@@ -1534,18 +1540,20 @@ A watch face is documented to get `onEnterSleep` as the watch prepares to enter 
   while the watch was already asleep, a case the documentation does not cover. The report asks
   Garmin which.
 
-This face picks its always-on scene from a flag that `onEnterSleep` sets and that starts out as
-awake, so in frames like those it draws its woken scene, rain and all, while the watch is in
+Until #191 this face picked its always-on scene from a flag that `onEnterSleep` sets and that starts
+out as awake, so in frames like those it drew its woken scene, rain and all, while the watch was in
 always-on. (The 375 were counted by a diagnostic build that drew the always-on scene in them
-instead.) On AMOLED the burn-in protector then shuts the always-on screen off, and it stays off until
-the face restarts. To the user the always-on face simply disappears, and nothing is logged. Garmin's
-own Analog sample keeps the same kind of flag, though only to decide whether to draw its second hand.
+instead.) On AMOLED the burn-in protector then shut the always-on screen off, and it stayed off until
+the face restarted. To the user the always-on face simply disappeared, and nothing was logged.
+Garmin's own Analog sample keeps the same kind of flag, though only to decide whether to draw its
+second hand.
 
-Garmin's AMOLED FAQ recommends `System.getDisplayMode()` for telling the modes apart. The fix, which
-#191 tracks, is to read it in `onUpdate` and draw the always-on scene whenever either it or the flag
-says the watch is asleep. In every logged transition the display mode changed first, so it is what catches
-those frames. The flag stays as a second signal in case the display mode is ever the one that lags; on
-each logged wake that would have meant one to three frames of the always-on scene.
+Garmin's AMOLED FAQ recommends `System.getDisplayMode()` for telling the modes apart. Since #191 the
+face reads it in `onUpdate` as well, and draws the always-on scene whenever either it or the flag says
+the watch is asleep. In every logged transition the display mode changed first, so it is what catches
+those frames. The flag stays as a second signal in case the display mode is ever the one that lags.
+It costs the frames drawn on waking before `onExitSleep` arrives, one to three in each logged wake,
+which get the always-on scene, as every wake did before.
 
 Measured on SDK 9.2.0, `epix2pro47mm`, software 27.18.
 
