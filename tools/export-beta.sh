@@ -22,6 +22,9 @@ if [ $# -ne 1 ]; then
     exit 2
 fi
 output="$1"
+# The previous beta bundle goes first, before anything can fail: a run that stops part way
+# must not leave it at the path that gets uploaded, where it would pass for this run's (#121).
+rm -f "$output"
 : "${SDK_BIN:?SDK_BIN is not set; run this through \"make export VERSION=beta\"}"
 : "${DEV_KEY:?DEV_KEY is not set; run this through \"make export VERSION=beta\"}"
 : "${EDITION:?EDITION is not set}"
@@ -31,15 +34,31 @@ output="$1"
 
 key="$(cd "$(dirname "$DEV_KEY")" && pwd)/$(basename "$DEV_KEY")"
 test -f "$key" || { echo "Developer key not found: $DEV_KEY" >&2; exit 1; }
+# Absolute too: the export below runs in the copy, where a relative SDK_BIN, which the
+# outer make accepted, would lead nowhere.
+sdk="$(cd "$SDK_BIN" 2> /dev/null && pwd)" || { echo "Connect IQ SDK not found at $SDK_BIN" >&2; exit 1; }
 
 # The id is the one attribute that differs, so it is found by the element, not by its value:
 # a public id that changes needs nothing here.
-application_id() {  # <manifest>
-    sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p' "$1"
+application_id() {  # <manifest> on stdin
+    sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p'
 }
-public_id="$(application_id "$MANIFEST")"
+# Ids compared as monkeyc writes them into a bundle: lower case, without the hyphens.
+normal() {
+    printf '%s' "$1" | tr -d '-' | tr '[:upper:]' '[:lower:]'
+}
+public_id="$(application_id < "$MANIFEST")"
 test -n "$public_id" || { echo "No <iq:application id=...> in $MANIFEST" >&2; exit 1; }
-test "$public_id" != "$BETA_ID" || { echo "BETA_ID is $MANIFEST's own id" >&2; exit 1; }
+test "$(normal "$public_id")" != "$(normal "$BETA_ID")" ||
+    { echo "$MANIFEST already carries the beta id; put the public one back" >&2; exit 1; }
+
+# The bundle is checked by reading its manifest back out, and an .iq is a 7-zip archive, which
+# libarchive's tar reads: macOS's tar is bsdtar; on Linux, install bsdtar (Debian and Ubuntu:
+# libarchive-tools). GNU tar cannot. Found before the build rather than after it.
+untar=tar
+command -v bsdtar > /dev/null && untar=bsdtar
+"$untar" --version 2> /dev/null | grep -q libarchive ||
+    { echo "Needs a tar that reads 7-zip (bsdtar, from libarchive) to check the bundle" >&2; exit 1; }
 
 work=$(mktemp -d "${TMPDIR:-/tmp}/export-beta.XXXXXX")
 trap 'rm -rf "$work"' EXIT
@@ -55,29 +74,28 @@ git -c safe.directory="$PWD" ls-files -z --cached --others --exclude-standard |
     tar --null -T - -cf - | tar -xf - -C "$copy"
 
 sed -E "s/(<iq:application[^>]* id=\")$public_id\"/\1$BETA_ID\"/" "$MANIFEST" > "$copy/$MANIFEST"
-test "$(application_id "$copy/$MANIFEST")" = "$BETA_ID" ||
+test "$(application_id < "$copy/$MANIFEST")" = "$BETA_ID" ||
     { echo "Could not put the beta id into the copy of $MANIFEST" >&2; exit 1; }
 diff "$MANIFEST" "$copy/$MANIFEST" | grep -c '^[<>]' | grep -qx 2 ||
     { echo "The copy of $MANIFEST differs by more than its id" >&2; exit 1; }
 
+# The ordinary public export, in the copy. MAKEFLAGS is cleared so that nothing from the outer
+# command line but what is passed here reaches it: an EXPORT_DIR given there would otherwise
+# send the inner bundle out of the copy under the public name. EXPORT names the beta, so that
+# what the inner make prints does too. BETA_ID is emptied because the copy's manifest carries
+# the beta id on purpose, which the public export otherwise refuses.
+inner="export/$APP-beta.iq"
 echo "Exporting $APP as its beta, $BETA_ID, from a copy of the tree..."
-make -C "$copy" --no-print-directory export EDITION="$EDITION" VERSION=public \
-     SDK_BIN="$SDK_BIN" DEV_KEY="$key"
+MAKEFLAGS= MFLAGS= make -C "$copy" --no-print-directory export EDITION="$EDITION" VERSION=public \
+     BETA_ID= EXPORT="$inner" SDK_BIN="$sdk" DEV_KEY="$key"
+
+# The bundle, not the copy's manifest, is what gets uploaded: check the id inside it, and only
+# then give it its name under export/. Its manifest is monkeyc's own rewrite.
+bundled="$("$untar" -xOf "$copy/$inner" manifest.xml 2> /dev/null | application_id)" || true
+test -n "$bundled" || { echo "Could not read manifest.xml from the bundle" >&2; exit 1; }
+test "$(normal "$bundled")" = "$(normal "$BETA_ID")" ||
+    { echo "The bundle carries id $bundled, not the beta's $BETA_ID" >&2; exit 1; }
 
 mkdir -p "$(dirname "$output")"
-cp "$copy/export/$APP.iq" "$output"
-
-# The bundle, not the copy, is what gets uploaded: check the id inside it. An .iq is a 7-zip
-# archive, which libarchive's tar reads (macOS's tar is bsdtar; on Linux, install bsdtar).
-# Its manifest is monkeyc's own rewrite, with the id lower case and without the hyphens.
-untar=tar
-command -v bsdtar > /dev/null && untar=bsdtar
-bundled="$("$untar" -xOf "$output" manifest.xml 2> /dev/null |
-    sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p')" ||
-    true
-want="$(printf '%s' "$BETA_ID" | tr -d '-' | tr '[:upper:]' '[:lower:]')"
-test -n "$bundled" ||
-    { rm -f "$output"; echo "Could not read manifest.xml from $output: needs a tar that reads 7-zip (bsdtar)" >&2; exit 1; }
-test "$bundled" = "$want" ||
-    { rm -f "$output"; echo "The bundle carries id $bundled, not the beta's $want" >&2; exit 1; }
+cp "$copy/$inner" "$output"
 echo "Beta export complete: $output, application id $BETA_ID"

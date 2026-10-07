@@ -65,8 +65,15 @@ EXPORT_DIR := export
 # the public id. The beta bundle has its own name, so that the two cannot be mistaken for
 # each other in export/ -- uploading a public bundle publishes it at once (#121). Lite has
 # no beta app, so a Lite beta is refused until its id is added. Only export reads this.
+#
+# It is taken from the command line only. VERSION is a common name for an environment
+# variable, and one exported in the shell, 1.0.0 say, would otherwise fail every target
+# here, or, set to beta, quietly turn a plain "make export" into a beta export.
 ## public, the store listing, or beta, the edition's store beta; export only
 VERSION ?= public
+ifeq ($(origin VERSION),environment)
+  VERSION := public
+endif
 ifeq ($(VERSION),public)
   EXPORT := $(EXPORT_DIR)/$(APP).iq
 else ifeq ($(VERSION),beta)
@@ -332,6 +339,11 @@ ifeq ($(VERSION),beta)
 	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" EDITION="$(EDITION)" MANIFEST="$(MANIFEST)" APP="$(APP)" \
 	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
 else
+	@id=$$(sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p' $(MANIFEST) | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
+	  beta=$$(printf '%s' "$(BETA_ID)" | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
+	  test -z "$$beta" -o "$$id" != "$$beta" || { \
+	  echo "$(MANIFEST) carries the beta id $(BETA_ID): a public export of it would be the beta's."; \
+	  echo "Put the public id back, and use VERSION=beta for a beta."; exit 1; }
 	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
 	@mkdir -p $(EXPORT_DIR)
 	@{ $(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT); echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
