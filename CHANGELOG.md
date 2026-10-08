@@ -22,9 +22,9 @@ release carries both editions' 1.0.1 bundles, under their new names.
 
 No user-visible effect on either watch face:
 
-* `make export` names the store bundle by edition and version, `MatrixTime-1.0.1.iq`, without the
-  tag's `v`, and the release assets keep that name. A failed export no longer leaves an old bundle
-  at the path that gets uploaded. (#216, #217)
+* `make export` names the store bundle by edition and version, `MatrixTime-1.0.1.iq` and
+  `MatrixTimePremium-1.0.1.iq`, without the tag's `v`, and the release assets keep those names. A
+  failed export no longer leaves an old bundle at the path that gets uploaded. (#216, #217)
 * The `.prg` files inside a bundle keep their plain names, `MatrixTime.prg`, as in every public
   bundle the store has taken, whatever the bundle's own name. (#221, #222)
 * Every release carries a bundle for both editions, each at the version in its own manifest. The
