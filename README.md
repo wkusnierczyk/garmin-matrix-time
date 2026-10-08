@@ -1673,8 +1673,8 @@ bundle, and publishing only as the last step.
 
 Publishing stays the owner's, so what this repository does is make the right version easy to read and
 the notes ready in time. `make export` names each bundle after the version in its manifest,
-`MatrixTime-1.0.1.iq` (#216), and `tools/release-notes.py` refuses a tag until `CHANGELOG.md` has a
-dated section for it, so the release notes exist before anything is uploaded; see
-[Releases](#releases).
+`MatrixTime-1.0.1.iq` or `MatrixTimePremium-1.0.1.iq` (#216), and `tools/release-notes.py` refuses a
+tag until `CHANGELOG.md` has a dated section for it, so the release notes exist before anything is
+uploaded; see [Releases](#releases).
 
 Tested on this face's store beta, 2026-10-08.
