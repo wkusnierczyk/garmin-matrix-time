@@ -1442,23 +1442,22 @@ which is `1` whether every test passed or one failed (#23).
 
 
 A tag is a **code release** of the repository: one tag, one GitHub release, one `CHANGELOG.md`
-section, shared by Lite and Premium. Each edition's **published version** is the `version` in its own
-manifest, `manifest.xml` for Lite and `manifest-premium.xml` for Premium, and it is the number that
-edition's store listing shows. An edition moves to the tag's version only when it is to be published
-from that release (#186):
+section, shared by Lite and Premium. Each edition's **version** is the `version` in its own manifest,
+`manifest.xml` for Lite and `manifest-premium.xml` for Premium. The owner decides which editions get a
+new version in a release (#186):
 
-* a release that publishes only Premium sets `manifest-premium.xml` to the new version and leaves
-  `manifest.xml` where it is. Lite keeps the version it is published as, and is not uploaded;
-* a release that publishes both sets both manifests, and both editions publish as the tag's version;
-* so the two published versions can differ, but whichever is newer equals the tag that released it.
+* a release that gives only Premium a new version sets `manifest-premium.xml` to the tag's version and
+  leaves `manifest.xml` where it is;
+* a release that gives both a new version sets both manifests;
+* so the two versions can differ, but whichever is newer equals the tag that released it.
 
-Every release still carries a bundle for both editions, each at its own manifest's version, so that one
+Every release carries a bundle for both editions, each at its own manifest's version, so that one
 release holds everything (#223). With Premium at 1.0.2 and Lite left at 1.0.1, `v1.0.2` carries
 `MatrixTimePremium-1.0.2.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.0.2's code at the
 version in Lite's manifest. Where Lite's code has not changed, its `.prg` files are byte-identical to
 the 1.0.1 release's. The notes end with a *Bundles* list that says which bundles carry a new version
-at this tag and which carry their version over. Whether a version is published is the owner's
-decision, made in the store, and the repository does not record it.
+at this tag and which carry their version over. Uploading a bundle to the store is the owner's, and
+outside the repository.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**
@@ -1472,7 +1471,7 @@ instead: `make export EDITION=premium VERSION=beta`, run locally from the tagged
 workflow does not build (see [From the command line](#from-the-command-line)).
 
 ```bash
-# the version of each edition the release publishes, and a dated CHANGELOG.md section, come first
+# the new version of each edition that gets one, and a dated CHANGELOG.md section, come first
 git tag v1.1.0
 git push origin v1.1.0
 ```

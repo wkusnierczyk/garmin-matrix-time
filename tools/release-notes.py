@@ -13,13 +13,13 @@ Three things have to agree before anything is built:
 
   - the tag, which must be "v" followed by the version and nothing else;
   - the editions' manifests -- manifest.xml for Lite, manifest-premium.xml for
-    Premium -- each carrying the version that edition is published as;
+    Premium -- each carrying that edition's version;
   - CHANGELOG.md, which must already carry a section for that version.
 
-A tag is a code release of the repository, one for both editions; a manifest's
-version is what that edition is published as (#186). An edition moves to the
-tag's version only when it is to be published from that release, so at least
-one manifest must equal the tag, and none may be ahead of it -- a manifest ahead
+A tag is a code release of the repository, one for both editions; a manifest
+carries its edition's version, and the owner decides which editions get a new
+version in a release (#186). So at least one manifest must equal the tag, and
+none may be ahead of it -- a manifest ahead
 of the tag is a bump made for a later release, or a typo. The editions whose
 manifest equals the tag are the ones with a new version at this tag; an edition
 left behind keeps the version it had.
@@ -29,9 +29,8 @@ manifest's version (#223), so that one release holds everything: v1.0.2 carries
 MatrixTimePremium-1.0.2.iq and, with Lite left at 1.0.1, MatrixTime-1.0.1.iq.
 The notes end with a list of the bundles saying which carry a new version at this
 tag and which carry their version over, since a 1.0.1 bundle on a 1.0.2 release
-would otherwise read as a mistake. Whether a version is, or was, published is the
-store's business and the owner's, not the repository's, and the list does not
-say.
+would otherwise read as a mistake. Uploading a bundle to the store is the
+owner's, and outside the repository.
 
 The last is not pedantry. A release whose notes are written afterwards is how
 0.2.1 came to exist: the store took 0.2.0 from the first of two upload steps and

@@ -3,13 +3,13 @@
 # is involved at all.
 #
 # A tag is a code release of the repository, one for both editions; each edition's
-# manifest carries the version it is published as, and moves to the tag's only when
-# that edition is to be published from the release (#186). So a tag publishes the
-# editions whose manifest equals it -- Lite, Premium or both. Every release still
-# carries a bundle for both editions, each at its own manifest's version (#223), so
-# that one release holds everything: an edition the release does not publish gets a
-# bundle at the version it is already published as, built from this release's code.
-# The notes end with a list saying which bundle is which.
+# manifest carries its version, and the owner decides which editions get a new
+# version in a release (#186) -- Lite, Premium or both, the ones whose manifest
+# equals the tag. Every release carries a bundle for both editions, each at its own
+# manifest's version (#223), so that one release holds everything: an edition with
+# no new version gets a bundle at its earlier one, built from this release's code.
+# The notes end with a list saying which bundle is which. Uploading to the store is
+# the owner's, and outside this workflow.
 #
 # Why the real key now, when build.yml still generates a throwaway. `monkeyc`
 # signs, it does not authenticate: it accepts any key, so for proving that the
