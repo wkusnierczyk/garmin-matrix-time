@@ -13,6 +13,26 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
+## 1.0.2 -- 2026-10-08
+
+Tooling only: neither watch face changes, and both editions stay at 1.0.1. This release carries both
+editions' 1.0.1 bundles, under their new names.
+
+### Internal
+
+No user-visible effect on either watch face:
+
+* `make export` names the store bundle by edition and version, `MatrixTime-1.0.1.iq`, without the
+  tag's `v`, and the release assets keep that name. A failed export no longer leaves an old bundle
+  at the path that gets uploaded. (#216, #217)
+* The `.prg` files inside a bundle keep their plain names, `MatrixTime.prg`, as in every bundle the
+  store has taken, whatever the bundle's own name. (#221, #222)
+* Every release carries a bundle for both editions, each at the version in its own manifest. The
+  notes end with a list saying which bundles carry a new version and which carry theirs over. A
+  release may give new versions to both editions, one, or neither, as this one does. (#223, #224)
+* Lite gets a store cover, the same artwork as Premium's without the star, and both covers are
+  500 x 500. (#219, #220)
+
 ## 1.0.1 -- 2026-10-08
 
 A fix for both editions: the screen now stays dark in sleep mode, as it does with Garmin's own
