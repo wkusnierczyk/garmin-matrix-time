@@ -53,9 +53,9 @@ class View extends WatchUi.WatchFace {
     //
     // Nor does the always-on scene count on onUpdate's rate. It is documented as once
     // a minute while asleep, but on an epix Pro (Gen 2) it was called about 135 times
-    // in each of two logged three-minute stretches of always-on, mostly a second apart
-    // (#191, #212). The scene takes its position from the clock, not from the call
-    // count, so it still moves once a minute.
+    // in each of two logged stretches of always-on of about three minutes, mostly a
+    // second apart (#191, #214). The scene takes its position from the clock, not from
+    // the call count, so it still moves once a minute.
 
     function initialize() {
         WatchFace.initialize();

@@ -1574,7 +1574,7 @@ A watch face is documented to get `onEnterSleep` as the watch prepares to enter 
 * `onEnterSleep` ran after the display had already switched to always-on, in all four logged cases.
 * In always-on, `onUpdate` was called far more often than once a minute: about 135 times in each of
   two logged stretches of about three minutes, mostly in unbroken runs one second apart. An 18-hour
-  average of about 16 calls a minute, given here and in the report until #212, is withdrawn: its
+  average of about 16 calls a minute, given earlier here and in the report, is withdrawn (#214): its
   counter also counted the frames drawn with the display off in sleep mode, all night.
 * Over about 18 hours, `onUpdate` was called in always-on 375 times before `onEnterSleep` had
   told the face. The counter cannot say whether the callback was late, or the face had been started
