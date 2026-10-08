@@ -12,6 +12,17 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
+## Unreleased
+
+### Fixed
+
+* **The screen stays dark in sleep mode.** During the watch's sleep schedule, once the sleep-mode
+  timeout had passed, the face showed its always-on time all night, where Garmin's own watch faces
+  leave the screen dark. The watch switches the display off at that point but still asks the face to
+  draw, and the face drew its always-on screen. It now draws nothing while the display is off, so the
+  face follows the sleep-mode display settings as the built-in faces do. Waking the watch brings it
+  back, and outside the sleep schedule the always-on screen is unchanged. Both editions. (#212)
+
 ## 1.0.0 -- 2026-10-07
 
 The first release of Matrix Time Premium, the paid edition: everything below marked Premium. It is a
