@@ -1003,10 +1003,10 @@ the manifest, often on a commit no tag names. Each run removes the bundle it is 
 it builds, so a failed run cannot leave an old one at the path that gets uploaded. The bundle is built
 as `<app>.iq` under `export/.stage/` and only then moved to its versioned name, because `monkeyc`
 names the `.prg` files inside a bundle after the bundle itself: the inner names stay `<app>.prg`,
-`MatrixTime.prg` or `MatrixTimePremium.prg`, as in every bundle the store has taken (#221). The export
-also strips debug information, which `make build` deliberately keeps so that the simulator and the
-profiler have something to say. `monkeyc` counts part numbers rather than products as it works, so it
-reports more devices than the manifest lists -- several products ship under more than one part, and
+`MatrixTime.prg` or `MatrixTimePremium.prg`, as in every public bundle the store has taken (#221). The
+export also strips debug information, which `make build` deliberately keeps so that the simulator and
+the profiler have something to say. `monkeyc` counts part numbers rather than products as it works, so
+it reports more devices than the manifest lists -- several products ship under more than one part, and
 `venu2` under four. The whole set builds in well under a minute, and this is the only build that
 exercises the packaging step, so it is worth running before a release even when nothing about the
 devices has changed. A `v*` tag runs the same target in CI for both editions, each at its manifest's
@@ -1454,13 +1454,13 @@ new version in a release (#186):
 * a release that gives both a new version sets both manifests;
 * a release that gives neither a new version, one that changes only the tooling say, sets neither;
 * so the two versions can differ, from each other and from the tag, but neither is ever ahead of it.
-  After a tooling-only `v1.0.3`, Lite could still be at 1.0.1 and Premium at 1.0.2.
+  `v1.0.2` is one: tooling only, with both editions left at 1.0.1.
 
 Every release carries a bundle for both editions, each at its own manifest's version, so that one
-release holds everything (#223). With Premium at 1.0.2 and Lite left at 1.0.1, `v1.0.2` carries
-`MatrixTimePremium-1.0.2.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.0.2's code at the
-version in Lite's manifest. Where neither Lite's code and resources nor the build environment (the
-SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to the 1.0.1
+release holds everything (#223). A `v1.1.0` that gave Premium a new version and left Lite at 1.0.1
+would carry `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code
+at the version in Lite's manifest. Where neither Lite's code and resources nor the build environment
+(the SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to the 1.0.1
 release's. The notes end with a *Bundles* list that says which bundles carry a new version at this tag
 and which carry their version over. Uploading a bundle to the store is the owner's, and outside the
 repository.
