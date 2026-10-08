@@ -69,7 +69,7 @@ The rain is laid out on a rectangular grid, so on a round watch the corners of t
 Every supported device has an AMOLED screen, and Garmin's burn-in protector blanks the display in always-on mode if more than 10% of the pixels are lit, or if any pixel stays lit for longer than three minutes. A full-screen digital rain fails both tests, so the rain is not drawn while the watch is in low-power mode: the always-on screen shows the time alone, shifted to a different corner of a small square every minute. Lite dims it to two thirds of its normal brightness; Premium draws it at full brightness by default, and its **Always-on brightness** setting can dim it the same way. The shift is wide enough to carry each stroke clear of where it stood a minute earlier, so no pixel stays lit long enough to trip the protector. Lite draws the always-on time filled, at twice the size of its woken time. Premium draws it filled at the Extra large size, whatever the time size and style chosen for the woken screen, so it is larger than the woken time at the five sizes below Extra large, the same size at Extra large, and smaller at Extra extra large. Premium's larger, heavier time also moves further each minute: it is shifted a tenth of the screen width each way from the centre, where Lite's is shifted a sixteenth, because at a twelfth a few pixels of the Extra large time stay lit for three minutes. At a tenth the time still stays well inside the glass at every corner of the square. Simulated over a full day in both clock modes, on every supported resolution, neither lights any pixel for three minutes running, and both stay far below the 10% limit: at most 1.40% of the screen for Lite and 5.97% for Premium. Raising the wrist wakes the watch face and brings the rain back.
 
 **Sleep mode**  
-During the watch's sleep schedule the face follows the sleep-mode display settings, as Garmin's own watch faces do. Once the sleep-mode timeout has passed, the watch switches the display off and the face draws nothing, so the screen stays dark instead of showing the always-on time. Waking the watch brings the face back, at the sleep-mode brightness, and outside the sleep schedule the always-on screen is unchanged. The watch still asks a watch face to draw while its display is off, and both editions, up to and including 1.0.0, drew the always-on time there, all night (#212).
+Whenever the watch switches its display off, the face draws nothing. The watch still asks a watch face to draw while its display is off, and shows what it draws, so leaving the screen dark is up to the face (#212). In sleep mode this is what makes the face follow the sleep-mode display settings, as Garmin's own watch faces do: once the sleep-mode timeout has passed, the screen stays dark instead of showing the always-on time. Waking the watch brings the face back, at the sleep-mode brightness, and outside the sleep schedule the always-on screen is unchanged.
 
 ## Editions
 <sub>[↑↑ TOC](#table-of-contents) · [← Matrix time](#matrix-time) · [Features →](#features)</sub>
@@ -710,8 +710,8 @@ trigger forced.
 
 The same reset is what the woken captures rely on. The real branch draws the rain only when
 `System.getDisplayMode()` reports high power, so a simulator that came up in any other mode would
-capture the always-on time, or a black screen, in place of the rain. Today it always comes up in High
-Power, and a capture shows the rain.
+capture the always-on time in place of the rain. Today it always comes up in High Power, and a capture
+shows the rain.
 
 The capture builds are `monkey.jungle;graphics.jungle;lite.jungle` and
 `monkey.jungle;graphics.jungle;premium.jungle`: the edition jungle still comes last, as it does in every
@@ -1589,10 +1589,11 @@ second hand.
 
 Garmin's AMOLED FAQ recommends `System.getDisplayMode()` for telling the modes apart. Since #191 the
 face reads it in `onUpdate` as well, and draws the always-on scene whenever either it or the flag says
-the watch is asleep. In every logged transition the display mode changed first, so it is what catches
-those frames. The flag stays as a second signal in case the display mode is ever the one that lags.
-It costs the frames drawn on waking before `onExitSleep` arrives, one to three in each logged wake,
-which get the always-on scene, as every wake did before.
+the watch is asleep, except with the display off, when it draws nothing (#212). In every logged
+transition the display mode changed first, so it is what catches those frames. The flag stays as a
+second signal in case the display mode is ever the one that lags. It costs the frames drawn on waking
+before `onExitSleep` arrives, one to three in each logged wake, which get the always-on scene, as
+every wake did before.
 
 Measured on SDK 9.2.0, `epix2pro47mm`, software 27.18.
 

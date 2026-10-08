@@ -20,7 +20,7 @@ class View extends WatchUi.WatchFace {
     // Which scene to draw comes from two signals, and the always-on one is drawn
     // unless both say the watch is awake (#191): this flag, which the sleep callbacks
     // set, and System.getDisplayMode(), which inLowPower reads in every frame the flag
-    // says awake.
+    // says awake. With the display off, nothing is drawn at all; see below (#212).
     //
     // The flag alone was the design until #191: #68 kept it over the poll, whose timing
     // against the sleep transition was unverified. Measured on an epix Pro (Gen 2), it
