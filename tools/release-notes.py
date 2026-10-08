@@ -3,11 +3,10 @@
 
 A tag push is the whole trigger for the release workflow (see
 .github/workflows/release.yml), and a tag is just a name someone typed. Nothing
-about `git tag v0.3.0` consults manifest.xml, so a mistyped or stale tag would
-otherwise attach a bundle whose version is not the one on the release page --
-and a version number, once used in the Connect IQ store, cannot be used again.
-That is the shape of mistake 0.2.0 was lost to, so it is worth failing a minute
-into a release rather than after it.
+about `git tag v0.3.0` consults the manifests or CHANGELOG.md, so a mistyped or
+stale tag would otherwise make a release that no manifest and no release notes
+back -- and a version number, once used in the Connect IQ store, cannot be used
+again. It is worth failing a minute into a release rather than after it.
 
 Three things have to agree before anything is built:
 
@@ -25,23 +24,23 @@ bump made for a later release, or a typo -- but none has to equal it. The
 editions whose manifest equals the tag are the ones with a new version at this
 tag. A mistyped tag is still caught, by the dated CHANGELOG section it needs.
 
-Every release still carries a bundle for both editions, each at its own
-manifest's version (#223), so that one release holds everything: v1.0.2 carries
+Every release carries a bundle for both editions, each at its own manifest's
+version (#223), so that one release holds everything: v1.0.2 carries
 MatrixTimePremium-1.0.2.iq and, with Lite left at 1.0.1, MatrixTime-1.0.1.iq.
-The notes end with a list of the bundles saying which carry a new version at this
-tag and which carry their version over, since a 1.0.1 bundle on a 1.0.2 release
-would otherwise read as a mistake. Uploading a bundle to the store is the
-owner's, and outside the repository.
+The notes end with a list of the bundles saying which carry a new version at
+this tag and which carry their version over, since a 1.0.1 bundle on a 1.0.2
+release would otherwise read as a mistake. Uploading a bundle to the store is
+the owner's, and outside the repository.
 
-The last is not pedantry. A release whose notes are written afterwards is how
-0.2.1 came to exist: the store took 0.2.0 from the first of two upload steps and
-left the 0.1.0 notes standing, and the number could not be used again. Requiring
-the section to exist before the tag is pushed puts the notes ahead of the
-irreversible step rather than behind it.
+The CHANGELOG section is not pedantry. A release whose notes are written
+afterwards is how 0.2.1 came to exist: the store took 0.2.0 from the first of
+two upload steps and left the 0.1.0 notes standing, and the number could not be
+used again. Requiring the section to exist before the tag is pushed puts the
+notes ahead of the irreversible step rather than behind it.
 
 On success the section's body -- the heading itself stripped, since the release
-page supplies its own title -- goes to stdout, which is what becomes the draft
-release's notes. On any disagreement the reason goes to stderr and the exit
+page supplies its own title -- followed by the Bundles list goes to stdout, which
+is what becomes the draft release's notes. On any disagreement the reason goes to stderr and the exit
 status is 1.
 
 Usage:

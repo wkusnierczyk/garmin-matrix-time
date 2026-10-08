@@ -8,7 +8,8 @@
 # once per edition, selected by the Makefile's EDITION, so the matrix is the only
 # place the two are told apart. The Lite leg of the build also proves the Lite
 # invariant -- that the Premium-only files leave the Lite release build byte for
-# byte what it was. release.yml exports whichever editions a tag releases (#186).
+# byte what it was. release.yml exports both editions on every tag, each at its
+# manifest's version (#223).
 #
 # Why a container rather than a plain runner. The SDK is a public, unauthenticated
 # download -- developer.garmin.com/downloads/connect-iq/sdks/sdks.json lists every

@@ -4,9 +4,10 @@ Everything in Matrix Time that a user could notice, newest first. The format fol
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html). A section is a code release, tagged `vX.Y.Z`
 and shared by both editions. Each edition's version is the one in its own manifest, `manifest.xml`
-for Lite and `manifest-premium.xml` for Premium. An edition moves to a release's version only when
-that release gives it a new version -- a release may give both, one or neither -- so the versions can
-differ (#186); every release carries both editions' bundles (#223).
+for Lite and `manifest-premium.xml` for Premium. The owner decides which editions get a new version in
+a release -- both, one or neither -- and only those move to the release's version, so the versions can
+differ (#186). From 1.0.2 on, every release carries both editions' bundles, each at its own version
+(#223).
 
 Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind

@@ -78,15 +78,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       # Before the container is even pulled. A tag is a name someone typed, and
-      # nothing about `git tag` consults manifest.xml -- so the version on the
-      # release page and the version inside the bundle can disagree, and the one
-      # inside the bundle is what the store shows and what can never be uploaded
-      # twice. tools/release-notes.py refuses unless no edition's manifest is
-      # ahead of the tag and a dated CHANGELOG.md section exists for it; it prints that section as the notes, with the list
-      # of bundles at the end, and gives the bundle job's matrix: every edition,
-      # with its manifest's version and whether that is new at the tag. Pure Python,
-      # no SDK, seconds; see its docstring for why the CHANGELOG section has to
-      # exist first.
+      # nothing about `git tag` consults the manifests or CHANGELOG.md, while a
+      # version number, once used in the store, cannot be used again.
+      # tools/release-notes.py refuses unless no edition's manifest is ahead of
+      # the tag and a dated CHANGELOG.md section exists for it. It prints that
+      # section as the notes, with the list of bundles at the end, and gives the
+      # bundle job's matrix: every edition, with its manifest's version and
+      # whether that is new at the tag. Pure Python, no SDK, seconds; see its
+      # docstring for why the CHANGELOG section has to exist first.
       - name: Check the tag against the manifests and CHANGELOG.md
         id: check
         run: |
