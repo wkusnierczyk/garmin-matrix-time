@@ -86,7 +86,7 @@ endif
 # is read only when export asks for the name.
 #
 # Only MAJOR.MINOR.PATCH is taken, the format tools/release-notes.py requires. The name goes
-# unquoted into rm and monkeyc, so a version such as "1.0.1 beta" would otherwise split
+# unquoted into rm and mv, so a version such as "1.0.1 beta" would otherwise split
 # into two arguments, and rm -f would delete a beta.iq from the repo root. The manifest is
 # flattened to one line first, so an <iq:application> start tag rewrapped across lines
 # reads as it does to tools/release-notes.py, whose pattern spans lines: the release gate
@@ -111,7 +111,7 @@ endif
 # 006-B4258-00/MatrixTime-1.0.1.prg (#221). So the bundle is built as <app>.iq here and
 # moved to its versioned name after, which keeps the inner names <app>.prg, as in every
 # bundle the store has taken. One directory per edition, so two exports cannot clear
-# each other's.
+# each other's staged bundle.
 EXPORT_STAGE = $(EXPORT_DIR)/.stage/$(APP)
 
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
@@ -389,7 +389,7 @@ else
 	    printf "%*d OUT OF %s DEVICES BUILT\n", length($$4), $$1, $$4; fflush(); next } \
 	  { print; fflush() } \
 	  END { exit status + 0 }'
-	@mv "$(EXPORT_STAGE)/$(APP).iq" $(EXPORT)
+	@mkdir -p $(dir $(EXPORT)) && mv "$(EXPORT_STAGE)/$(APP).iq" $(EXPORT)
 	@echo "Export complete: $(EXPORT)"
 endif
 
