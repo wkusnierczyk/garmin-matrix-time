@@ -3,10 +3,13 @@
 # is involved at all.
 #
 # A tag is a code release of the repository, one for both editions; each edition's
-# manifest carries the version it is published as, and moves to the tag's only when
-# the release changes that edition (#186). So a tag releases the editions whose
-# manifest equals it -- Lite, Premium or both -- and only those are exported. An
-# edition the release leaves alone keeps its published version, and gets no bundle.
+# manifest carries its version, and the owner decides which editions get a new
+# version in a release (#186) -- both, one or neither, the ones whose manifest
+# equals the tag. Every release carries a bundle for both editions, each at its own
+# manifest's version (#223), so that one release holds everything: an edition with
+# no new version gets a bundle at its earlier one, built from this release's code.
+# The notes end with a list saying which bundle is which. Uploading to the store is
+# the owner's, and outside this workflow.
 #
 # Why the real key now, when build.yml still generates a throwaway. `monkeyc`
 # signs, it does not authenticate: it accepts any key, so for proving that the
@@ -67,7 +70,7 @@ jobs:
     name: version check
     runs-on: ubuntu-latest
     outputs:
-      editions: ${{ steps.check.outputs.editions }}
+      bundles: ${{ steps.check.outputs.bundles }}
     steps:
       # No lfs: true here, unlike every job in build.yml. This job reads the two
       # manifests and CHANGELOG.md and compiles nothing, so the LFS objects would be fetched only to be
@@ -75,20 +78,19 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       # Before the container is even pulled. A tag is a name someone typed, and
-      # nothing about `git tag` consults manifest.xml -- so the version on the
-      # release page and the version inside the bundle can disagree, and the one
-      # inside the bundle is what the store shows and what can never be uploaded
-      # twice. tools/release-notes.py refuses unless at least one edition's
-      # manifest equals the tag, none is ahead of it, and a dated CHANGELOG.md
-      # section exists for it; it prints that section as the notes, and names
-      # the editions the tag releases for the bundle job's matrix. Pure Python,
-      # no SDK, seconds; see its docstring for why the CHANGELOG section has to
-      # exist first.
+      # nothing about `git tag` consults the manifests or CHANGELOG.md, while a
+      # version number, once used in the store, cannot be used again.
+      # tools/release-notes.py refuses unless no edition's manifest is ahead of
+      # the tag and a dated CHANGELOG.md section exists for it. It prints that
+      # section as the notes, with the list of bundles at the end, and gives the
+      # bundle job's matrix: every edition, with its manifest's version and
+      # whether that is new at the tag. Pure Python, no SDK, seconds; see its
+      # docstring for why the CHANGELOG section has to exist first.
       - name: Check the tag against the manifests and CHANGELOG.md
         id: check
         run: |
-          tools/release-notes.py "$GITHUB_REF_NAME" -o notes.md -e editions.json
-          echo "editions=$(cat editions.json)" >> "$GITHUB_OUTPUT"
+          tools/release-notes.py "$GITHUB_REF_NAME" -o notes.md -b bundles.json
+          echo "bundles=$(cat bundles.json)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
@@ -96,13 +98,13 @@ jobs:
           path: notes.md
 
   bundle:
-    name: signed bundle (${{ matrix.edition }})
+    name: signed bundle (${{ matrix.edition }} ${{ matrix.version }})
     needs: version
     runs-on: ubuntu-latest
-    # One job per edition the tag releases, and no job for one it does not.
+    # One job per edition, every release, each at its own manifest's version (#223).
     strategy:
       matrix:
-        edition: ${{ fromJSON(needs.version.outputs.editions) }}
+        include: ${{ fromJSON(needs.version.outputs.bundles) }}
     # The gate. Everything about this job that touches the key depends on this
     # one line; see the note at the top.
     environment: release
@@ -166,23 +168,21 @@ jobs:
       # store takes the file, not its name -- but a release page serves several
       # versions of one bundle over time, and MatrixTime.iq four times in a
       # downloads folder is a version you have to open the file to identify. The
-      # version check has already required the tag to be "v" and the manifest's
-      # version, so the name is checked here against the tag with the "v" taken
-      # off: a mismatch fails the job rather than attaching a misnamed bundle.
-      # The 1.0.0 and 1.0.1 releases carry the tag instead, MatrixTime-v1.0.1.iq.
+      # name is checked against the version the version check read from this
+      # edition's manifest -- the tag's for an edition with a new version, its
+      # earlier one otherwise (#223) -- so a mismatch fails the job
+      # rather than attaching a misnamed bundle. The app name comes from the same
+      # list. The 1.0.0 and 1.0.1 releases carry the tag instead, MatrixTime-v1.0.1.iq.
       - name: Export the store bundle
         shell: bash
         env:
           HOME: /root
           EDITION: ${{ matrix.edition }}
+          BUNDLE_APP: ${{ matrix.app }}
+          BUNDLE_VERSION: ${{ matrix.version }}
         run: |
-          case "$EDITION" in
-            lite) app=MatrixTime ;;
-            premium) app=MatrixTimePremium ;;
-            *) echo "::error::unknown edition $EDITION"; exit 1 ;;
-          esac
           make export EDITION="$EDITION" SDK_BIN=/connectiq/bin DEV_KEY=/tmp/developer_key
-          ls -l "export/$app-${GITHUB_REF_NAME#v}.iq"
+          ls -l "export/$BUNDLE_APP-$BUNDLE_VERSION.iq"
 
       # if: always(), so a failed export does not leave the key behind for
       # whatever steps this job grows later. The container filesystem goes away

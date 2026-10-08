@@ -12,7 +12,7 @@ Three things may differ, and one must:
 
   - the application id MUST differ. It is what makes Premium a separate app in the
     store and on the watch rather than an update of Lite;
-  - the version may differ. Each edition is released on its own terms;
+  - the version may differ. The owner gives each edition a new version on its own terms;
   - nothing else. The name is @Strings.AppName in both, and Premium's own name comes
     from premium/resources-base/strings/strings.xml, not from the manifest.
 

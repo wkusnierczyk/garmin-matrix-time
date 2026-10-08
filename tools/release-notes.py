@@ -3,43 +3,52 @@
 
 A tag push is the whole trigger for the release workflow (see
 .github/workflows/release.yml), and a tag is just a name someone typed. Nothing
-about `git tag v0.3.0` consults manifest.xml, so a mistyped or stale tag would
-otherwise publish a bundle whose version is not the one on the release page --
-and the version in the bundle is the number the Connect IQ store shows, which
-cannot be uploaded twice. That is the shape of mistake 0.2.0 was lost to, so it
-is worth failing a minute into a release rather than after it.
+about `git tag v0.3.0` consults the manifests or CHANGELOG.md, so a mistyped or
+stale tag would otherwise make a release that no manifest and no release notes
+back -- and a version number, once used in the Connect IQ store, cannot be used
+again. It is worth failing a minute into a release rather than after it.
 
 Three things have to agree before anything is built:
 
   - the tag, which must be "v" followed by the version and nothing else;
   - the editions' manifests -- manifest.xml for Lite, manifest-premium.xml for
-    Premium -- each carrying the version that edition is published as;
+    Premium -- each carrying that edition's version;
   - CHANGELOG.md, which must already carry a section for that version.
 
-A tag is a code release of the repository, one for both editions; a manifest's
-version is what that edition is published as (#186). An edition moves to the
-tag's version only when the release changes it, so at least one manifest must
-equal the tag, and none may be ahead of it -- a manifest ahead of the tag is a
-bump made for a later release, or a typo. The editions whose manifest equals
-the tag are the ones the tag releases, and the only ones the workflow exports;
-an edition left behind keeps the version it is already published as.
+A tag is a code release of the repository, one for both editions; a manifest
+carries its edition's version, and the owner decides which editions get a new
+version in a release (#186): both, one, or neither -- a release that changes
+only the tooling gives neither a new version, and still carries both bundles at
+the versions they had (#223). So no manifest may be ahead of the tag -- that is a
+bump made for a later release, or a typo -- but none has to equal it. The
+editions whose manifest equals the tag are the ones with a new version at this
+tag. A mistyped tag is still caught, by the dated CHANGELOG section it needs.
 
-The last is not pedantry. A release whose notes are written afterwards is how
-0.2.1 came to exist: the store took 0.2.0 from the first of two upload steps and
-left the 0.1.0 notes standing, and the number could not be used again. Requiring
-the section to exist before the tag is pushed puts the notes ahead of the
-irreversible step rather than behind it.
+Every release carries a bundle for both editions, each at its own manifest's
+version (#223), so that one release holds everything: v1.0.2 carries
+MatrixTimePremium-1.0.2.iq and, with Lite left at 1.0.1, MatrixTime-1.0.1.iq.
+The notes end with a list of the bundles saying which carry a new version at
+this tag and which carry their version over, since a 1.0.1 bundle on a 1.0.2
+release would otherwise read as a mistake. Uploading a bundle to the store is
+the owner's, and outside the repository.
+
+The CHANGELOG section is not pedantry. A release whose notes are written
+afterwards is how 0.2.1 came to exist: the store took 0.2.0 from the first of
+two upload steps and left the 0.1.0 notes standing, and the number could not be
+used again. Requiring the section to exist before the tag is pushed puts the
+notes ahead of the irreversible step rather than behind it.
 
 On success the section's body -- the heading itself stripped, since the release
-page supplies its own title -- goes to stdout, which is what becomes the draft
-release's notes. On any disagreement the reason goes to stderr and the exit
+page supplies its own title -- followed by the Bundles list goes to stdout, which
+is what becomes the draft release's notes. On any disagreement the reason goes to stderr and the exit
 status is 1.
 
 Usage:
   tools/release-notes.py v0.3.0              check, and print the notes
   tools/release-notes.py v0.3.0 -o F         ... and write them to F instead
-  tools/release-notes.py v0.3.0 -e F         ... and write the released editions
-                                             to F, as a JSON list
+  tools/release-notes.py v0.3.0 -b F         ... and write every edition's bundle
+                                             to F, as a JSON list of
+                                             {edition, app, version, new}
 
 Needs nothing but Python. It reads only what is committed, so it runs on a bare
 runner, before the container the bundle is built in is even pulled.
@@ -52,6 +61,10 @@ import sys
 # Edition to manifest, in the order the editions are reported. The same pairing
 # as EDITION and MANIFEST in the Makefile.
 MANIFESTS = {'lite': 'manifest.xml', 'premium': 'manifest-premium.xml'}
+# Edition to the name its bundle starts with: APP in the Makefile, which names the
+# bundle <app>-<version>.iq (#216).
+APPS = {'lite': 'MatrixTime', 'premium': 'MatrixTimePremium'}
+NAMES = {'lite': 'Lite', 'premium': 'Premium'}
 CHANGELOG = 'CHANGELOG.md'
 
 # A version is three dot-separated numbers, compared as numbers: 0.10.0 is ahead
@@ -102,7 +115,8 @@ def parse(version, where):
 
 
 def released_editions(version):
-    """Return the editions `version` releases, refusing a manifest ahead of it."""
+    """Return the editions with a new version at `version`, which may be none,
+    refusing a manifest ahead of it."""
     tagged = parse(version, 'tag')
     released = []
     for edition, manifest in MANIFESTS.items():
@@ -112,11 +126,30 @@ def released_editions(version):
                  f'v{declared}, or change the manifest first')
         if declared == version:
             released.append(edition)
-    if not released:
-        found = ', '.join(f'{m} {manifest_version(m)}' for m in MANIFESTS.values())
-        fail(f'no edition is at {version} ({found}); set the version of each edition '
-             f'this release changes, then tag')
     return released
+
+
+def bundles(version):
+    """Every edition's bundle for the release `version`: its edition, app name, the
+    version its manifest gives it, and whether that version is new at this tag (#223)."""
+    return [{'edition': edition, 'app': APPS[edition],
+             'version': manifest_version(manifest),
+             'new': manifest_version(manifest) == version}
+            for edition, manifest in MANIFESTS.items()]
+
+
+def bundle_notes(version):
+    """The notes' closing list: each bundle, and whether its version is new at this tag."""
+    lines = ['### Bundles', '']
+    for b in bundles(version):
+        name = f"`{b['app']}-{b['version']}.iq`"
+        edition = NAMES[b['edition']]
+        if b['new']:
+            lines.append(f"- {name}: {edition} {b['version']}, a new version in this release.")
+        else:
+            lines.append(f"- {name}: {edition} {b['version']}, carried over: this release does "
+                         f"not change {edition}'s version.")
+    return lines
 
 
 def changelog_section(version):
@@ -145,8 +178,8 @@ def main():
     parser.add_argument('tag', help='the tag being released, e.g. v0.3.0')
     parser.add_argument('-o', '--output', metavar='FILE',
                         help='write the notes to FILE rather than to stdout')
-    parser.add_argument('-e', '--editions', metavar='FILE',
-                        help='write the editions the tag releases to FILE, as a JSON list')
+    parser.add_argument('-b', '--bundles', metavar='FILE',
+                        help="write every edition's bundle to FILE, as a JSON list")
     arguments = parser.parse_args()
 
     tag = arguments.tag
@@ -156,14 +189,15 @@ def main():
 
     editions = released_editions(version)
 
-    notes = '\n'.join(changelog_section(version)).strip() + '\n'
-    if arguments.editions:
-        with open(arguments.editions, 'w', encoding='utf-8') as handle:
-            json.dump(editions, handle)
+    notes = ('\n'.join(changelog_section(version)).strip() + '\n\n'
+             + '\n'.join(bundle_notes(version)) + '\n')
+    if arguments.bundles:
+        with open(arguments.bundles, 'w', encoding='utf-8') as handle:
+            json.dump(bundles(version), handle)
     if arguments.output:
         with open(arguments.output, 'w', encoding='utf-8') as handle:
             handle.write(notes)
-        print(f'{tag}: releases {", ".join(editions)}; '
+        print(f'{tag}: new versions of {", ".join(editions) or "neither edition"}; '
               f'notes written to {arguments.output}', file=sys.stderr)
     else:
         sys.stdout.write(notes)
