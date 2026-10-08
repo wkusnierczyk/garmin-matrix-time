@@ -18,11 +18,12 @@ Three things have to agree before anything is built:
 
 A tag is a code release of the repository, one for both editions; a manifest
 carries its edition's version, and the owner decides which editions get a new
-version in a release (#186). So at least one manifest must equal the tag, and
-none may be ahead of it -- a manifest ahead
-of the tag is a bump made for a later release, or a typo. The editions whose
-manifest equals the tag are the ones with a new version at this tag; an edition
-left behind keeps the version it had.
+version in a release (#186): both, one, or neither -- a release that changes
+only the tooling gives neither a new version, and still carries both bundles at
+the versions they had (#223). So no manifest may be ahead of the tag -- that is a
+bump made for a later release, or a typo -- but none has to equal it. The
+editions whose manifest equals the tag are the ones with a new version at this
+tag. A mistyped tag is still caught, by the dated CHANGELOG section it needs.
 
 Every release still carries a bundle for both editions, each at its own
 manifest's version (#223), so that one release holds everything: v1.0.2 carries
@@ -115,7 +116,8 @@ def parse(version, where):
 
 
 def released_editions(version):
-    """Return the editions `version` releases, refusing a manifest ahead of it."""
+    """Return the editions with a new version at `version`, which may be none,
+    refusing a manifest ahead of it."""
     tagged = parse(version, 'tag')
     released = []
     for edition, manifest in MANIFESTS.items():
@@ -125,10 +127,6 @@ def released_editions(version):
                  f'v{declared}, or change the manifest first')
         if declared == version:
             released.append(edition)
-    if not released:
-        found = ', '.join(f'{m} {manifest_version(m)}' for m in MANIFESTS.values())
-        fail(f'no edition is at {version} ({found}); set the version of each edition '
-             f'this release gives a new version, then tag')
     return released
 
 
@@ -200,7 +198,7 @@ def main():
     if arguments.output:
         with open(arguments.output, 'w', encoding='utf-8') as handle:
             handle.write(notes)
-        print(f'{tag}: new versions of {", ".join(editions)}; '
+        print(f'{tag}: new versions of {", ".join(editions) or "neither edition"}; '
               f'notes written to {arguments.output}', file=sys.stderr)
     else:
         sys.stdout.write(notes)

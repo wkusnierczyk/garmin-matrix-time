@@ -5,8 +5,8 @@ Everything in Matrix Time that a user could notice, newest first. The format fol
 [semantic versioning](https://semver.org/spec/v2.0.0.html). A section is a code release, tagged `vX.Y.Z`
 and shared by both editions. Each edition's version is the one in its own manifest, `manifest.xml`
 for Lite and `manifest-premium.xml` for Premium. An edition moves to a release's version only when
-that release gives it a new version, so the two can differ (#186); every release carries both
-editions' bundles (#223).
+that release gives it a new version -- a release may give both, one or neither -- so the versions can
+differ (#186); every release carries both editions' bundles (#223).
 
 Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind

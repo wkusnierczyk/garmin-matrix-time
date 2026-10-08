@@ -4,7 +4,7 @@
 #
 # A tag is a code release of the repository, one for both editions; each edition's
 # manifest carries its version, and the owner decides which editions get a new
-# version in a release (#186) -- Lite, Premium or both, the ones whose manifest
+# version in a release (#186) -- both, one or neither, the ones whose manifest
 # equals the tag. Every release carries a bundle for both editions, each at its own
 # manifest's version (#223), so that one release holds everything: an edition with
 # no new version gets a bundle at its earlier one, built from this release's code.
@@ -81,9 +81,8 @@ jobs:
       # nothing about `git tag` consults manifest.xml -- so the version on the
       # release page and the version inside the bundle can disagree, and the one
       # inside the bundle is what the store shows and what can never be uploaded
-      # twice. tools/release-notes.py refuses unless at least one edition's
-      # manifest equals the tag, none is ahead of it, and a dated CHANGELOG.md
-      # section exists for it; it prints that section as the notes, with the list
+      # twice. tools/release-notes.py refuses unless no edition's manifest is
+      # ahead of the tag and a dated CHANGELOG.md section exists for it; it prints that section as the notes, with the list
       # of bundles at the end, and gives the bundle job's matrix: every edition,
       # with its manifest's version and whether that is new at the tag. Pure Python,
       # no SDK, seconds; see its docstring for why the CHANGELOG section has to

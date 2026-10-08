@@ -1449,7 +1449,9 @@ new version in a release (#186):
 * a release that gives only Premium a new version sets `manifest-premium.xml` to the tag's version and
   leaves `manifest.xml` where it is;
 * a release that gives both a new version sets both manifests;
-* so the two versions can differ, but whichever is newer equals the tag that released it.
+* a release that gives neither a new version, one that changes only the tooling say, sets neither;
+* so the two versions can differ, from each other and from the tag, but neither is ever ahead of it.
+  After a tooling-only `v1.0.3`, Lite could still be at 1.0.1 and Premium at 1.0.2.
 
 Every release carries a bundle for both editions, each at its own manifest's version, so that one
 release holds everything (#223). With Premium at 1.0.2 and Lite left at 1.0.1, `v1.0.2` carries
@@ -1478,19 +1480,19 @@ git push origin v1.1.0
 
 | Job | What it proves |
 | :-- | :------------- |
-| `version check` | at least one edition's manifest names the tag's version, none is ahead of it, and `CHANGELOG.md` has a dated section for it. Pure Python, no SDK, seconds. |
+| `version check` | no edition's manifest is ahead of the tag's version, and `CHANGELOG.md` has a dated section for it. Pure Python, no SDK, seconds. |
 | `signed bundle (<edition> <version>)` | `make export EDITION=<edition>` produces the `.iq`, signed with the real key, under the version its manifest gives it. One job per edition, on every tag. |
 | `draft release` | the bundles and the notes are attached to a draft release for that tag. |
 
 The version check runs first, and before the container is even pulled, because a tag is a name someone
 typed and nothing about `git tag` consults `manifest.xml`. The store will not take a version twice:
 the release page and the bundle disagreeing is the shape of mistake that cost 0.2.0.
-[`tools/release-notes.py`](tools/release-notes.py) refuses the release unless the tag is `v` plus the
-version of at least one edition's manifest, with no manifest ahead of it -- a bump made for a later
-release, or a typo -- and unless `CHANGELOG.md` already carries a section for it headed with a real
-`YYYY-MM-DD` date -- which puts the release notes ahead of the irreversible step rather than behind
-it, the other half of what went wrong with 0.2.0. The date is matched as a date rather than as "some
-token" on purpose: `## 0.3.0 -- TBD` is precisely the heading this gate exists to refuse.
+[`tools/release-notes.py`](tools/release-notes.py) refuses the release unless the tag is `v` plus a
+version no edition's manifest is ahead of -- a manifest ahead is a bump made for a later release, or a
+typo -- and unless `CHANGELOG.md` already carries a section for it headed with a real `YYYY-MM-DD`
+date -- which puts the release notes ahead of the irreversible step rather than behind it, the other
+half of what went wrong with 0.2.0. The date is matched as a date rather than as "some token" on
+purpose: `## 0.3.0 -- TBD` is precisely the heading this gate exists to refuse.
 
 The tagged commit is not re-tested here. `build.yml` runs on every push to `main` and every pull
 request, so a tag placed on a commit that reached `main` the normal way has already been built,
