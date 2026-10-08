@@ -84,7 +84,13 @@ endif
 # uploads this file under this name, and tools/release-notes.py has already required the
 # tag to be "v" and this version, so the two cannot disagree. Recursive, so the manifest
 # is read only when export asks for the name.
-APP_VERSION = $(shell sed -nE 's/.*<iq:application[^>]* version="([^"]*)".*/\1/p' $(MANIFEST))
+#
+# Only MAJOR.MINOR.PATCH is taken, the format tools/release-notes.py requires. The name goes
+# unquoted into rm and monkeyc, so a version such as "1.0.1 beta" would otherwise split
+# into two arguments, and rm -f would delete a beta.iq from the repo root. Anything else
+# reads as no version, which export refuses before any command sees the name. So does an
+# <iq:application> element split across lines, which the id check below cannot read either.
+APP_VERSION = $(shell sed -nE 's/.*<iq:application[^>]* version="((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))".*/\1/p' "$(MANIFEST)")
 # VERSION is checked in export itself, the one target that reads it, so that no other
 # target fails on it.
 ifeq ($(VERSION),beta)
@@ -344,7 +350,7 @@ EXPORT_STATUS := __monkeyc_status__:
 
 ## Build the signed .iq store bundle [EDITION VERSION]
 export:
-	@test -n "$(APP_VERSION)" || { echo "No application version found in $(MANIFEST)."; exit 1; }
+	@test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
 ifeq ($(VERSION),beta)
 	@rm -f $(EXPORT)
 	$(require_sdk)
