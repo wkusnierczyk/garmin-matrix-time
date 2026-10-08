@@ -20,7 +20,7 @@ class View extends WatchUi.WatchFace {
     // Which scene to draw comes from two signals, and the always-on one is drawn
     // unless both say the watch is awake (#191): this flag, which the sleep callbacks
     // set, and System.getDisplayMode(), which inLowPower reads in every frame the flag
-    // says awake.
+    // says awake. With the display off, nothing is drawn at all; see below (#212).
     //
     // The flag alone was the design until #191: #68 kept it over the poll, whose timing
     // against the sleep transition was unverified. Measured on an epix Pro (Gen 2), it
@@ -37,9 +37,14 @@ class View extends WatchUi.WatchFace {
     // high power before onExitSleep cleared the flag, and those still draw the
     // always-on scene, as every wake did before.
     //
-    // DISPLAY_MODE_OFF, the screen off, counts as asleep. onUpdate is not called while
-    // the display is off, so that is moot, but the small scene is the safe default for
-    // any mode that is not high power.
+    // DISPLAY_MODE_OFF is a third state, in which onUpdate draws nothing at all (#212).
+    // This comment used to say onUpdate is not called while the display is off. It is.
+    // In sleep mode, once the sleep-mode display timeout has passed, the watch reports
+    // DISPLAY_MODE_OFF and goes on calling onUpdate, and what the face draws is shown:
+    // the face drew its always-on time there all night, where Garmin's own faces leave
+    // the screen dark. Measured on an epix Pro (Gen 2), 2026-10-08. The AMOLED example
+    // in the SDK FAQ draws nothing in that mode as well. Low power, the always-on
+    // screen proper, still gets the small scene.
     private var _lowPower as Boolean = false;
 
     // There is deliberately no onPartialUpdate. Per-second partial updates are a MIP
@@ -63,6 +68,11 @@ class View extends WatchUi.WatchFace {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
+        // The display is off, as in sleep mode: leave the screen black (#212).
+        if (System.getDisplayMode() == System.DISPLAY_MODE_OFF) {
+            return;
+        }
+
         var rain = _digitalRain.forTime(Time.now());
         if (inLowPower()) {
             rain.drawLowPower(dc);
@@ -83,11 +93,12 @@ class View extends WatchUi.WatchFace {
     // drawLowPower reads _time and _width and nothing the system sets in always-on,
     // so the captured pixels are the pixels of a genuine always-on frame.
     //
-    // The real test calls System.getDisplayMode() with no has-guard. That is safe only
-    // because the function is API 5.0.0 and #13 raised minApiLevel to 5.0.0 in both
-    // manifests. Lowering minApiLevel needs a "System has :getDisplayMode" guard here
-    // first: the compiler checks calls against the device API files, not against
-    // minApiLevel, so an older firmware would install the face and fail at runtime.
+    // The real test, and onUpdate's display-off test, call System.getDisplayMode() with
+    // no has-guard. That is safe only because the function is API 5.0.0 and #13 raised
+    // minApiLevel to 5.0.0 in both manifests. Lowering minApiLevel needs a "System has
+    // :getDisplayMode" guard in both places first: the compiler checks calls against
+    // the device API files, not against minApiLevel, so an older firmware would install
+    // the face and fail at runtime.
     //
     // Exactly one of these two definitions is compiled. monkey.jungle excludes
     // forceLowPower, so every ordinary build -- make build, run, test, sideload,

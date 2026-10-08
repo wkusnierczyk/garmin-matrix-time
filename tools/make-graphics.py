@@ -115,7 +115,8 @@ SHOT_COUNT = 4
 # simulator resets Display Mode to High Power on every launch and persists no key for
 # it, so always-on is reached by compiling the forcing in rather than by asking the
 # simulator for it. The woken frames rely on that same reset: the real build draws the
-# always-on scene whenever System.getDisplayMode() is not high power (#191). graphics.jungle is one line layered over monkey.jungle; monkeyc -f
+# rain only when System.getDisplayMode() reports high power (#191, #212).
+# graphics.jungle is one line layered over monkey.jungle; monkeyc -f
 # takes the list and lets the later file override the earlier one. One frame is enough
 # -- the scene is the time alone, shifted a step every minute, so a second frame taken
 # seconds later would be the same picture.
