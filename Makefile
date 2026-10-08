@@ -87,10 +87,17 @@ endif
 #
 # Only MAJOR.MINOR.PATCH is taken, the format tools/release-notes.py requires. The name goes
 # unquoted into rm and monkeyc, so a version such as "1.0.1 beta" would otherwise split
-# into two arguments, and rm -f would delete a beta.iq from the repo root. Anything else
-# reads as no version, which export refuses before any command sees the name. So does an
-# <iq:application> element split across lines, which the id check below cannot read either.
-APP_VERSION = $(shell sed -nE 's/.*<iq:application[^>]* version="((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))".*/\1/p' "$(MANIFEST)")
+# into two arguments, and rm -f would delete a beta.iq from the repo root. The manifest is
+# flattened to one line first, so an <iq:application> start tag rewrapped across lines
+# reads as it does to tools/release-notes.py, whose pattern spans lines: the release gate
+# and the export cannot disagree on it. Then every such start tag is taken, and a version
+# is given only when there is exactly one and it carries MAJOR.MINOR.PATCH. Two would
+# otherwise give "1.0.1 1.0.2", a name that splits too. Anything else reads as no version,
+# which export refuses before any command sees the name.
+APP_VERSION = $(shell tr '\n\r\t' '   ' < "$(MANIFEST)" \
+  | grep -oE '<iq:application[[:space:]][^>]*>' \
+  | awk '{ tag = $$0 } END { if (NR == 1) print tag }' \
+  | sed -nE 's/.*[[:space:]]version="((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))".*/\1/p')
 # VERSION is checked in export itself, the one target that reads it, so that no other
 # target fails on it.
 ifeq ($(VERSION),beta)
