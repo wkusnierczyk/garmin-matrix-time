@@ -23,7 +23,9 @@ size: at 38 x 38 the star keeps the clearest outline and hides the least rain, a
 corner would vanish if a launcher crops icons to a circle.
 
 Generating and checking both need Pillow: `check` compares every Premium icon with
-Lite's, pixel by pixel, outside the star.
+Lite's, pixel by pixel, outside the star, and Premium's store cover with Lite's outside
+the star and the cells it clears. The cover check also reads Lite's rain font, to lay
+out those cells.
 """
 import importlib.util
 import math
@@ -133,9 +135,12 @@ def _cells(size, columns=None):
 
 
 def _cleared(cells, size):
-    """The cells the cover leaves out: those that reach under the star's disc."""
+    """The pixel boxes the cover blanks, (x0, y0, x1, y1) inclusive: one per cell that
+    reaches under the star's disc, a pixel wider all round, and truncated to whole
+    pixels as Pillow truncates a rectangle's coordinates. `cover` paints exactly these
+    and `_cover_drift` skips exactly these, so the two cannot disagree by a pixel."""
     cx, cy, d = _disc(size)
-    return [(x0, y0, x1, y1) for x0, y0, x1, y1 in cells
+    return [(int(x0 - 1), int(y0 - 1), int(x1 + 1), int(y1 + 1)) for x0, y0, x1, y1 in cells
             if math.hypot(min(max(cx, x0), x1) - cx, min(max(cy, y0), y1) - cy) < d]
 
 
@@ -160,8 +165,8 @@ def cover(size=None):
                  "bring _cells() back in step with tools/make-launcher-icons.py")
 
     draw = ImageDraw.Draw(rain)
-    for x0, y0, x1, y1 in _cleared(cells, size):
-        draw.rectangle((x0 - 1, y0 - 1, x1 + 1, y1 + 1), fill=(0, 0, 0))
+    for box in _cleared(cells, size):
+        draw.rectangle(box, fill=(0, 0, 0))
     return _marked(rain)
 
 
@@ -174,20 +179,24 @@ def write_cover(path):
 
 def _cover_drift(cover_path):
     """Pixels where Premium's cover differs from Lite's, away from the star and from the
-    cells it leaves out. -1 if either is missing or the sizes differ."""
+    cells it leaves out. -1 if either is missing or unreadable, not square, or the two
+    differ in size: the size checks report which, and a malformed file must fail the
+    check rather than end it in a traceback."""
     from PIL import Image
 
     lite_path = os.path.join(ROOT, LITE.COVER)
-    if not (os.path.exists(cover_path) and os.path.exists(lite_path)):
+    try:
+        lite = Image.open(lite_path).convert('RGB')
+        premium = Image.open(cover_path).convert('RGB')
+    except OSError:
+        # Missing files raise FileNotFoundError; unreadable ones UnidentifiedImageError.
+        # Both are OSErrors.
         return -1
-    lite = Image.open(lite_path).convert('RGB')
-    premium = Image.open(cover_path).convert('RGB')
-    if lite.size != premium.size:
+    if lite.size != premium.size or lite.width != lite.height:
         return -1
     size = lite.width
     cx, cy, d = _disc(size)
-    cleared = [(x0 - 1, y0 - 1, x1 + 1, y1 + 1)
-               for x0, y0, x1, y1 in _cleared(_cells(size, LITE.COVER_COLUMNS), size)]
+    cleared = _cleared(_cells(size, LITE.COVER_COLUMNS), size)
     a, b = lite.load(), premium.load()
     return sum(1 for y in range(size) for x in range(size)
                if a[x, y] != b[x, y]
@@ -249,7 +258,7 @@ def check(fallback, cover_path):
     got = LITE.png_size(cover_path) if os.path.exists(cover_path) else None
     ok(got == (size, size),
        f"{cover_path} is {size}x{size}" + (f" (it is {got[0]}x{got[1]})" if got and got != (size, size)
-                                          else "" if got else " (missing)"))
+                                          else "" if got else LITE.cover_absence(cover_path)))
     weight = os.path.getsize(cover_path) if got else None
     ok(weight is not None and weight < limit,
        f"{cover_path} is under {limit // 1000} KB"
@@ -259,7 +268,7 @@ def check(fallback, cover_path):
     # Premium's on the old artwork (#219).
     drift = _cover_drift(cover_path)
     ok(drift == 0, f"{cover_path} is {LITE.COVER} but for the star"
-       + ("" if drift == 0 else f" ({'missing or sizes differ' if drift < 0 else f'{drift} pixels differ'};"
+       + ("" if drift == 0 else f" ({'missing, unreadable or of different sizes' if drift < 0 else f'{drift} pixels differ'};"
           " regenerate both with make icons)"))
 
     print(f"\n{'ALL CONSISTENT' if not fail else f'{len(fail)} PROBLEM(S)'}\n")

@@ -187,6 +187,12 @@ def png_size(path):
     return int.from_bytes(head[16:20], 'big'), int.from_bytes(head[20:24], 'big')
 
 
+def cover_absence(path):
+    """Why a cover has no PNG size, for a check's message: missing, or not a PNG -- an
+    LFS pointer, say."""
+    return " (missing)" if not os.path.exists(path) else " (not a PNG)"
+
+
 def write_icon(path, size):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     render(size).save(path)
@@ -393,7 +399,7 @@ def check():
     ok(got == (COVER_SIZE, COVER_SIZE),
        f"{COVER} is {COVER_SIZE}x{COVER_SIZE}"
        + (f" (it is {got[0]}x{got[1]})" if got and got != (COVER_SIZE, COVER_SIZE) else
-          "" if got else " (missing)"))
+          "" if got else cover_absence(COVER)))
     weight = os.path.getsize(COVER) if got else None
     ok(weight is not None and weight < COVER_LIMIT,
        f"{COVER} is under {COVER_LIMIT // 1000} KB"

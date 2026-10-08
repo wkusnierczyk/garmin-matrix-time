@@ -476,7 +476,8 @@ check-icons:
 # MatrixTimeHero-small.png, both composed with an image model (#130); see make hero.
 # This target writes MatrixTimeHero-draft.png and its banner instead, and never those
 # two, so a capture run cannot overwrite an adopted hero. Recomposing it is owed
-# whenever what the face draws changes.
+# whenever what the face draws changes. The store covers in both directories are
+# make icons' output (#219), and this target never writes them either.
 #
 # The capture and the hero composition come from garmin-graphics-generator, shared
 # with the sibling faces; what is here is the names, the sizes and the reference

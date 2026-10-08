@@ -526,6 +526,11 @@ size the SDK declares for that device. It needs no SDK.
 device asks for. It is a fallback only: it applies to a product added to `manifest.xml` before
 `make icons` has been rerun.
 
+The same tool draws Lite's **store cover**, `resources/graphics/MatrixTimeCover.png`: the 70 x 70
+icon's seven columns of rain, drawn at 500 x 500 rather than scaled up (#219). `make check-icons`
+checks that it is 500 x 500 and under the store's 300 KB. Premium's cover is this one with its star;
+see [Premium launcher icon](#premium-launcher-icon).
+
 ### Premium launcher icon
 <sub>[↑↑ TOC](#table-of-contents) · [↑ Launcher icon](#launcher-icon)</sub>
 
