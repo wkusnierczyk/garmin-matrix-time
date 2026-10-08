@@ -1554,9 +1554,11 @@ and a fork cannot push a tag here at all. Before adding a collaborator, add a ta
 anywhere else.
 
 Publishing to the store is deliberately out of scope. Garmin's submission is a human review flow, and
-the upload's first step alone moves the listing's version irreversibly. Automating as far as a
-downloadable, correctly versioned, signed bundle is the useful part; the draft keeps the last outward
-step a decision.
+the upload's first step alone moves the listing's version irreversibly, with the version typed into a
+free text field rather than read from the bundle
+([reported](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)). Automating
+as far as a downloadable, correctly versioned, signed bundle is the useful part; the draft keeps the
+last outward step a decision.
 
 ## Upstream bug reports
 <sub>[↑↑ TOC](#table-of-contents) · [← Build, test, deploy](#build-test-deploy) · [↓ Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
@@ -1668,3 +1670,11 @@ The same step also publishes: "Upload and publish" makes the file and the typed 
 the description and release notes are updated, which is how 0.2.0 went live under 0.1.0's notes
 (#121). The report suggests uploading, then reviewing the details with the version prefilled from the
 bundle, and publishing only as the last step.
+
+Publishing stays the owner's, so what this repository does is make the right version easy to read and
+the notes ready in time. `make export` names each bundle after the version in its manifest,
+`MatrixTime-1.0.1.iq` (#216), and `tools/release-notes.py` refuses a tag until `CHANGELOG.md` has a
+dated section for it, so the release notes exist before anything is uploaded; see
+[Releases](#releases).
+
+Tested on this face's store beta, 2026-10-08.
