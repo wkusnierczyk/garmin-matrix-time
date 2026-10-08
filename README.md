@@ -554,18 +554,22 @@ and fails if they differ anywhere but at the star. So regenerating Lite alone, w
 that Premium's fallback is the largest size mapped, and that the `drawables.xml` declaring it is in
 place: without it, Premium falls back to Lite's icon.
 
-Premium's **store cover** is `premium/graphics/MatrixTimePremiumCover.png`, also written by `make icons`.
-It is 512 x 512 and about 28 KB, against the store's 300 KB limit. It shows the 70 x 70 icon's rain,
-drawn at the cover's size rather than scaled up, with the same star. A glyph whose cell reaches under
-the star's disc is left out whole: at the cover's size, the disc would otherwise cut it into
-fragments. `make check-icons` checks that the cover is square and under the limit.
+The two **store covers** are written by `make icons` too (#219). Lite's is
+`resources/graphics/MatrixTimeCover.png`, drawn by `tools/make-launcher-icons.py`, and Premium's is
+`premium/graphics/MatrixTimePremiumCover.png`: Lite's, with the same star. Both are 500 x 500, the
+size the store's dashboard asks for, and about 26 KB against its 300 KB limit. They show the 70 x 70
+icon's rain, its seven columns drawn at the cover's size rather than scaled up. On Premium's, a glyph
+whose cell reaches under the star's disc is left out whole: at the cover's size, the disc would
+otherwise cut it into fragments. `make check-icons` checks that both covers are 500 x 500 and under
+the limit, and that Premium's is Lite's pixel for pixel away from the star and the cells it clears.
+So regenerating one cover alone cannot leave the two editions on different artwork unnoticed.
 
 Both targets need `garmin-graphics-generator` 0.7.0 or newer, the first release that can write an
 edition's icons into a directory and jungle of its own. It brings [Pillow](https://python-pillow.org)
 with it, which every icon is drawn with.
 
 Install it for the `python3` on `PATH`, not with pipx or into a separate venv: the Makefile runs the
-tool through that `python3`, so that one Pillow draws Lite's icons, Premium's and the cover. A
+tool through that `python3`, so that one Pillow draws Lite's icons, Premium's and the covers. A
 different Pillow can antialias the glyphs differently, and the icons were generated with 12.1.0.
 `make check-icons` would catch Premium drifting from Lite, but not both drifting together, so
 regenerate with 12.1.0 unless the artwork is meant to change.
@@ -583,7 +587,7 @@ Each edition has a store listing of its own, and so a set of images of its own: 
 them are **generated output** of `make graphics`; do not edit those by hand. The exceptions are the
 published heroes and their banners, which are composed with an image model and picked by hand -- with
 `make hero` for Premium's, and before `make hero` existed for Lite's -- and which `make graphics`
-deliberately does not write; and Premium's store cover, which is drawn from the launcher icon's
+deliberately does not write; and the two store covers, which are drawn from the launcher icon's
 artwork by `make icons`; see [Premium launcher icon](#premium-launcher-icon).
 
 Lite's, in `resources/graphics/`:
@@ -598,6 +602,7 @@ Lite's, in `resources/graphics/`:
 | `MatrixTimeHero-small.png` | the same composition at 900 x 450 | the banner at the top of this file, until Premium's replaced it | composed by hand |
 | `MatrixTimeHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics` |
 | `MatrixTimeHero-draft-small.png` | the same composition at 900 x 450 | the same | `make graphics` |
+| `MatrixTimeCover.png` | the launcher icon's artwork, 500 x 500 | store listing | `make icons` |
 
 Premium's, in `premium/graphics/`:
 
@@ -611,7 +616,7 @@ Premium's, in `premium/graphics/`:
 | `MatrixTimePremiumHero-draft.png` | the five captures scattered across 1440 x 720, face-on | fallback, and what a composed hero is judged against | `make graphics EDITION=premium` |
 | `MatrixTimePremium-default.png` | the face at its defaults, set into the watch render, 200 px wide | the [Features](#features) table | `make graphics EDITION=premium` |
 | `MatrixTimePremium-<setting>.png`, for `timeSize`, `trailLength`, `timeAlign`, `timeColor`, `rainColor`, `alwaysOnBrightness` and `date` | the same, with that one setting changed from its default | the [Features](#features) table | `make graphics EDITION=premium` |
-| `MatrixTimePremiumCover.png` | the launcher icon's artwork, 512 x 512 | store listing | `make icons` |
+| `MatrixTimePremiumCover.png` | Lite's cover with the star, 500 x 500 | store listing | `make icons` |
 
 Premium has no raw capture, since nothing in its listing uses one, and no draft banner. The banner at
 the top of this file is Premium's published hero at 900 x 450, written by `make hero` beside the hero
@@ -784,7 +789,7 @@ typefaces, `resources/fonts/MatrixCodeNFI.ttf`, `resources/fonts/SUSEMono-Regula
 `premium/resources/fonts/SUSEMono-ExtraBold.ttf`; the launcher icon
 fallback, `resources/drawables/launcher_icon.png`; the ten hero and screenshot graphics under
 `resources/graphics/`; and Premium's sixteen under `premium/graphics/`. Everything else is stored
-normally, the generated bitmap fonts, the per-device launcher icons and Premium's store cover
+normally, the generated bitmap fonts, the per-device launcher icons and both store covers
 included -- they are build output of the typefaces and the icon artwork, small, and worth diffing.
 
 `git lfs install` is once per machine, not once per repository, and wants doing before the clone:
@@ -937,12 +942,12 @@ make sideload
 # ... and wait up to five minutes for a watch to be plugged in first
 make sideload WAIT=300
 
-# regenerate both editions' launcher icons and their jungle mappings, and Premium's
-# store cover
+# regenerate both editions' launcher icons and their jungle mappings, and both store
+# covers
 make icons
 
-# regenerate the eight generated images in resources/graphics; the composed hero
-# and its banner are left alone
+# regenerate the eight generated images in resources/graphics; the composed hero,
+# its banner and the cover are left alone
 make graphics
 
 # ... Premium's fourteen in premium/graphics instead; its composed hero, banner and cover are left alone
@@ -1019,7 +1024,7 @@ ignored.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
-fourteen in `premium/graphics/` for Premium. The published heroes, their banners and Premium's cover are
+fourteen in `premium/graphics/` for Premium. The published heroes, their banners and the covers are
 left alone. It needs Docker running and
 [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator) 0.5.1 or
 newer for Lite, 0.6.0 or newer for Premium, and no SDK: the capture runs the Connect IQ simulator
@@ -1048,7 +1053,7 @@ carries the stroke the scaler's rule gives for its family, that the size tables 
 strokes and label exactly those fonts hollow, that no generated `fonts.xml` keeps the `stroke`
 attribute, and that every hollow `.fnt` has its filled twin's metrics in every family, so switching
 style never moves the time. `check-icons` does the same for both editions' launcher icons and their
-per-product mappings in `monkey.jungle` and `premium.jungle`, and for Premium's store cover; see
+per-product mappings in `monkey.jungle` and `premium.jungle`, and for both store covers; see
 [Launcher icon](#launcher-icon).
 
 `make run` and `make test` start the simulator themselves when it is not already up, wait for it to
