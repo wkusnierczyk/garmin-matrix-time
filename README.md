@@ -1007,15 +1007,15 @@ separate Connect IQ app with an id of its own, which the Makefile records per ed
 [`tools/export-beta.sh`](tools/export-beta.sh) copies the tree as `make check-lite` does, puts the
 beta id into the copy's manifest, runs the ordinary export there, checks the id inside the finished
 bundle, and only then writes `export/<app>-<version>-beta.iq`, removing the previous one first as the
-public export does. The tracked manifest keeps the
-public id throughout, even if the run is interrupted. A copy rather than a jungle setting, because
-`monkeyc` will not let a second jungle set `project.manifest` again, nor take `-m` together with
-`-f`. The bundle is a 7-zip archive, so the check needs a `tar` that reads 7-zip, which macOS's
-does; on Linux install `bsdtar` (Debian and Ubuntu: `libarchive-tools`). It is looked for before the
-build. A beta keeps the manifest's version, and the beta app, like the listing, takes a version
-once, so a second beta of one release needs a new version. Lite has no store beta, so `make export
-VERSION=beta` refuses Lite until its `BETA_ID` is set. Only `export` reads `VERSION`, and only from
-the command line: one exported in the shell is ignored.
+public export does. The tracked manifest keeps the public id throughout, even if the run is
+interrupted. A copy rather than a jungle setting, because `monkeyc` will not let a second jungle set
+`project.manifest` again, nor take `-m` together with `-f`. The bundle is a 7-zip archive, so the
+check needs a `tar` that reads 7-zip, which macOS's does; on Linux install `bsdtar` (Debian and
+Ubuntu: `libarchive-tools`). It is looked for before the build. A beta keeps the manifest's version,
+and the beta app, like the listing, takes a version once, so a second beta of one release needs a new
+version. Lite has no store beta, so `make export VERSION=beta` refuses Lite until its `BETA_ID` is
+set. Only `export` reads `VERSION`, and only from the command line: one exported in the shell is
+ignored.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
@@ -1446,9 +1446,9 @@ edition's store listing shows. An edition moves to the tag's version only when t
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 the store bundle of each edition the tag releases, signs it with the real developer key, and attaches
 it to a **draft** GitHub release carrying that version's `CHANGELOG.md` section as its notes. The
-bundles keep the names `make export` gives them, by edition and version, `MatrixTime-0.3.0.iq` and
-`MatrixTimePremium-0.3.0.iq`; the tag is `v0.3.0`, and the version check has already required the two
-to agree. Releases up to 1.0.1 carry the tag in the asset name instead, `MatrixTime-v1.0.1.iq`.
+bundles keep the names `make export` gives them, by edition and version, `MatrixTime-1.1.0.iq` and
+`MatrixTimePremium-1.1.0.iq`; the tag is `v1.1.0`, and the version check has already required the two
+to agree. The 1.0.0 and 1.0.1 releases carry the tag in the asset name instead, `MatrixTime-v1.0.1.iq`.
 Publishing the draft, and uploading each bundle to its Connect IQ store listing afterwards, both stay
 manual. A beta of the same code goes to the edition's store beta instead: `make export EDITION=premium
 VERSION=beta`, run locally from the tagged commit, which the workflow does not build (see [From the
@@ -1456,8 +1456,8 @@ command line](#from-the-command-line)).
 
 ```bash
 # the version of each edition the release changes, and a dated CHANGELOG.md section, come first
-git tag v0.3.0
-git push origin v0.3.0
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
 | Job | What it proves |

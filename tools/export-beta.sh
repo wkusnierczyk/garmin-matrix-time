@@ -84,7 +84,7 @@ diff "$MANIFEST" "$copy/$MANIFEST" | grep -c '^[<>]' | grep -qx 2 ||
 # send the inner bundle out of the copy under the public name. EXPORT names the beta, so that
 # what the inner make prints does too. BETA_ID is emptied because the copy's manifest carries
 # the beta id on purpose, which the public export otherwise refuses.
-inner="export/$APP-beta.iq"
+inner="export/$(basename "$output")"
 echo "Exporting $APP as its beta, $BETA_ID, from a copy of the tree..."
 MAKEFLAGS= MFLAGS= make -C "$copy" --no-print-directory export EDITION="$EDITION" VERSION=public \
      BETA_ID= EXPORT="$inner" SDK_BIN="$sdk" DEV_KEY="$key"

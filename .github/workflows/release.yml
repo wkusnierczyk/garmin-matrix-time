@@ -169,7 +169,7 @@ jobs:
       # version check has already required the tag to be "v" and the manifest's
       # version, so the name is checked here against the tag with the "v" taken
       # off: a mismatch fails the job rather than attaching a misnamed bundle.
-      # Releases before #216 carry the tag instead, MatrixTime-v1.0.1.iq.
+      # The 1.0.0 and 1.0.1 releases carry the tag instead, MatrixTime-v1.0.1.iq.
       - name: Export the store bundle
         shell: bash
         env:
