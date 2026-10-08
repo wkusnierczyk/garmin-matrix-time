@@ -1000,15 +1000,18 @@ into one signed `.iq` under `export/`, which is the file the Connect IQ store ta
 by edition and by the version in that manifest, `export/MatrixTime-1.0.1.iq`, so bundles of two
 versions never share a name (#216). There is no `v`: that is how the tag is spelt, and an export reads
 the manifest, often on a commit no tag names. Each run removes the bundle it is about to write before
-it builds, so a failed run cannot leave an old one at the path that gets uploaded. It also strips
-debug information, which `make build` deliberately keeps so that the simulator and the profiler have
-something to say. `monkeyc` counts part numbers rather than products as it works, so it reports more
-devices than the manifest lists -- several products ship under more than one part, and `venu2` under
-four. The whole set builds in well under a minute, and this is the only build that exercises the
-packaging step, so it is worth running before a release even when nothing about the devices has
-changed. A `v*` tag runs the same target in CI for each edition the tag releases and attaches the
-output to a draft release (see [Releases](#releases)); uploading a bundle to the store is manual
-either way, through the store's web form.
+it builds, so a failed run cannot leave an old one at the path that gets uploaded. The bundle is built
+as `<app>.iq` under `export/.stage/` and only then moved to its versioned name, because `monkeyc`
+names the `.prg` files inside a bundle after the bundle itself: the inner names stay `MatrixTime.prg`,
+as in every bundle the store has taken (#221). It also strips debug information, which `make build`
+deliberately keeps so that the simulator and the profiler have something to say. `monkeyc` counts part
+numbers rather than products as it works, so it reports more devices than the manifest lists --
+several products ship under more than one part, and `venu2` under four. The whole set builds in well
+under a minute, and this is the only build that exercises the packaging step, so it is worth running
+before a release even when nothing about the devices has changed. A `v*` tag runs the same target in
+CI for each edition the tag releases and attaches the output to a draft release (see
+[Releases](#releases)); uploading a bundle to the store is manual either way, through the store's web
+form.
 
 `VERSION` chooses which store app `make export` packages for (#201). `public`, the default, is the
 edition's own listing, under the application id in its manifest; it is what the release workflow

@@ -106,6 +106,14 @@ else
   EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION).iq
 endif
 
+# monkeyc names the .prg files inside a bundle after the bundle itself, and the bundle's
+# manifest lists each product by that name: -o export/MatrixTime-1.0.1.iq packs
+# 006-B4258-00/MatrixTime-1.0.1.prg (#221). So the bundle is built as <app>.iq here and
+# moved to its versioned name after, which keeps the inner names <app>.prg, as in every
+# bundle the store has taken. One directory per edition, so two exports cannot clear
+# each other's.
+EXPORT_STAGE = $(EXPORT_DIR)/.stage/$(APP)
+
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
 # file on Lite's path; CI passes one product per device family.
 ## The products check-lite compares Lite on
@@ -374,13 +382,14 @@ else
 	  echo "$(MANIFEST) carries the beta id $(BETA_ID): a public export of it would be the beta's."; \
 	  echo "Put the public id back, and use VERSION=beta for a beta."; exit 1; }
 	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
-	@mkdir -p $(EXPORT_DIR)
-	@{ $(MONKEYC) $(EXPORT_FLAGS) -o $(EXPORT); echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
+	@rm -rf "$(EXPORT_STAGE)" && mkdir -p "$(EXPORT_STAGE)"
+	@{ $(MONKEYC) $(EXPORT_FLAGS) -o "$(EXPORT_STAGE)/$(APP).iq"; echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
 	  index($$0, s) == 1 { status = substr($$0, length(s) + 1); next } \
 	  $$0 ~ /^[0-9]+ OUT OF [0-9]+ DEVICES BUILT$$/ { \
 	    printf "%*d OUT OF %s DEVICES BUILT\n", length($$4), $$1, $$4; fflush(); next } \
 	  { print; fflush() } \
 	  END { exit status + 0 }'
+	@mv "$(EXPORT_STAGE)/$(APP).iq" $(EXPORT)
 	@echo "Export complete: $(EXPORT)"
 endif
 
