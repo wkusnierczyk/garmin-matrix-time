@@ -66,6 +66,15 @@ EXPORT_DIR := export
 # each other in export/ -- uploading a public bundle publishes it at once (#121). Lite has
 # no beta app, so a Lite beta is refused until its id is added. Only export reads this.
 #
+# Both names carry the edition's version, read from its manifest (#216):
+# export/MatrixTimePremium-1.0.1.iq, or export/MatrixTimePremium-1.0.1-beta.iq. Without
+# it, bundles of two versions share a name, and only the timestamp tells them apart. No
+# "v": that is the tag's spelling, and an export reads the manifest, often on a commit no
+# tag names. The manifest's version is also the number the store shows. release.yml
+# uploads this file under this name, and tools/release-notes.py has already required the
+# tag to be "v" and this version, so the two cannot disagree. Recursive, so the manifest
+# is read only when export asks for the name.
+#
 # It is taken from the command line only. VERSION is a common name for an environment
 # variable, and one exported in the shell, 1.0.0 say, would otherwise fail every target
 # here, or, set to beta, quietly turn a plain "make export" into a beta export. Its origin is
@@ -75,11 +84,12 @@ VERSION ?= public
 ifneq ($(findstring environment,$(origin VERSION)),)
   override VERSION := public
 endif
+APP_VERSION = $(shell sed -nE 's/.*<iq:application[^>]* version="([^"]*)".*/\1/p' $(MANIFEST))
 # Checked in export itself, the one target that reads it, so that no other target fails on it.
 ifeq ($(VERSION),beta)
-  EXPORT := $(EXPORT_DIR)/$(APP)-beta.iq
+  EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION)-beta.iq
 else
-  EXPORT := $(EXPORT_DIR)/$(APP).iq
+  EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION).iq
 endif
 
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
@@ -333,6 +343,7 @@ EXPORT_STATUS := __monkeyc_status__:
 
 ## Build the signed .iq store bundle [EDITION VERSION]
 export:
+	@test -n "$(APP_VERSION)" || { echo "No application version found in $(MANIFEST)."; exit 1; }
 ifeq ($(VERSION),beta)
 	@rm -f $(EXPORT)
 	$(require_sdk)
@@ -341,6 +352,7 @@ ifeq ($(VERSION),beta)
 	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
 else
 	@test "$(VERSION)" = public || { echo 'VERSION must be public or beta, not "$(VERSION)".'; exit 1; }
+	@rm -f $(EXPORT)
 	$(require_sdk)
 	@id=$$(sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p' $(MANIFEST) | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
 	  beta=$$(printf '%s' "$(BETA_ID)" | tr -d '-' | tr '[:upper:]' '[:lower:]'); \

@@ -13,7 +13,7 @@
 #
 # Usage, through the Makefile:
 #   SDK_BIN=... DEV_KEY=... EDITION=premium MANIFEST=manifest-premium.xml APP=MatrixTimePremium \
-#   BETA_ID=<uuid> tools/export-beta.sh export/MatrixTimePremium-beta.iq
+#   BETA_ID=<uuid> tools/export-beta.sh export/MatrixTimePremium-1.0.1-beta.iq
 set -eu
 cd "$(dirname "$0")/.."
 

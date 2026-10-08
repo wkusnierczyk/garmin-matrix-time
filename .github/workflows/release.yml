@@ -161,11 +161,15 @@ jobs:
       # while a container job runs with HOME=/github/home, and monkeyc finds them
       # by expanding ~.
       #
-      # The asset carries the tag in its name where export/ does not. Nothing
-      # downstream reads it -- the store takes the file, not its name -- but a
-      # release page serves several versions of one bundle over time, and
-      # MatrixTime.iq four times in a downloads folder is a version you have to
-      # open the file to identify.
+      # make export names the bundle by edition and version, MatrixTime-1.0.1.iq
+      # (#216), and the asset keeps that name. Nothing downstream reads it -- the
+      # store takes the file, not its name -- but a release page serves several
+      # versions of one bundle over time, and MatrixTime.iq four times in a
+      # downloads folder is a version you have to open the file to identify. The
+      # version check has already required the tag to be "v" and the manifest's
+      # version, so the name is checked here against the tag with the "v" taken
+      # off: a mismatch fails the job rather than attaching a misnamed bundle.
+      # Releases before #216 carry the tag instead, MatrixTime-v1.0.1.iq.
       - name: Export the store bundle
         shell: bash
         env:
@@ -178,8 +182,7 @@ jobs:
             *) echo "::error::unknown edition $EDITION"; exit 1 ;;
           esac
           make export EDITION="$EDITION" SDK_BIN=/connectiq/bin DEV_KEY=/tmp/developer_key
-          mv "export/$app.iq" "export/$app-$GITHUB_REF_NAME.iq"
-          ls -l "export/$app-$GITHUB_REF_NAME.iq"
+          ls -l "export/$app-${GITHUB_REF_NAME#v}.iq"
 
       # if: always(), so a failed export does not leave the key behind for
       # whatever steps this job grows later. The container filesystem goes away
