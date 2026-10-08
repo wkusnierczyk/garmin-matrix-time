@@ -1455,10 +1455,10 @@ from that release (#186):
 Every release still carries a bundle for both editions, each at its own manifest's version, so that one
 release holds everything (#223). With Premium at 1.0.2 and Lite left at 1.0.1, `v1.0.2` carries
 `MatrixTimePremium-1.0.2.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.0.2's code at the
-version Lite is already published as. Where Lite's code has not changed, its `.prg` files are
-byte-identical to the published ones. The notes end with a *Bundles* list that says which bundles the
-release publishes and marks the others **not for upload**: the store takes the version from its upload
-form, not from the bundle, so nothing else would stop a 1.0.1 bundle going up again as 1.0.2.
+version in Lite's manifest. Where Lite's code has not changed, its `.prg` files are byte-identical to
+the 1.0.1 release's. The notes end with a *Bundles* list that says which bundles carry a new version
+at this tag and which carry their version over. Whether a version is published is the owner's
+decision, made in the store, and the repository does not record it.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**

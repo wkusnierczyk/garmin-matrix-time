@@ -85,7 +85,7 @@ jobs:
       # manifest equals the tag, none is ahead of it, and a dated CHANGELOG.md
       # section exists for it; it prints that section as the notes, with the list
       # of bundles at the end, and gives the bundle job's matrix: every edition,
-      # with its manifest's version and whether the tag publishes it. Pure Python,
+      # with its manifest's version and whether that is new at the tag. Pure Python,
       # no SDK, seconds; see its docstring for why the CHANGELOG section has to
       # exist first.
       - name: Check the tag against the manifests and CHANGELOG.md
@@ -171,8 +171,8 @@ jobs:
       # versions of one bundle over time, and MatrixTime.iq four times in a
       # downloads folder is a version you have to open the file to identify. The
       # name is checked against the version the version check read from this
-      # edition's manifest -- the tag's for an edition the tag publishes, the one
-      # it is already published as otherwise (#223) -- so a mismatch fails the job
+      # edition's manifest -- the tag's for an edition with a new version, its
+      # earlier one otherwise (#223) -- so a mismatch fails the job
       # rather than attaching a misnamed bundle. The app name comes from the same
       # list. The 1.0.0 and 1.0.1 releases carry the tag instead, MatrixTime-v1.0.1.iq.
       - name: Export the store bundle

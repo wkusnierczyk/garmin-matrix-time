@@ -4,10 +4,10 @@
 A tag push is the whole trigger for the release workflow (see
 .github/workflows/release.yml), and a tag is just a name someone typed. Nothing
 about `git tag v0.3.0` consults manifest.xml, so a mistyped or stale tag would
-otherwise publish a bundle whose version is not the one on the release page --
-and the version in the bundle is the number the Connect IQ store shows, which
-cannot be uploaded twice. That is the shape of mistake 0.2.0 was lost to, so it
-is worth failing a minute into a release rather than after it.
+otherwise attach a bundle whose version is not the one on the release page --
+and a version number, once used in the Connect IQ store, cannot be used again.
+That is the shape of mistake 0.2.0 was lost to, so it is worth failing a minute
+into a release rather than after it.
 
 Three things have to agree before anything is built:
 
@@ -21,17 +21,17 @@ version is what that edition is published as (#186). An edition moves to the
 tag's version only when it is to be published from that release, so at least
 one manifest must equal the tag, and none may be ahead of it -- a manifest ahead
 of the tag is a bump made for a later release, or a typo. The editions whose
-manifest equals the tag are the ones the tag publishes; an edition left behind
-keeps the version it is already published as.
+manifest equals the tag are the ones with a new version at this tag; an edition
+left behind keeps the version it had.
 
 Every release still carries a bundle for both editions, each at its own
 manifest's version (#223), so that one release holds everything: v1.0.2 carries
 MatrixTimePremium-1.0.2.iq and, with Lite left at 1.0.1, MatrixTime-1.0.1.iq.
-The notes end with a list of the bundles saying which of them this release
-publishes, since a 1.0.1 bundle on a 1.0.2 release would otherwise read as a
-mistake -- and marking the others not for upload: the store takes the version
-from its upload form, not from the bundle, so it would not stop one going up
-again under a new number.
+The notes end with a list of the bundles saying which carry a new version at this
+tag and which carry their version over, since a 1.0.1 bundle on a 1.0.2 release
+would otherwise read as a mistake. Whether a version is, or was, published is the
+store's business and the owner's, not the repository's, and the list does not
+say.
 
 The last is not pedantry. A release whose notes are written afterwards is how
 0.2.1 came to exist: the store took 0.2.0 from the first of two upload steps and
@@ -49,7 +49,7 @@ Usage:
   tools/release-notes.py v0.3.0 -o F         ... and write them to F instead
   tools/release-notes.py v0.3.0 -b F         ... and write every edition's bundle
                                              to F, as a JSON list of
-                                             {edition, app, version, published}
+                                             {edition, app, version, new}
 
 Needs nothing but Python. It reads only what is committed, so it runs on a bare
 runner, before the container the bundle is built in is even pulled.
@@ -129,32 +129,30 @@ def released_editions(version):
     if not released:
         found = ', '.join(f'{m} {manifest_version(m)}' for m in MANIFESTS.values())
         fail(f'no edition is at {version} ({found}); set the version of each edition '
-             f'this release publishes, then tag')
+             f'this release gives a new version, then tag')
     return released
 
 
 def bundles(version):
     """Every edition's bundle for the release `version`: its edition, app name, the
-    version its manifest gives it, and whether this release publishes it (#223)."""
+    version its manifest gives it, and whether that version is new at this tag (#223)."""
     return [{'edition': edition, 'app': APPS[edition],
              'version': manifest_version(manifest),
-             'published': manifest_version(manifest) == version}
+             'new': manifest_version(manifest) == version}
             for edition, manifest in MANIFESTS.items()]
 
 
 def bundle_notes(version):
-    """The notes' closing list: each bundle, and whether this release publishes it."""
+    """The notes' closing list: each bundle, and whether its version is new at this tag."""
     lines = ['### Bundles', '']
     for b in bundles(version):
         name = f"`{b['app']}-{b['version']}.iq`"
-        if b['published']:
-            lines.append(f"- {name}: {NAMES[b['edition']]}, published as {b['version']}.")
+        edition = NAMES[b['edition']]
+        if b['new']:
+            lines.append(f"- {name}: {edition} {b['version']}, a new version in this release.")
         else:
-            # The store takes the version from its upload form, not from the bundle, so
-            # nothing but this line stops the bundle going up again under a new number.
-            lines.append(f"- {name}: {NAMES[b['edition']]}, built from this release at "
-                         f"{b['version']}, the version it is already published as. **Not for "
-                         f"upload:** this release does not republish {NAMES[b['edition']]}.")
+            lines.append(f"- {name}: {edition} {b['version']}, carried over: this release does "
+                         f"not change {edition}'s version.")
     return lines
 
 
@@ -203,7 +201,7 @@ def main():
     if arguments.output:
         with open(arguments.output, 'w', encoding='utf-8') as handle:
             handle.write(notes)
-        print(f'{tag}: publishes {", ".join(editions)}; '
+        print(f'{tag}: new versions of {", ".join(editions)}; '
               f'notes written to {arguments.output}', file=sys.stderr)
     else:
         sys.stdout.write(notes)
