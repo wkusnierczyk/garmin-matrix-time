@@ -41,6 +41,7 @@ available from [Garmin Connect IQ Developer portal](https://apps.garmin.com/apps
   - [Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)
   - [Connect IQ: `onUpdate` runs in always-on before `onEnterSleep`](#connect-iq-onupdate-runs-in-always-on-before-onentersleep)
   - [libmtp: one Garmin USB id listed twice, under a misspelled name](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)
+  - [Connect IQ store: the app version is free text, unchecked against the bundle](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)
 
 <sub>**Navigation:** ↑↑ table of contents · ↑ parent section · ← previous at this level · ↓ subsection · next at this level →</sub>
 
@@ -1561,9 +1562,10 @@ step a decision.
 <sub>[↑↑ TOC](#table-of-contents) · [← Build, test, deploy](#build-test-deploy) · [↓ Connect IQ: `Properties.getValue` takes the app down when no property is declared](#connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared)</sub>
 
 
-Three defects met while building and running this face turned out to lie, at least in part, in the
-tools and the platform under it, and were reported where they belong. All three are worth knowing about if you are working on a Connect IQ
-project of your own, because in each case the symptom points somewhere other than the cause.
+Four problems met while building, running and publishing this face turned out to lie, at least in
+part, in the tools and the platform under it, and were reported where they belong. All four are worth
+knowing about if you are working on a Connect IQ project of your own, because in each case the symptom
+points somewhere other than the cause.
 
 <a id="connect-iq-propertiesgetvalue-takes-the-app-down-when-no-property-is-declared"></a>
 ### Connect IQ: `Properties.getValue` takes the app down when no property is declared
@@ -1627,7 +1629,7 @@ Measured on SDK 9.2.0, `epix2pro47mm`, software 27.18.
 
 <a id="libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name"></a>
 ### libmtp: one Garmin USB id listed twice, under a misspelled name
-<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← Connect IQ: `onUpdate` runs in always-on before `onEnterSleep`](#connect-iq-onupdate-runs-in-always-on-before-onentersleep)</sub>
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← Connect IQ: `onUpdate` runs in always-on before `onEnterSleep`](#connect-iq-onupdate-runs-in-always-on-before-onentersleep) · [Connect IQ store: the app version is free text, unchecked against the bundle →](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)</sub>
 
 
 [libmtp#434](https://github.com/libmtp/libmtp/issues/434) ·
@@ -1645,3 +1647,24 @@ one hardware id, which Garmin's own SDK confirms by mapping them all to the devi
 This is why `tools/sideload.sh` identifies a watch by the part number in `GarminDevice.xml` rather than
 by the name `libmtp` reports. The part number comes from the device; the name comes from a table that
 can be wrong.
+
+<a id="connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle"></a>
+### Connect IQ store: the app version is free text, unchecked against the bundle
+<sub>[↑↑ TOC](#table-of-contents) · [↑ Upstream bug reports](#upstream-bug-reports) · [← libmtp: one Garmin USB id listed twice, under a misspelled name](#libmtp-one-garmin-usb-id-listed-twice-under-a-misspelled-name)</sub>
+
+
+[forums.garmin.com report](https://forums.garmin.com/developer/connect-iq/f/connect-iq-web-store/445730/store-upload-the-app-version-is-free-text-unchecked-against-the-iq-that-already-carries-it)
+· [#121](https://github.com/wkusnierczyk/garmin-matrix-time/issues/121)
+
+The store's upload form asks for the app version in a free text field, although the `.iq` already
+carries it: the `version` attribute of the manifest's `<iq:application>` element, from which
+`make export` also names the bundle. The store does not read it. Tested on this face's store beta, the
+form accepts any string (`foo bar`), a version that does not match the bundle, a version earlier than
+the latest, and the same bundle again under a new version. It refuses only a version string that has
+already been used, whatever the file. So the version the store shows is whatever was typed, and a
+mistyped one can never be used again.
+
+The same step also publishes: "Upload and publish" makes the file and the typed version live before
+the description and release notes are updated, which is how 0.2.0 went live under 0.1.0's notes
+(#121). The report suggests uploading, then reviewing the details with the version prefilled from the
+bundle, and publishing only as the last step.
