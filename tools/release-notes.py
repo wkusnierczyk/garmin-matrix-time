@@ -25,11 +25,12 @@ editions whose manifest equals the tag are the ones with a new version at this
 tag. A mistyped tag is still caught, by the dated CHANGELOG section it needs.
 
 Every release carries a bundle for both editions, each at its own manifest's
-version (#223), so that one release holds everything: v1.0.2 carries
-MatrixTimePremium-1.0.2.iq and, with Lite left at 1.0.1, MatrixTime-1.0.1.iq.
-The notes end with a list of the bundles saying which carry a new version at
-this tag and which carry their version over, since a 1.0.1 bundle on a 1.0.2
-release would otherwise read as a mistake. Uploading a bundle to the store is
+version (#223), so that one release holds everything: a v1.1.0 that gave
+Premium a new version and left Lite at 1.0.1 would carry
+MatrixTimePremium-1.1.0.iq and MatrixTime-1.0.1.iq. The notes end with a list
+of the bundles saying which carry a new version at this tag and which carry
+their version over, since a 1.0.1 bundle on a 1.1.0 release would otherwise read
+as a mistake. Uploading a bundle to the store is
 the owner's, and outside the repository.
 
 The CHANGELOG section is not pedantry. A release whose notes are written

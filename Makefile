@@ -109,7 +109,7 @@ endif
 # manifest lists each product by that name: -o export/MatrixTime-1.0.1.iq packs
 # 006-B4258-00/MatrixTime-1.0.1.prg (#221). So the bundle is built as <app>.iq here and
 # moved to its versioned name after, which keeps the inner names <app>.prg, as in every
-# bundle the store has taken. One directory per edition, so two exports cannot clear
+# public bundle the store has taken. One directory per edition, so two exports cannot clear
 # each other's staged bundle.
 EXPORT_STAGE = $(EXPORT_DIR)/.stage/$(APP)
 
