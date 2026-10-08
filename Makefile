@@ -75,11 +75,35 @@ VERSION ?= public
 ifneq ($(findstring environment,$(origin VERSION)),)
   override VERSION := public
 endif
-# Checked in export itself, the one target that reads it, so that no other target fails on it.
+
+# The bundle's name carries the edition's version, read from its manifest (#216):
+# export/MatrixTimePremium-1.0.1.iq, or export/MatrixTimePremium-1.0.1-beta.iq. Without
+# it, bundles of two versions share a name, and only the timestamp tells them apart. No
+# "v": that is the tag's spelling, and an export reads the manifest, often on a commit no
+# tag names. The manifest's version is also the number the store shows. release.yml
+# uploads this file under this name, and tools/release-notes.py has already required the
+# tag to be "v" and this version, so the two cannot disagree. Recursive, so the manifest
+# is read only when export asks for the name.
+#
+# Only MAJOR.MINOR.PATCH is taken, the format tools/release-notes.py requires. The name goes
+# unquoted into rm and monkeyc, so a version such as "1.0.1 beta" would otherwise split
+# into two arguments, and rm -f would delete a beta.iq from the repo root. The manifest is
+# flattened to one line first, so an <iq:application> start tag rewrapped across lines
+# reads as it does to tools/release-notes.py, whose pattern spans lines: the release gate
+# and the export cannot disagree on it. Then every such start tag is taken, and a version
+# is given only when there is exactly one and it carries MAJOR.MINOR.PATCH. Two would
+# otherwise give "1.0.1 1.0.2", a name that splits too. Anything else reads as no version,
+# which export refuses before any command sees the name.
+APP_VERSION = $(shell tr '\n\r\t' '   ' < "$(MANIFEST)" \
+  | grep -oE '<iq:application[[:space:]][^>]*>' \
+  | awk '{ tag = $$0 } END { if (NR == 1) print tag }' \
+  | sed -nE 's/.*[[:space:]]version="((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))".*/\1/p')
+# VERSION is checked in export itself, the one target that reads it, so that no other
+# target fails on it.
 ifeq ($(VERSION),beta)
-  EXPORT := $(EXPORT_DIR)/$(APP)-beta.iq
+  EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION)-beta.iq
 else
-  EXPORT := $(EXPORT_DIR)/$(APP).iq
+  EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION).iq
 endif
 
 # The products "make check-lite" compares Lite on. One is enough to catch a Premium
@@ -333,6 +357,7 @@ EXPORT_STATUS := __monkeyc_status__:
 
 ## Build the signed .iq store bundle [EDITION VERSION]
 export:
+	@test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
 ifeq ($(VERSION),beta)
 	@rm -f $(EXPORT)
 	$(require_sdk)
@@ -341,6 +366,7 @@ ifeq ($(VERSION),beta)
 	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
 else
 	@test "$(VERSION)" = public || { echo 'VERSION must be public or beta, not "$(VERSION)".'; exit 1; }
+	@rm -f $(EXPORT)
 	$(require_sdk)
 	@id=$$(sed -nE 's/.*<iq:application[^>]* id="([^"]*)".*/\1/p' $(MANIFEST) | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
 	  beta=$$(printf '%s' "$(BETA_ID)" | tr -d '-' | tr '[:upper:]' '[:lower:]'); \
