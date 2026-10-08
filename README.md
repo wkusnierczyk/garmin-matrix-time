@@ -1447,8 +1447,14 @@ which is `1` whether every test passed or one failed (#23).
 
 A tag is a **code release** of the repository: one tag, one GitHub release, one `CHANGELOG.md`
 section, shared by Lite and Premium. Each edition's **version** is the `version` in its own manifest,
-`manifest.xml` for Lite and `manifest-premium.xml` for Premium. The owner decides which editions get a
-new version in a release (#186):
+`manifest.xml` for Lite and `manifest-premium.xml` for Premium. That is this repository's convention,
+not Garmin's: for an app, neither the store nor the watch reads the attribute, and the version the
+store shows is the one typed at upload (see
+[the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)). The
+manifest is kept as the record because it is where tooling can check each edition's version:
+`tools/release-notes.py` against the tag, and `make export` for the bundle's name, which is where the
+version typed at upload is read from, exactly. The owner decides which editions get a new version in
+a release (#186):
 
 * a release that gives only Premium a new version sets `manifest-premium.xml` to the tag's version and
   leaves `manifest.xml` where it is;
@@ -1658,13 +1664,23 @@ can be wrong.
 [forums.garmin.com report](https://forums.garmin.com/developer/connect-iq/f/connect-iq-web-store/445730/store-upload-the-app-version-is-free-text-unchecked-against-the-iq-that-already-carries-it)
 · [#121](https://github.com/wkusnierczyk/garmin-matrix-time/issues/121)
 
-The store's upload form asks for the app version in a free text field, although the `.iq` already
-carries it: the `version` attribute of the manifest's `<iq:application>` element, from which
-`make export` also names the bundle. The store does not read it. Tested on this face's store beta, the
-form accepts any string (`foo bar`), a version that does not match the bundle, a version earlier than
-the latest, and the same bundle again under a new version. It refuses only a version string that has
-already been used, whatever the file. So the version the store shows is whatever was typed, and a
-mistyped one can never be used again.
+The store's upload form asks for the app version in a free text field. Tested on this face's store
+beta, the form accepts any string (`foo bar`), a version that does not match the bundle, a version
+earlier than the latest, and the same bundle again under a new version. It refuses only a version
+string that has already been used, whatever the file. So the version the store shows is whatever was
+typed, and a mistyped one can never be used again.
+
+The report assumed that the `.iq` already carries the app's version, in the `version` attribute of
+the manifest's `<iq:application>` element. For an app, Garmin does not define that attribute: the
+SDK's *Manifest and Permissions* page (`doc/docs/Core_Topics/Manifest_and_Permissions.html` in SDK
+9.2.0) documents `version` only for barrels and barrel dependencies, and of SDK 9.2.0's 43 sample
+apps, 38 have no `version` on `<iq:application>` and the other 5 have `0.0.0`. The first reply to the
+report, from a community member, says the same: "The version in project's manifest.xml is only used
+for barrels". `monkeyc` still copies the attribute into an app's bundle --
+`tar -xOf export/MatrixTime-1.0.1.iq manifest.xml` shows `version="1.0.1"` -- but nothing reads it
+there: not the store, and not the watch, since SDK 9.2.0's API has no call that returns an app's own
+version (#181). So the version in this repository's manifests is a convention of its own, described
+under [Releases](#releases), and the store's version is only ever the one typed at upload.
 
 The same step also publishes: "Upload and publish" makes the file and the typed version live before
 the description and release notes are updated, which is how 0.2.0 went live under 0.1.0's notes
@@ -1672,7 +1688,7 @@ the description and release notes are updated, which is how 0.2.0 went live unde
 bundle, and publishing only as the last step.
 
 Publishing stays the owner's, so what this repository does is make the right version easy to read and
-the notes ready in time. `make export` names each bundle after the version in its manifest,
+the notes ready in time. `make export` names each bundle after the version its manifest records,
 `MatrixTime-1.0.1.iq` or `MatrixTimePremium-1.0.1.iq` (#216), and `tools/release-notes.py` refuses a
 tag until `CHANGELOG.md` has a dated section for it, so the release notes exist before anything is
 uploaded; see [Releases](#releases).
