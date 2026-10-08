@@ -12,7 +12,10 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
-## Unreleased
+## 1.0.1 -- 2026-10-08
+
+A fix for both editions: the screen now stays dark in sleep mode, as it does with Garmin's own
+watch faces.
 
 ### Fixed
 
