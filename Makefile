@@ -419,16 +419,17 @@ check-lite:
 # come from the shared garmin-graphics-generator, into premium/resources-icon-<size>/
 # and mapped from premium.jungle, which only a Premium build reads -- so Lite never
 # sees them, and make check-lite holds. premium/tools/launcher_icon.py is the
-# renderer, and also writes and checks the store cover, which the shared command
-# knows nothing about.
+# renderer, and also writes and checks Premium's store cover, which the shared command
+# knows nothing about. The covers follow the icons (#219): Lite's is drawn by
+# tools/make-launcher-icons.py, and Premium's is Lite's with the star.
 #
 # 0.7.0 is the first release that can target an edition: its own manifest, jungle and
 # icon directory. --check needs no SDK, as Lite's does.
 #
 # The tool runs through the python3 on PATH, not through its garmin-graphics-generator
 # script, which may belong to another interpreter (pipx, a venv). That python3 draws
-# Lite's icons and the cover, and the tool's -R loads the Premium renderer into its own
-# interpreter, so this way one Pillow draws all three. Two Pillows antialias the glyphs
+# Lite's icons and both covers, and the tool's -R loads the Premium renderer into its
+# own interpreter, so this way one Pillow draws all of them. Two Pillows antialias the glyphs
 # differently -- 12.1.0 against 12.3.0 at 60 px -- and Premium would quietly stop being
 # Lite's icon but for the star.
 ICONS_TOOL_VERSION := 0.7.0
@@ -445,7 +446,7 @@ define require_icons_tool
   echo "python3 on PATH (python3 -m pip install ...); see README.md."; exit 1; }
 endef
 
-## Regenerate the launcher icons and the cover
+## Regenerate the launcher icons and the covers
 icons:
 	$(require_icons_tool)
 	@echo "Generating launcher icons..."
@@ -455,7 +456,7 @@ icons:
 	  --fallback-icon $(PREMIUM_FALLBACK)
 	@python3 premium/tools/launcher_icon.py cover $(PREMIUM_COVER)
 
-## Check the launcher icons and the cover
+## Check the launcher icons and the covers
 check-icons:
 	$(require_icons_tool)
 	@echo "Checking launcher icon configuration consistency..."
@@ -475,7 +476,8 @@ check-icons:
 # MatrixTimeHero-small.png, both composed with an image model (#130); see make hero.
 # This target writes MatrixTimeHero-draft.png and its banner instead, and never those
 # two, so a capture run cannot overwrite an adopted hero. Recomposing it is owed
-# whenever what the face draws changes.
+# whenever what the face draws changes. The store covers in both directories are
+# make icons' output (#219), and this target never writes them either.
 #
 # The capture and the hero composition come from garmin-graphics-generator, shared
 # with the sibling faces; what is here is the names, the sizes and the reference

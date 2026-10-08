@@ -16,8 +16,11 @@ stops being characters and becomes noise. Rendering natively keeps the glyph cel
 at a constant ~10px on every device, so a bigger icon shows more rain rather than
 the same rain drawn larger, and no glyph is ever resampled.
 
+The store cover is the same artwork once more, square and much larger, with the column
+count fixed instead of the cell size (#219). Premium's cover is this one with its star.
+
 Usage:
-  tools/make-launcher-icons.py           regenerate icons and the jungle mapping
+  tools/make-launcher-icons.py           regenerate icons, the jungle mapping and the cover
   tools/make-launcher-icons.py --table   print the README size table
   tools/make-launcher-icons.py --check   verify what is committed is consistent
 
@@ -67,6 +70,15 @@ HEAD_STAGGER = 2
 # Fixed, so regenerating without changing the rules reproduces the same artwork.
 SEED = 20260917
 
+# The store cover is the 70 x 70 icon's composition -- the same 7 columns of rain and
+# the same glyphs -- drawn at the cover's size rather than scaled up from 70 (#189,
+# #219). 500 x 500 is the size the store's dashboard asks for, and the store allows
+# 300 KB. premium/tools/launcher_icon.py draws Premium's from this one, with its star.
+COVER = 'resources/graphics/MatrixTimeCover.png'
+COVER_SIZE = 500
+COVER_COLUMNS = 7
+COVER_LIMIT = 300 * 1000
+
 
 # resources/drawables/launcher_icon.png is rendered once more at the largest required
 # size. That copy is what a product gets if it is added to manifest.xml without
@@ -105,10 +117,17 @@ def sdk_sizes(ids):
 
 # ------------------------------------------------------------------------ rendering
 
-def render(size):
+def columns_for(size):
+    """How many columns an icon `size` pixels wide gets: one per PIXELS_PER_CELL."""
+    return max(3, int(size / PIXELS_PER_CELL + 0.5))
+
+
+def render(size, columns=None):
+    """The rain, `size` pixels square, in `columns` columns: by default as many as fit
+    at PIXELS_PER_CELL. The cover fixes the count instead, and so draws larger glyphs."""
     from PIL import Image, ImageDraw, ImageFont
 
-    columns = max(3, int(size / PIXELS_PER_CELL + 0.5))
+    columns = columns or columns_for(size)
     cell_w = size / columns
 
     # Fit the widest glyph in the charset, not a representative one: the typeface is
@@ -168,9 +187,26 @@ def png_size(path):
     return int.from_bytes(head[16:20], 'big'), int.from_bytes(head[20:24], 'big')
 
 
+def cover_absence(path):
+    """Why a cover has no PNG size, for a check's message: missing, or not a PNG -- an
+    LFS pointer, say."""
+    return " (missing)" if not os.path.exists(path) else " (not a PNG)"
+
+
 def write_icon(path, size):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     render(size).save(path)
+
+
+def cover(size=COVER_SIZE):
+    """The store cover: the 70 x 70 icon's rain, drawn at `size`."""
+    return render(size, COVER_COLUMNS)
+
+
+def write_cover(path=COVER):
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    cover().save(path, optimize=True)
+    print(f"  {COVER_SIZE}x{COVER_SIZE}  {path}  ({os.path.getsize(path)} bytes, store cover)")
 
 
 # -------------------------------------------------------------------- jungle mapping
@@ -295,6 +331,8 @@ def generate():
     write_icon(BASE_ICON, fallback)
     print(f"  {fallback}x{fallback}  {BASE_ICON}  (fallback)")
 
+    write_cover()
+
     # Read before opening for write: `open(JUNGLE, 'w')` truncates, and as the
     # receiver of .write() it is evaluated before the argument that reads the file.
     text = open(JUNGLE).read()
@@ -355,6 +393,17 @@ def check():
     orphans = sorted(unmapped(set(mapped.values())))
     ok(not orphans, "no icon directory left unmapped"
        + (f" ({orphans})" if orphans else ""))
+
+    print("\nCOVER")
+    got = png_size(COVER) if os.path.exists(COVER) else None
+    ok(got == (COVER_SIZE, COVER_SIZE),
+       f"{COVER} is {COVER_SIZE}x{COVER_SIZE}"
+       + (f" (it is {got[0]}x{got[1]})" if got and got != (COVER_SIZE, COVER_SIZE) else
+          "" if got else cover_absence(COVER)))
+    weight = os.path.getsize(COVER) if got else None
+    ok(weight is not None and weight < COVER_LIMIT,
+       f"{COVER} is under {COVER_LIMIT // 1000} KB"
+       + (f" ({weight} bytes)" if weight is not None else ""))
 
     print("\nREADME")
     stated = readme_table()

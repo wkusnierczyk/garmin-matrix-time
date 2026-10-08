@@ -591,7 +591,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Regenerate an edition's generated store images from the "
         "simulator: Lite's in resources/graphics, Premium's in premium/graphics. The "
-        "composed heroes, their banners and Premium's cover are left alone."
+        "composed heroes, their banners and the covers are left alone."
     )
     parser.add_argument(
         "-e",

@@ -23,7 +23,9 @@ size: at 38 x 38 the star keeps the clearest outline and hides the least rain, a
 corner would vanish if a launcher crops icons to a circle.
 
 Generating and checking both need Pillow: `check` compares every Premium icon with
-Lite's, pixel by pixel, outside the star.
+Lite's, pixel by pixel, outside the star, and Premium's store cover with Lite's outside
+the star and the cells it clears. The cover check also reads Lite's rain font, to lay
+out those cells.
 """
 import importlib.util
 import math
@@ -47,12 +49,8 @@ DISC = 1.12
 # antialiased. The rain is not: it is Lite's, drawn natively at the target size.
 SUPERSAMPLE = 8
 
-# The store cover is the 70 x 70 icon's composition -- the same 7 columns of rain
-# and the same glyphs -- drawn at the cover's size rather than scaled up from 70.
-# Square, and well within the store's 300 KB.
-COVER_SIZE = 512
-COVER_COLUMNS = 7
-COVER_LIMIT = 300 * 1000
+# The store cover is Lite's cover with the star (#219): its size, column count and the
+# store's limit are Lite's, in tools/make-launcher-icons.py.
 
 # How far from the disc's edge, measured from pixel centres, Premium may differ from
 # Lite: the antialiased rim of the resampled disc reaches about 2.6 px.
@@ -110,8 +108,9 @@ def render(size):
     return _marked(LITE.render(size))
 
 
-def _cells(size):
-    """The glyph cells LITE.render lays out at `size`, as (x0, y0, x1, y1) boxes.
+def _cells(size, columns=None):
+    """The glyph cells LITE.render lays out at `size` in `columns` columns, as
+    (x0, y0, x1, y1) boxes.
 
     This mirrors the sizing at the top of LITE.render: the column count, the widest
     glyph fitted to a cell, the leading and the row count. `cover` checks that every
@@ -119,7 +118,7 @@ def _cells(size):
     """
     from PIL import ImageFont
 
-    columns = max(3, int(size / LITE.PIXELS_PER_CELL + 0.5))
+    columns = columns or LITE.columns_for(size)
     cell_w = size / columns
     for points in range(int(cell_w * 2) + 6, 3, -1):
         font = ImageFont.truetype(LITE.FONT, points)
@@ -135,24 +134,27 @@ def _cells(size):
             for c in range(columns) for r in range(rows)]
 
 
-def cover(size=COVER_SIZE):
-    """The store cover: the 70 x 70 icon's rain at `size`, with the star.
+def _cleared(cells, size):
+    """The pixel boxes the cover blanks, (x0, y0, x1, y1) inclusive: one per cell that
+    reaches under the star's disc, a pixel wider all round, and truncated to whole
+    pixels as Pillow truncates a rectangle's coordinates. `cover` paints exactly these
+    and `_cover_drift` skips exactly these, so the two cannot disagree by a pixel."""
+    cx, cy, d = _disc(size)
+    return [(int(x0 - 1), int(y0 - 1), int(x1 + 1), int(y1 + 1)) for x0, y0, x1, y1 in cells
+            if math.hypot(min(max(cx, x0), x1) - cx, min(max(cy, y0), y1) - cy) < d]
+
+
+def cover(size=None):
+    """The store cover: Lite's cover, with the star (#219).
 
     A glyph whose cell reaches under the disc is left out whole. At icon sizes the
     disc trims such a glyph by a pixel or two; at the cover's size it would cut it
     into fragments that read as dirt around the star."""
     from PIL import Image, ImageChops, ImageDraw
 
-    # Lite's renderer fixes the glyph cell at PIXELS_PER_CELL and lets the size decide
-    # how many columns fit. For the cover the column count is what is fixed, so the
-    # cell is widened for this one call and put back.
-    cell = LITE.PIXELS_PER_CELL
-    LITE.PIXELS_PER_CELL = size / COVER_COLUMNS
-    try:
-        rain = LITE.render(size)
-        cells = _cells(size)
-    finally:
-        LITE.PIXELS_PER_CELL = cell
+    size = size or LITE.COVER_SIZE
+    rain = LITE.cover(size)
+    cells = _cells(size, LITE.COVER_COLUMNS)
 
     inside = Image.new('L', rain.size, 0)
     for x0, y0, x1, y1 in cells:
@@ -162,19 +164,44 @@ def cover(size=COVER_SIZE):
         sys.exit(f"cover: Lite's renderer drew outside the cells _cells() expects, at {stray}; "
                  "bring _cells() back in step with tools/make-launcher-icons.py")
 
-    cx, cy, d = _disc(size)
     draw = ImageDraw.Draw(rain)
-    for x0, y0, x1, y1 in cells:
-        nearest = (min(max(cx, x0), x1), min(max(cy, y0), y1))
-        if math.hypot(nearest[0] - cx, nearest[1] - cy) < d:
-            draw.rectangle((x0 - 1, y0 - 1, x1 + 1, y1 + 1), fill=(0, 0, 0))
+    for box in _cleared(cells, size):
+        draw.rectangle(box, fill=(0, 0, 0))
     return _marked(rain)
 
 
 def write_cover(path):
     os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
     cover().save(path, optimize=True)
-    print(f"  {COVER_SIZE}x{COVER_SIZE}  {path}  ({os.path.getsize(path)} bytes)")
+    size = LITE.COVER_SIZE
+    print(f"  {size}x{size}  {path}  ({os.path.getsize(path)} bytes)")
+
+
+def _cover_drift(cover_path):
+    """Pixels where Premium's cover differs from Lite's, away from the star and from the
+    cells it leaves out. -1 if either is missing or unreadable, not square, or the two
+    differ in size: the size checks report which, and a malformed file must fail the
+    check rather than end it in a traceback."""
+    from PIL import Image
+
+    lite_path = os.path.join(ROOT, LITE.COVER)
+    try:
+        lite = Image.open(lite_path).convert('RGB')
+        premium = Image.open(cover_path).convert('RGB')
+    except OSError:
+        # Missing files raise FileNotFoundError; unreadable ones UnidentifiedImageError.
+        # Both are OSErrors.
+        return -1
+    if lite.size != premium.size or lite.width != lite.height:
+        return -1
+    size = lite.width
+    cx, cy, d = _disc(size)
+    cleared = _cleared(_cells(size, LITE.COVER_COLUMNS), size)
+    a, b = lite.load(), premium.load()
+    return sum(1 for y in range(size) for x in range(size)
+               if a[x, y] != b[x, y]
+               and math.hypot(x + .5 - cx, y + .5 - cy) > d + RIM
+               and not any(x0 <= x <= x1 and y0 <= y <= y1 for x0, y0, x1, y1 in cleared))
 
 
 def _drift(size):
@@ -227,13 +254,22 @@ def check(fallback, cover_path):
            + ("" if drift == 0 else f" ({'sizes differ' if drift < 0 else f'{drift} pixels differ'};"
               " regenerate both with make icons)"))
 
+    size, limit = LITE.COVER_SIZE, LITE.COVER_LIMIT
     got = LITE.png_size(cover_path) if os.path.exists(cover_path) else None
-    ok(got is not None and got[0] == got[1],
-       f"{cover_path} is a square PNG" + (f" ({got[0]}x{got[1]})" if got else " (missing)"))
+    ok(got == (size, size),
+       f"{cover_path} is {size}x{size}" + (f" (it is {got[0]}x{got[1]})" if got and got != (size, size)
+                                          else "" if got else LITE.cover_absence(cover_path)))
     weight = os.path.getsize(cover_path) if got else None
-    ok(weight is not None and weight < COVER_LIMIT,
-       f"{cover_path} is under {COVER_LIMIT // 1000} KB"
+    ok(weight is not None and weight < limit,
+       f"{cover_path} is under {limit // 1000} KB"
        + (f" ({weight} bytes)" if weight is not None else ""))
+
+    # Regenerating Lite's cover alone, with tools/make-launcher-icons.py, would leave
+    # Premium's on the old artwork (#219).
+    drift = _cover_drift(cover_path)
+    ok(drift == 0, f"{cover_path} is {LITE.COVER} but for the star"
+       + ("" if drift == 0 else f" ({'missing, unreadable or of different sizes' if drift < 0 else f'{drift} pixels differ'};"
+          " regenerate both with make icons)"))
 
     print(f"\n{'ALL CONSISTENT' if not fail else f'{len(fail)} PROBLEM(S)'}\n")
     return 1 if fail else 0
