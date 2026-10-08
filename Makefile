@@ -81,8 +81,8 @@ endif
 # it, bundles of two versions share a name, and only the timestamp tells them apart. No
 # "v": that is the tag's spelling, and an export reads the manifest, often on a commit no
 # tag names. The manifest's version is also the number the store shows. release.yml
-# uploads this file under this name, and tools/release-notes.py has already required the
-# tag to be "v" and this version, so the two cannot disagree. Recursive, so the manifest
+# attaches this file under this name, after checking it against the version
+# tools/release-notes.py read from the same manifest (#223). Recursive, so the manifest
 # is read only when export asks for the name.
 #
 # Only MAJOR.MINOR.PATCH is taken, the format tools/release-notes.py requires. The name goes
