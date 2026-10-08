@@ -32,6 +32,8 @@ No user-visible effect on either watch face:
   release may give new versions to both editions, one, or neither, as this one does. (#223, #224)
 * Lite gets a store cover, the same artwork as Premium's without the star, and both covers are
   500 x 500. (#219, #220)
+* The README links a report to Garmin: the Connect IQ store takes the app version from a free text
+  field, not from the bundle, and publishes it before the release notes are in. (#226, #227)
 
 ## 1.0.1 -- 2026-10-08
 
