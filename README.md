@@ -578,7 +578,9 @@ Both targets need `garmin-graphics-generator` 0.8.1 or newer. 0.7.0 is the first
 write an edition's icons into a directory and jungle of its own, 0.8.0 the first that writes and
 checks the table above and checks the fallback, which Lite's own script did until #78, and 0.8.1 the
 first whose `Regenerate with:` line in each jungle's mapping block names the renderer, so that the
-command it records works when pasted at the repository root (#231). That command redoes one
+command it records works when pasted at the repository root. 0.8.1 is the minimum, not just the
+release installed below, so that every machine writes that line the same way: with 0.8.0 on one and
+0.8.1 on another, each `make icons` would rewrite it back (#231). The recorded command redoes one
 edition's icons and neither cover, so `make icons` stays the way to regenerate them. The tool brings
 [Pillow](https://python-pillow.org) with it, which every icon is drawn with.
 
