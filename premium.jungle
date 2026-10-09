@@ -50,10 +50,12 @@ rectangle-448x486.resourcePath = $(rectangle-448x486.resourcePath);premium/resou
 # The fallback in premium/resources-base covers less than Lite's does: a product that
 # monkey.jungle maps and this block does not yet would get Lite's per-size icon,
 # because a per-product entry outranks the base path. make check-icons reports such a
-# product as unmapped. Regenerate with make icons, which passes the renderer too.
+# product as unmapped. Regenerate with make icons rather than the command recorded
+# below, which redoes Premium's icons alone: make icons also redoes Lite's, which
+# Premium's must stay in step with, and both store covers (#219).
 # BEGIN generated launcher icon mapping -- garmin-graphics-generator
 # Launcher icon size is per device, not per device family.
-# Regenerate with: garmin-graphics-generator icons --manifest manifest-premium.xml --jungle premium.jungle --icon-root premium --fallback-icon premium/resources-base/drawables/launcher_icon.png
+# Regenerate with: garmin-graphics-generator icons -R premium/tools/launcher_icon.py --manifest manifest-premium.xml --jungle premium.jungle --icon-root premium --fallback-icon premium/resources-base/drawables/launcher_icon.png
 approachs50.resourcePath = $(approachs50.resourcePath);premium/resources-icon-56
 approachs7042mm.resourcePath = $(approachs7042mm.resourcePath);premium/resources-icon-60
 approachs7047mm.resourcePath = $(approachs7047mm.resourcePath);premium/resources-icon-70

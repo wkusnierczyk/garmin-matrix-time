@@ -437,7 +437,9 @@ check-lite:
 # 0.7.0 is the first release that can target an edition: its own manifest, jungle and
 # icon directory. 0.8.0 is the first that writes and checks the README table and checks
 # the fallback icon (garmin-graphics-generator#9), what Lite's local script did before
-# #78. --check needs no SDK.
+# #78. 0.8.1 is the first that records the renderer in the jungle's "Regenerate with:"
+# line (garmin-graphics-generator#29), and the minimum is 0.8.1 so that every machine
+# writes that line the same way (#231). --check needs no SDK.
 #
 # The tool runs through the python3 on PATH, not through its garmin-graphics-generator
 # script, which may belong to another interpreter (pipx, a venv). That python3 draws
@@ -445,7 +447,7 @@ check-lite:
 # own interpreter, so this way one Pillow draws all of them. Two Pillows antialias the glyphs
 # differently -- 12.1.0 against 12.3.0 at 60 px -- and Premium would quietly stop being
 # Lite's icon but for the star.
-ICONS_TOOL_VERSION := 0.8.0
+ICONS_TOOL_VERSION := 0.8.1
 ICONS_TOOL := python3 -c 'import sys; from garmin_graphics_generator.cli import main; \
   sys.argv[0] = "garmin-graphics-generator"; sys.exit(main())'
 LITE_ICONS := --readme-anchor 'Each supported product is mapped to the icon its device asks for'
