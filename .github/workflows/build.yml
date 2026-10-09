@@ -81,7 +81,7 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/tools"
           "$RUNNER_TEMP/tools/bin/pip" install --quiet --no-deps \
-            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@bbf03bb84b47875bad2d0dc4fef0f5f762a58527'  # DRAFT (#78): wkusnierczyk/garmin-graphics-generator#38 merged, unreleased; replace with v0.8.0
+            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@b9fa4b4a2279876e43ec4fb8a542a842118624e0'  # v0.8.0
           "$RUNNER_TEMP/tools/bin/pip" install --quiet Pillow==12.1.0
           echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
 
@@ -93,9 +93,7 @@ jobs:
         run: make check-fonts
 
       - name: Launcher icons
-        # DRAFT (#78): the unreleased commit above still calls itself 0.7.0. Drop the
-        # override with the pin above, once 0.8.0 is released.
-        run: make check-icons ICONS_TOOL_VERSION=0.7.0
+        run: make check-icons
 
       # manifest-premium.xml duplicates manifest.xml's product list; this fails the
       # moment the two drift (#135).
