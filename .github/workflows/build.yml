@@ -217,13 +217,24 @@ jobs:
       # too, on the same cause and with fifty products' worth of output after it,
       # so the default -- skip once an earlier step has failed -- is the behaviour
       # that reports the fault once.
+      #
+      # Premium's build stamp, the version and date its About entry shows (#181), is
+      # removed first and looked for after. The build step above leaves one behind, so
+      # without this an export that had stopped writing its own would pass here on that
+      # one -- and release.yml, which exports on a fresh checkout, would ship Unknown.
+      # AboutTest proves the stamp reaches a build; this proves export writes it.
       - name: Export the store bundle
         shell: bash
         env:
           HOME: /root
         run: |
+          rm -rf premium/resources-stamp
           make export EDITION=${{ matrix.edition }} SDK_BIN=/connectiq/bin DEV_KEY=/tmp/ci_key
           ls -l export/*.iq
+          if [ "${{ matrix.edition }}" = premium ]; then
+            grep -q '<string id="AppVersion">[0-9]' premium/resources-stamp/strings/stamp.xml || {
+              echo "::error::make export did not write the Premium build stamp (#181)"; exit 1; }
+          fi
 
       # The Lite invariant (#135). Lite is frozen, and Premium is built from the same
       # tree, so the one thing a Premium change must never do is alter Lite. This

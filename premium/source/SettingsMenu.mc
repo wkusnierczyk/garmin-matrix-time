@@ -172,6 +172,20 @@ module SettingsMenu {
         return values[0];
     }
 
+    // The page an item opens, for the items that are not a setting: the preset slots (#172) and
+    // About (#181). Null for a setting, which select steps instead. Apart from onSelect so that a
+    // test can check the routing: a watch face's tests may not push a view.
+    function pageFor(id as String) as [WatchUi.Views, WatchUi.InputDelegates] or Null {
+        if (id.equals(Presets.LOAD_PROPERTY) || id.equals(Presets.SAVE_PROPERTY)) {
+            var saving = id.equals(Presets.SAVE_PROPERTY);
+            return [new PresetsMenuView(saving), new PresetsMenuDelegate(saving)];
+        }
+        if (id.equals(About.ID)) {
+            return [new AboutMenuView(), new AboutMenuDelegate()];
+        }
+        return null;
+    }
+
     function labelOf(property as String, value as Number) as String {
         var values = valuesOf(property);
         for (var i = 0; i < values.size(); ++i) {
@@ -235,13 +249,9 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item as WatchUi.MenuItem) as Void {
         var property = item.getId() as String;
-        if (property.equals(Presets.LOAD_PROPERTY) || property.equals(Presets.SAVE_PROPERTY)) {
-            var saving = property.equals(Presets.SAVE_PROPERTY);
-            WatchUi.pushView(new PresetsMenuView(saving), new PresetsMenuDelegate(saving), WatchUi.SLIDE_LEFT);
-            return;
-        }
-        if (property.equals(About.ID)) {
-            WatchUi.pushView(new AboutMenuView(), new AboutMenuDelegate(), WatchUi.SLIDE_LEFT);
+        var page = SettingsMenu.pageFor(property);
+        if (page != null) {
+            WatchUi.pushView(page[0], page[1], WatchUi.SLIDE_LEFT);
             return;
         }
         var value = SettingsMenu.next(SettingsMenu.valuesOf(property), SettingsMenu.selected(property));

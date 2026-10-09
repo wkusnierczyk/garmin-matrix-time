@@ -11,7 +11,8 @@ class AboutTest {
     // make writes the stamp before every Premium build, this suite's included, so the build
     // under test carries a real version and date, not the Unknown fallbacks. A failure here
     // means the stamp no longer reaches the build: premium.jungle lost premium/resources-stamp,
-    // or the Makefile stopped writing it.
+    // or, on a tree with no stamp left from an earlier build, make test stopped writing it.
+    // That export writes it is build.yml's to check.
     (:test)
     static function theBuildIsStampedWithItsVersionAndDate(logger as Test.Logger) as Boolean {
         Test.assertMessage(isVersion(About.version()), "\"" + About.version() + "\" is MAJOR.MINOR.PATCH");
@@ -30,6 +31,35 @@ class AboutTest {
         Test.assertEqual(item.getLabel(), "About");
         Test.assertEqual(item.getSubLabel() as String, "Version " + About.version());
         return true;
+    }
+
+
+    // Selecting About opens its page rather than falling through to the settings' path, which
+    // would write an undeclared "about" property. The presets keep their pages, and a setting
+    // opens none.
+    (:test)
+    static function selectingAboutOpensItsPage(logger as Test.Logger) as Boolean {
+        Test.assertMessage(viewFor(About.ID) instanceof AboutMenuView, "About opens AboutMenuView");
+        Test.assertMessage(delegateFor(About.ID) instanceof AboutMenuDelegate, "with AboutMenuDelegate");
+        Test.assertMessage(viewFor(Presets.LOAD_PROPERTY) instanceof PresetsMenuView, "Load preset opens the slots");
+        Test.assertMessage(viewFor(Presets.SAVE_PROPERTY) instanceof PresetsMenuView, "Save opens the slots");
+        var properties = SettingsMenu.properties();
+        for (var i = 0; i < properties.size(); ++i) {
+            Test.assertMessage(SettingsMenu.pageFor(properties[i]) == null, properties[i] + " opens no page");
+        }
+        return true;
+    }
+
+
+    static function viewFor(id as String) as WatchUi.Views or Null {
+        var page = SettingsMenu.pageFor(id);
+        return page == null ? null : page[0];
+    }
+
+
+    static function delegateFor(id as String) as WatchUi.InputDelegates or Null {
+        var page = SettingsMenu.pageFor(id);
+        return page == null ? null : page[1];
     }
 
 

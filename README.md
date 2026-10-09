@@ -1068,8 +1068,8 @@ ignored.
 defaults to today, in UTC. Every Premium build writes it into the build, with the manifest's version
 (see [Editions in the build](#editions-in-the-build)), so two Premium builds made on different days
 differ by it; `BUILD_DATE` fixes it, so that a build can be repeated byte for byte, the beta export's
-too. Anything but `YYYY-MM-DD` is refused, and, as with `VERSION`, it is read from the command line
-only. Lite ignores it.
+too. Anything but `YYYY-MM-DD`, with a month from 01 to 12 and a day from 01 to 31, is refused, and,
+as with `VERSION`, it is read from the command line only. Lite ignores it.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
@@ -1226,7 +1226,9 @@ they write `premium/resources-stamp/strings/stamp.xml`, whose `AppVersion` is th
 fallbacks committed there. The directory is gitignored, and `make clean` removes it. A build that does
 not go through `make`, such as the capture tools' container builds, shows the stamp the last `make`
 build left, or `Unknown` on a clean tree: `monkeyc` skips a resource path that does not exist.
-`AboutTest` fails on a build that was not stamped. Lite reads none of it, so `make check-lite` holds.
+`AboutTest` fails on a build that was not stamped, and CI's export step deletes the stamp first and
+fails unless the export wrote it again: a stamp left by an earlier build would otherwise pass for the
+export's own. Lite reads none of it, so `make check-lite` holds.
 
 Three checks keep the editions honest:
 
@@ -1346,8 +1348,9 @@ to the next offered one.
 `AboutTest`, also in `premium/source/tests/`, covers the About entry: that the build under test
 carries a stamped version and date, `MAJOR.MINOR.PATCH` and `YYYY-MM-DD`, rather than the `Unknown`
 fallbacks, so it fails if the stamp stops reaching the build; that About is the settings menu's last
-item, with the version under it; and that its page shows the version, the build date and the contact
-address, and nothing else.
+item, with the version under it; that selecting it opens its page, the preset items theirs and a
+setting none; and that the page shows the version, the build date and the contact address, and
+nothing else.
 
 `PresetsTest`, also in `premium/source/tests/`, covers the presets: that a load brings back every
 setting of the saved look and leaves always-on brightness and the date alone, that an empty slot loads

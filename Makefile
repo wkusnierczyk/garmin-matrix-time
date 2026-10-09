@@ -128,7 +128,7 @@ STAMP := $(STAMP_DIR)/strings/stamp.xml
 ifeq ($(EDITION),premium)
 define stamp
 @test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
-@printf '%s\n' '$(BUILD_DATE)' | grep -qxE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || { \
+@printf '%s\n' '$(BUILD_DATE)' | grep -qxE '[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])' || { \
   echo 'BUILD_DATE must be YYYY-MM-DD, not "$(BUILD_DATE)".'; exit 1; }
 @mkdir -p $(dir $(STAMP)) && printf '%s\n' \
   '<!-- Written by make on every Premium build (#181); see STAMP in the Makefile. -->' \
