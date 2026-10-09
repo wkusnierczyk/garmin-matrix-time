@@ -105,6 +105,40 @@ else
   EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION).iq
 endif
 
+# Premium's About entry shows the version installed on the watch and the day it was built
+# (#181), and an app cannot read either for itself: SDK 9.2.0 has no call that returns an
+# app's own version, and the manifest's version attribute never reaches the .prg. So every
+# Premium build first writes both into a string resource, STAMP, which premium.jungle puts
+# after premium/resources-base, so that its AppVersion and BuildDate replace the fallbacks
+# committed there. The version is APP_VERSION, the manifest's, read as export reads it, so the
+# manifest stays the one record of it; a manifest with none fails the build. STAMP is
+# gitignored, and Lite's build never reads it, so make check-lite holds.
+#
+# The date is the build's, in UTC: for a store install, the day make export built the bundle,
+# which for a tagged release is release.yml's run. BUILD_DATE=YYYY-MM-DD fixes it, so that a
+# Premium build can be repeated byte for byte on another day. Taken from the command line only,
+# as VERSION is: a BUILD_DATE in the shell's environment is ignored.
+## The date Premium's About entry gives its build, YYYY-MM-DD; today, in UTC, by default
+BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
+ifneq ($(findstring environment,$(origin BUILD_DATE)),)
+  override BUILD_DATE := $(shell date -u +%Y-%m-%d)
+endif
+STAMP_DIR := premium/resources-stamp
+STAMP := $(STAMP_DIR)/strings/stamp.xml
+ifeq ($(EDITION),premium)
+define stamp
+@test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
+@printf '%s\n' '$(BUILD_DATE)' | grep -qxE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || { \
+  echo 'BUILD_DATE must be YYYY-MM-DD, not "$(BUILD_DATE)".'; exit 1; }
+@mkdir -p $(dir $(STAMP)) && printf '%s\n' \
+  '<!-- Written by make on every Premium build (#181); see STAMP in the Makefile. -->' \
+  '<resources>' \
+  '    <string id="AppVersion">$(APP_VERSION)</string>' \
+  '    <string id="BuildDate">$(BUILD_DATE)</string>' \
+  '</resources>' > $(STAMP)
+endef
+endif
+
 # monkeyc names the .prg files inside a bundle after the bundle itself, and the bundle's
 # manifest lists each product by that name: -o export/MatrixTime-1.0.1.iq packs
 # 006-B4258-00/MatrixTime-1.0.1.prg (#221). So the bundle is built as <app>.iq here and
@@ -197,6 +231,7 @@ all: build
 ## Build the .prg for DEVICE and EDITION [DEVICE EDITION RELEASE]
 build:
 	$(require_sdk)
+	$(stamp)
 	@echo "Building $(EDITION) for $(DEVICE)..."
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
 	@echo "Build complete: $(OUTPUT)"
@@ -261,6 +296,7 @@ run: build sim
 ## Run the unit tests in the simulator [DEVICE EDITION SIM_PORT]
 test: sim
 	$(require_sdk)
+	$(stamp)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
 	@echo "Loading tests into simulator..."
@@ -370,7 +406,7 @@ ifeq ($(VERSION),beta)
 	$(require_sdk)
 	@test -n "$(BETA_ID)" || { echo "$(APP) has no store beta: set its BETA_ID in the Makefile first."; exit 1; }
 	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" EDITION="$(EDITION)" MANIFEST="$(MANIFEST)" APP="$(APP)" \
-	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
+	  BETA_ID="$(BETA_ID)" BUILD_DATE="$(BUILD_DATE)" tools/export-beta.sh $(EXPORT)
 else
 	@test "$(VERSION)" = public || { echo 'VERSION must be public or beta, not "$(VERSION)".'; exit 1; }
 	@rm -f $(EXPORT)
@@ -380,6 +416,7 @@ else
 	  test -z "$$beta" -o "$$id" != "$$beta" || { \
 	  echo "$(MANIFEST) carries the beta id $(BETA_ID): a public export of it would be the beta's."; \
 	  echo "Put the public id back, and use VERSION=beta for a beta."; exit 1; }
+	$(stamp)
 	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
 	@rm -rf "$(EXPORT_STAGE)" && mkdir -p "$(EXPORT_STAGE)"
 	@{ $(MONKEYC) $(EXPORT_FLAGS) -o "$(EXPORT_STAGE)/$(APP).iq"; echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
@@ -687,7 +724,7 @@ preview:
 
 ## Remove every build output
 clean:
-	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
+	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ $(STAMP_DIR)/
 	@echo "Clean complete."
 
 # The help is the "## " line above each target and each ?= variable, so a description

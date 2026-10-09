@@ -205,6 +205,9 @@ class SettingsMenuView extends WatchUi.Menu2 {
                 null
             ));
         }
+        // About last (#181): the installed version at a glance, and the rest one step in.
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutTitle) as String, About.summary(),
+            About.ID, null));
     }
 
     // Shows the stored values again. App.onSettingsChanged calls this for a change from
@@ -235,6 +238,10 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         if (property.equals(Presets.LOAD_PROPERTY) || property.equals(Presets.SAVE_PROPERTY)) {
             var saving = property.equals(Presets.SAVE_PROPERTY);
             WatchUi.pushView(new PresetsMenuView(saving), new PresetsMenuDelegate(saving), WatchUi.SLIDE_LEFT);
+            return;
+        }
+        if (property.equals(About.ID)) {
+            WatchUi.pushView(new AboutMenuView(), new AboutMenuDelegate(), WatchUi.SLIDE_LEFT);
             return;
         }
         var value = SettingsMenu.next(SettingsMenu.valuesOf(property), SettingsMenu.selected(property));
@@ -287,6 +294,40 @@ class PresetsMenuDelegate extends WatchUi.Menu2InputDelegate {
         }
         (Application.getApp() as App).onSettingsChanged();
         WatchUi.popView(WatchUi.SLIDE_RIGHT);
+    }
+
+    function onBack() as Void {
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
+    }
+
+}
+
+
+// The About entry's page (#181): the version on the watch, the day it was built and the
+// developer's address, each a label with its value under it. It only shows them: selecting
+// an item does nothing, and back returns to the settings menu.
+class AboutMenuView extends WatchUi.Menu2 {
+
+    function initialize() {
+        Menu2.initialize({:title => Application.loadResource(Rez.Strings.AboutTitle) as String});
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutVersion) as String, About.version(),
+            :version, null));
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutBuilt) as String, About.buildDate(),
+            :built, null));
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutContact) as String, About.contact(),
+            :contact, null));
+    }
+
+}
+
+
+class AboutMenuDelegate extends WatchUi.Menu2InputDelegate {
+
+    function initialize() {
+        Menu2InputDelegate.initialize();
+    }
+
+    function onSelect(item as WatchUi.MenuItem) as Void {
     }
 
     function onBack() as Void {

@@ -43,3 +43,6 @@ __pycache__/
 # make graphics' full-size captures and make hero's candidates, inputs to a manual step
 # and never committed (#188)
 /.dev/scratchpad/hero/
+
+# The version and build date make writes before every Premium build, for its About entry (#181)
+/premium/resources-stamp/

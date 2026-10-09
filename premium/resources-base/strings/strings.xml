@@ -73,4 +73,15 @@
     <string id="PresetName4Title">Slot 4 name</string>
     <string id="PresetName5Title">Slot 5 name</string>
 
+    <!-- The About entry (#181). AppVersion and BuildDate here are fallbacks: make writes both
+         into premium/resources-stamp/ before every Premium build, and those replace these. -->
+    <string id="AboutTitle">About</string>
+    <string id="AboutSubLabel">Version $1$</string>
+    <string id="AboutVersion">Version</string>
+    <string id="AboutBuilt">Built</string>
+    <string id="AboutContact">Contact</string>
+    <string id="AboutContactAddress">wacus@pm.me</string>
+    <string id="AppVersion">Unknown</string>
+    <string id="BuildDate">Unknown</string>
+
 </resources>
