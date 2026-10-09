@@ -247,12 +247,12 @@ PREMIUM_FEATURES = (
 # Premium needs 0.6.0, which captures several builds in one container, each with its
 # own property defaults laid over a copy of the tree.
 #
-# The hint installs INSTALL_VERSION rather than the minimum: make icons and make hero
-# need 0.7.0, and the README installs that release, with the Pillow the icons were
-# drawn with, for every target alike.
+# The hint installs INSTALL_VERSION rather than the minimum: make icons needs 0.8.0 and
+# make hero 0.7.0, and the README installs 0.8.0, with the Pillow the icons were drawn
+# with, for every target alike.
 GENERATOR = "garmin_graphics_generator"
 REQUIRED_VERSIONS = {"lite": "0.5.1", "premium": "0.6.0"}
-INSTALL_VERSION = "0.7.0"
+INSTALL_VERSION = "0.8.0"
 RELEASE_URL = (
     "https://github.com/wkusnierczyk/garmin-graphics-generator/releases/tag/v{version}"
 )

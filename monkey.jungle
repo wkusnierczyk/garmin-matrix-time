@@ -13,9 +13,12 @@
 # Built alone, this file fails loudly ("no manifest") rather than building one
 # edition by default. The Makefile's EDITION variable picks the edition jungle.
 
-# BEGIN generated launcher icon mapping -- tools/make-launcher-icons.py
-# Launcher icon size is per device, not per device family (#42).
-# Regenerate with: make icons
+# Lite's launcher icons, one resource path per product (#42), from the shared
+# garmin-graphics-generator icons command (#78). Regenerate with make icons, which
+# passes the renderer too.
+# BEGIN generated launcher icon mapping -- garmin-graphics-generator
+# Launcher icon size is per device, not per device family.
+# Regenerate with: garmin-graphics-generator icons --readme-anchor 'Each supported product is mapped to the icon its device asks for'
 approachs50.resourcePath = $(approachs50.resourcePath);resources-icon-56
 approachs7042mm.resourcePath = $(approachs7042mm.resourcePath);resources-icon-60
 approachs7047mm.resourcePath = $(approachs7047mm.resourcePath);resources-icon-70

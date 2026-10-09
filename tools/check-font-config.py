@@ -205,7 +205,7 @@ for fid, (stem, sz) in sorted(refsize.items()):
 MC_CHARSET_RE = re.compile(r'\bCHARSET\s*=\s*"([^"]*)"')
 PY_CHARSET_RE = re.compile(r"^CHARSET\s*=\s*'([^']*)'", re.M)
 MIRRORS = {'source/Matrix.mc': MC_CHARSET_RE,
-           'tools/make-launcher-icons.py': PY_CHARSET_RE}
+           'tools/launcher_icon.py': PY_CHARSET_RE}
 
 print("\nCHARSETS")
 charsets = {c['fontId']: c['fontCharset']
