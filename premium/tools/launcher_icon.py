@@ -14,8 +14,8 @@ As a script, it does what that command does not -- the store cover, and its chec
   premium/tools/launcher_icon.py cover <cover.png>
   premium/tools/launcher_icon.py check <fallback.png> <cover.png>
 
-The rain is Lite's, drawn by Lite's own renderer in tools/make-launcher-icons.py and
-not copied: a change to Lite's artwork reaches Premium at the next `make icons`, and
+The rain is Lite's, drawn by Lite's own renderer in tools/launcher_icon.py and not
+copied: a change to Lite's artwork reaches Premium at the next `make icons`, and
 the two editions can only differ by the mark. The mark is a five-point gold star in
 the top-right corner, on a black disc so it reads against the rain. It was chosen
 over a crown, a gold corner and a gold rim by rendering all four at every launcher
@@ -50,7 +50,7 @@ DISC = 1.12
 SUPERSAMPLE = 8
 
 # The store cover is Lite's cover with the star (#219): its size, column count and the
-# store's limit are Lite's, in tools/make-launcher-icons.py.
+# store's limit are Lite's, in tools/launcher_icon.py.
 
 # How far from the disc's edge, measured from pixel centres, Premium may differ from
 # Lite: the antialiased rim of the resampled disc reaches about 2.6 px.
@@ -63,7 +63,7 @@ def _lite():
     """Lite's icon module. Its font path is relative to the repository, so it is pinned
     to an absolute one: the renderer then works from any directory."""
     spec = importlib.util.spec_from_file_location(
-        'lite_launcher_icons', os.path.join(ROOT, 'tools', 'make-launcher-icons.py'))
+        'lite_launcher_icons', os.path.join(ROOT, 'tools', 'launcher_icon.py'))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     module.FONT = os.path.join(ROOT, module.FONT)
@@ -162,7 +162,7 @@ def cover(size=None):
     stray = ImageChops.multiply(rain.convert('L'), ImageChops.invert(inside)).getbbox()
     if stray:
         sys.exit(f"cover: Lite's renderer drew outside the cells _cells() expects, at {stray}; "
-                 "bring _cells() back in step with tools/make-launcher-icons.py")
+                 "bring _cells() back in step with tools/launcher_icon.py")
 
     draw = ImageDraw.Draw(rain)
     for box in _cleared(cells, size):
@@ -246,8 +246,7 @@ def check(fallback, cover_path):
     ok(os.path.exists(declaration) and open(declaration).read() == open(shared).read(),
        f"{declaration} declares LauncherIcon, as {os.path.relpath(shared, ROOT)} does")
 
-    # Regenerating Lite alone, with tools/make-launcher-icons.py, would leave Premium on
-    # the old artwork.
+    # Regenerating Lite's icons alone would leave Premium on the old artwork.
     for size in sorted(sizes, reverse=True):
         drift = _drift(size)
         ok(drift == 0, f"premium/resources-icon-{size} is Lite's icon but for the star"
@@ -264,8 +263,7 @@ def check(fallback, cover_path):
        f"{cover_path} is under {limit // 1000} KB"
        + (f" ({weight} bytes)" if weight is not None else ""))
 
-    # Regenerating Lite's cover alone, with tools/make-launcher-icons.py, would leave
-    # Premium's on the old artwork (#219).
+    # Regenerating Lite's cover alone would leave Premium's on the old artwork (#219).
     drift = _cover_drift(cover_path)
     ok(drift == 0, f"{cover_path} is {LITE.COVER} but for the star"
        + ("" if drift == 0 else f" ({'missing, unreadable or of different sizes' if drift < 0 else f'{drift} pixels differ'};"

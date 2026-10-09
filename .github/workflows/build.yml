@@ -63,8 +63,8 @@ jobs:
         with:
           lfs: true
 
-      # check-icons checks Premium's launcher icons with garmin-graphics-generator
-      # (#189), which is not on PyPI, so it is installed from GitHub. Only its icons
+      # check-icons checks both editions' launcher icons with garmin-graphics-generator
+      # (#189, #78), which is not on PyPI, so it is installed from GitHub. Only its icons
       # command runs here, and that imports Pillow and nothing else, so the package
       # goes in without its dependencies: rembg and onnxruntime are hundreds of
       # megabytes the check never loads. Pillow is pinned to the version the icons
@@ -81,7 +81,7 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/tools"
           "$RUNNER_TEMP/tools/bin/pip" install --quiet --no-deps \
-            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@41622947860c6a713be92840daf551f4e386e4dd'  # v0.7.0
+            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@bbf03bb84b47875bad2d0dc4fef0f5f762a58527'  # DRAFT (#78): main after #38, unreleased; replace with v0.8.0
           "$RUNNER_TEMP/tools/bin/pip" install --quiet Pillow==12.1.0
           echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
 
@@ -93,7 +93,9 @@ jobs:
         run: make check-fonts
 
       - name: Launcher icons
-        run: make check-icons
+        # DRAFT (#78): the unreleased commit above still calls itself 0.7.0. Drop the
+        # override with the pin above, once 0.8.0 is released.
+        run: make check-icons ICONS_TOOL_VERSION=0.7.0
 
       # manifest-premium.xml duplicates manifest.xml's product list; this fails the
       # moment the two drift (#135).

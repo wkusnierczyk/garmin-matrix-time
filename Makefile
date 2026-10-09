@@ -422,17 +422,21 @@ check-lite:
 # rewrites the block between the markers in monkey.jungle in place.
 #
 # Both editions, every time: Premium's icons are Lite's with a gold star (#189), so a
-# change to Lite's artwork is a change to Premium's too. Lite's come from the local
-# tools/make-launcher-icons.py, until #78 moves them to the shared command. Premium's
-# come from the shared garmin-graphics-generator, into premium/resources-icon-<size>/
-# and mapped from premium.jungle, which only a Premium build reads -- so Lite never
-# sees them, and make check-lite holds. premium/tools/launcher_icon.py is the
-# renderer, and also writes and checks Premium's store cover, which the shared command
-# knows nothing about. The covers follow the icons (#219): Lite's is drawn by
-# tools/make-launcher-icons.py, and Premium's is Lite's with the star.
+# change to Lite's artwork is a change to Premium's too. Both come from the shared
+# garmin-graphics-generator icons command, each with its own renderer (#78). Lite's,
+# tools/launcher_icon.py, draws the rain; the command writes the icons, the fallback,
+# the mapping in monkey.jungle and the size table in README.md, found by the sentence
+# that introduces it. Premium's, premium/tools/launcher_icon.py, draws Lite's rain with
+# the star, into premium/resources-icon-<size>/ and mapped from premium.jungle, which
+# only a Premium build reads -- so Lite never sees them, and make check-lite holds.
+# The README table serves both editions and is Lite's to write. The covers follow the
+# icons (#219), and the shared command knows nothing about them: each renderer, run as
+# a script, writes and checks its edition's, and Premium's is Lite's with the star.
 #
 # 0.7.0 is the first release that can target an edition: its own manifest, jungle and
-# icon directory. --check needs no SDK, as Lite's does.
+# icon directory. 0.8.0 is the first that writes and checks the README table and checks
+# the fallback icon (garmin-graphics-generator#9), what Lite's local script did before
+# #78. --check needs no SDK.
 #
 # The tool runs through the python3 on PATH, not through its garmin-graphics-generator
 # script, which may belong to another interpreter (pipx, a venv). That python3 draws
@@ -440,16 +444,19 @@ check-lite:
 # own interpreter, so this way one Pillow draws all of them. Two Pillows antialias the glyphs
 # differently -- 12.1.0 against 12.3.0 at 60 px -- and Premium would quietly stop being
 # Lite's icon but for the star.
-ICONS_TOOL_VERSION := 0.7.0
+ICONS_TOOL_VERSION := 0.8.0
 ICONS_TOOL := python3 -c 'import sys; from garmin_graphics_generator.cli import main; \
   sys.argv[0] = "garmin-graphics-generator"; sys.exit(main())'
+LITE_ICONS := --readme-anchor 'Each supported product is mapped to the icon its device asks for'
 PREMIUM_ICONS := --manifest manifest-premium.xml --jungle premium.jungle --icon-root premium
 PREMIUM_FALLBACK := premium/resources-base/drawables/launcher_icon.png
 PREMIUM_COVER := premium/graphics/MatrixTimePremiumCover.png
 
 define require_icons_tool
-@python3 -c 'from importlib.metadata import version; v = version("garmin_graphics_generator").split("."); \
-  raise SystemExit(int(v[0]) == 0 and int(v[1]) < 7)' 2>/dev/null || { \
+@python3 -c 'import sys; from importlib.metadata import version; \
+  number = lambda v: tuple(int(part) for part in v.split(".")[:3]); \
+  raise SystemExit(number(version("garmin_graphics_generator")) < number(sys.argv[1]))' \
+  '$(ICONS_TOOL_VERSION)' 2>/dev/null || { \
   echo "make $@ needs garmin-graphics-generator $(ICONS_TOOL_VERSION) or newer, installed for the"; \
   echo "python3 on PATH (python3 -m pip install ...); see README.md."; exit 1; }
 endef
@@ -457,8 +464,9 @@ endef
 ## Regenerate the launcher icons and the covers
 icons:
 	$(require_icons_tool)
-	@echo "Generating launcher icons..."
-	@python3 tools/make-launcher-icons.py
+	@echo "Generating launcher icons and store cover..."
+	@$(ICONS_TOOL) icons -R tools/launcher_icon.py $(LITE_ICONS)
+	@python3 tools/launcher_icon.py cover
 	@echo "Generating Premium's launcher icons and store cover..."
 	@$(ICONS_TOOL) icons -R premium/tools/launcher_icon.py $(PREMIUM_ICONS) \
 	  --fallback-icon $(PREMIUM_FALLBACK)
@@ -467,8 +475,9 @@ icons:
 ## Check the launcher icons and the covers
 check-icons:
 	$(require_icons_tool)
-	@echo "Checking launcher icon configuration consistency..."
-	@python3 tools/make-launcher-icons.py --check
+	@echo "Checking launcher icons and store cover..."
+	@$(ICONS_TOOL) icons $(LITE_ICONS) --check
+	@python3 tools/launcher_icon.py check
 	@echo "Checking Premium's launcher icons..."
 	@$(ICONS_TOOL) icons $(PREMIUM_ICONS) --check
 	@python3 premium/tools/launcher_icon.py check $(PREMIUM_FALLBACK) $(PREMIUM_COVER)
