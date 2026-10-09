@@ -574,9 +574,14 @@ otherwise cut it into fragments. `make check-icons` checks that both covers are 
 the limit, and that Premium's is Lite's pixel for pixel away from the star and the cells it clears.
 So regenerating one cover alone cannot leave the two editions on different artwork unnoticed.
 
-Both targets need `garmin-graphics-generator` 0.8.0 or newer. 0.7.0 is the first release that can
-write an edition's icons into a directory and jungle of its own, and 0.8.0 the first that writes and
-checks the table above and checks the fallback, which Lite's own script did until #78. It brings
+Both targets need `garmin-graphics-generator` 0.8.1 or newer. 0.7.0 is the first release that can
+write an edition's icons into a directory and jungle of its own, 0.8.0 the first that writes and
+checks the table above and checks the fallback, which Lite's own script did until #78, and 0.8.1 the
+first whose `Regenerate with:` line in each jungle's mapping block names the renderer, so that the
+command it records works when pasted at the repository root. 0.8.1 is the minimum, not just the
+release installed below, so that every machine writes that line the same way: with 0.8.0 on one and
+0.8.1 on another, each `make icons` would rewrite it back (#231). The recorded command redoes one
+edition's icons and neither cover, so `make icons` stays the way to regenerate them. The tool brings
 [Pillow](https://python-pillow.org) with it, which every icon is drawn with.
 
 Install it for the `python3` on `PATH`, not with pipx or into a separate venv: the Makefile runs the
@@ -586,7 +591,7 @@ different Pillow can antialias the glyphs differently, and the icons were genera
 regenerate with 12.1.0 unless the artwork is meant to change.
 
 ```bash
-python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.8.0' 'Pillow==12.1.0'
+python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.8.1' 'Pillow==12.1.0'
 ```
 
 ## Store and README images
@@ -736,11 +741,11 @@ build; see [Editions in the build](#editions-in-the-build) for why the order mat
 `make graphics` captures the face on `epix2pro47mm`, the reference device, and needs Docker running
 and [`garmin-graphics-generator`](https://github.com/wkusnierczyk/garmin-graphics-generator): 0.5.1 or
 newer for Lite, 0.6.0 or newer for Premium, and 0.7.0 or newer for `make hero`. `make icons` needs
-0.8.0, and a pinned Pillow for the `python3` on `PATH`, so install it the way
+0.8.1, and a pinned Pillow for the `python3` on `PATH`, so install it the way
 [Premium launcher icon](#premium-launcher-icon) says, which serves every target here:
 
 ```bash
-python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.8.0' 'Pillow==12.1.0'
+python3 -m pip install 'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@v0.8.1' 'Pillow==12.1.0'
 ```
 
 0.5.0 is the first release carrying the `shots` command; 0.5.1 is the first whose `hero` retries an
