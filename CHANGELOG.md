@@ -13,6 +13,25 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
+## 1.0.3 -- 2026-10-09
+
+Tooling only: neither watch face changes, and both editions stay at 1.0.1. This release carries both
+editions' 1.0.1 bundles.
+
+### Internal
+
+No user-visible effect on either watch face:
+
+* Lite's launcher icons, their fallback, the per-product mapping in `monkey.jungle` and the icon size
+  table in the README come from the shared `garmin-graphics-generator icons` command, as Premium's
+  already did, and regenerate byte for byte as before. Lite's own script keeps only the renderer and
+  the store cover. (#78, #230)
+* `make icons` needs `garmin-graphics-generator` 0.8.1, which names the renderer in the regenerate
+  command it records in each jungle, so every machine writes that line the same way. CI pins the same
+  release. (#231, #232)
+* The README says the version in each manifest is this repository's convention: for an app, Garmin
+  reads nothing from it, and the store's version is the one typed at upload. (#228, #229)
+
 ## 1.0.2 -- 2026-10-08
 
 Tooling and store images only: neither watch face changes, and both editions stay at 1.0.1. This
