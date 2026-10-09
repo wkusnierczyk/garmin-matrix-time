@@ -13,6 +13,9 @@
 # Built alone, this file fails loudly ("no manifest") rather than building one
 # edition by default. The Makefile's EDITION variable picks the edition jungle.
 
+# Lite's launcher icons, one resource path per product (#42), from the shared
+# garmin-graphics-generator icons command (#78). Regenerate with make icons, which
+# passes the renderer too.
 # BEGIN generated launcher icon mapping -- garmin-graphics-generator
 # Launcher icon size is per device, not per device family.
 # Regenerate with: garmin-graphics-generator icons --readme-anchor 'Each supported product is mapped to the icon its device asks for'

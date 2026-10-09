@@ -81,7 +81,7 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/tools"
           "$RUNNER_TEMP/tools/bin/pip" install --quiet --no-deps \
-            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@bbf03bb84b47875bad2d0dc4fef0f5f762a58527'  # DRAFT (#78): main after #38, unreleased; replace with v0.8.0
+            'garmin-graphics-generator @ git+https://github.com/wkusnierczyk/garmin-graphics-generator@bbf03bb84b47875bad2d0dc4fef0f5f762a58527'  # DRAFT (#78): wkusnierczyk/garmin-graphics-generator#38 merged, unreleased; replace with v0.8.0
           "$RUNNER_TEMP/tools/bin/pip" install --quiet Pillow==12.1.0
           echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
 

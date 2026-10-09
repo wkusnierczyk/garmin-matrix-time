@@ -2,16 +2,12 @@
 """Lite's launcher icons and store cover: the face's own digital rain.
 
 As a module, this is the renderer garmin-graphics-generator draws Lite's icons with.
-`make icons` runs it as
-
-  garmin-graphics-generator icons -R tools/launcher_icon.py \\
-      --readme-anchor 'Each supported product is mapped to the icon its device asks for'
-
-which writes resources-icon-<size>/, the fallback in resources/drawables/, the mapping
-block in monkey.jungle and the size table in README.md (#78). The launcher icon size
-is a per-device property, not a per-family one, which is why the mapping is per
-product (#42). Premium's renderer, premium/tools/launcher_icon.py, draws its rain
-through this module and adds its star.
+`make icons` runs the shared icons command with it (#78), and with LITE_ICONS from the
+Makefile, which names the README sentence the size table follows. The command writes
+resources-icon-<size>/, the fallback in resources/drawables/, the mapping block in
+monkey.jungle and that table. The launcher icon size is a per-device property, not a
+per-family one, which is why the mapping is per product (#42). Premium's renderer,
+premium/tools/launcher_icon.py, draws its rain through this module and adds its star.
 
 As a script, it does what that command does not -- the store cover, and its checks:
 

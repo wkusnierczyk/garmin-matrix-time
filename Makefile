@@ -429,9 +429,10 @@ check-lite:
 # that introduces it. Premium's, premium/tools/launcher_icon.py, draws Lite's rain with
 # the star, into premium/resources-icon-<size>/ and mapped from premium.jungle, which
 # only a Premium build reads -- so Lite never sees them, and make check-lite holds.
-# The README table serves both editions and is Lite's to write. The covers follow the
-# icons (#219), and the shared command knows nothing about them: each renderer, run as
-# a script, writes and checks its edition's, and Premium's is Lite's with the star.
+# The README table serves both editions: Lite's call writes it, and both check it.
+# The covers follow the icons (#219), and the shared command knows nothing about them:
+# each renderer, run as a script, writes and checks its edition's, and Premium's is
+# Lite's with the star.
 #
 # 0.7.0 is the first release that can target an edition: its own manifest, jungle and
 # icon directory. 0.8.0 is the first that writes and checks the README table and checks
@@ -479,7 +480,7 @@ check-icons:
 	@$(ICONS_TOOL) icons $(LITE_ICONS) --check
 	@python3 tools/launcher_icon.py check
 	@echo "Checking Premium's launcher icons..."
-	@$(ICONS_TOOL) icons $(PREMIUM_ICONS) --check
+	@$(ICONS_TOOL) icons $(PREMIUM_ICONS) --fallback-icon $(PREMIUM_FALLBACK) $(LITE_ICONS) --check
 	@python3 premium/tools/launcher_icon.py check $(PREMIUM_FALLBACK) $(PREMIUM_COVER)
 
 # Every generated store image of the edition, regenerated from the current build:
