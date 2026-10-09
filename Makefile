@@ -117,25 +117,37 @@ endif
 # The date is the build's, in UTC: for a store install, the day make export built the bundle,
 # which for a tagged release is release.yml's run. BUILD_DATE=YYYY-MM-DD fixes it, so that a
 # Premium build can be repeated byte for byte on another day. Taken from the command line only,
-# as VERSION is: a BUILD_DATE in the shell's environment is ignored.
+# as VERSION is: a BUILD_DATE in the shell's environment is ignored. Anything but a real date
+# is refused, checked with awk rather than date, whose options differ between macOS and Linux.
+#
+# Recipes read it from their environment, as "$$BUILD_DATE", rather than spliced into the shell
+# source as $(BUILD_DATE): a value with a quote in it would then be run rather than refused.
+# APP_VERSION can be spliced in, since it is only ever digits and dots, or empty.
+#
+# The stamp is written to a temporary file and renamed into place, so that two recipes run in
+# parallel, make -j build export say, never let monkeyc read a half-written one.
 ## The date Premium's About entry gives its build, YYYY-MM-DD; today, in UTC, by default
 BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
 ifneq ($(findstring environment,$(origin BUILD_DATE)),)
   override BUILD_DATE := $(shell date -u +%Y-%m-%d)
 endif
+export BUILD_DATE
 STAMP_DIR := premium/resources-stamp
 STAMP := $(STAMP_DIR)/strings/stamp.xml
 ifeq ($(EDITION),premium)
 define stamp
 @test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
-@printf '%s\n' '$(BUILD_DATE)' | grep -qxE '[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])' || { \
-  echo 'BUILD_DATE must be YYYY-MM-DD, not "$(BUILD_DATE)".'; exit 1; }
+@printf '%s\n' "$$BUILD_DATE" | grep -qxE '[0-9]{4}-[0-9]{2}-[0-9]{2}' && \
+  printf '%s\n' "$$BUILD_DATE" | awk -F- '{ split("31 28 31 30 31 30 31 31 30 31 30 31", days, " "); \
+    if ($$1 % 4 == 0 && $$1 % 100 != 0 || $$1 % 400 == 0) days[2] = 29; \
+    exit !($$2 >= 1 && $$2 <= 12 && $$3 >= 1 && $$3 <= days[$$2 + 0]) }' || { \
+  echo "BUILD_DATE must be a date, YYYY-MM-DD, not \"$$BUILD_DATE\"."; exit 1; }
 @mkdir -p $(dir $(STAMP)) && printf '%s\n' \
   '<!-- Written by make on every Premium build (#181); see STAMP in the Makefile. -->' \
   '<resources>' \
   '    <string id="AppVersion">$(APP_VERSION)</string>' \
-  '    <string id="BuildDate">$(BUILD_DATE)</string>' \
-  '</resources>' > $(STAMP)
+  "    <string id=\"BuildDate\">$$BUILD_DATE</string>" \
+  '</resources>' > $(STAMP).$$$$ && mv -f $(STAMP).$$$$ $(STAMP)
 endef
 endif
 
@@ -406,7 +418,7 @@ ifeq ($(VERSION),beta)
 	$(require_sdk)
 	@test -n "$(BETA_ID)" || { echo "$(APP) has no store beta: set its BETA_ID in the Makefile first."; exit 1; }
 	@SDK_BIN="$(SDK_BIN)" DEV_KEY="$(DEV_KEY)" EDITION="$(EDITION)" MANIFEST="$(MANIFEST)" APP="$(APP)" \
-	  BETA_ID="$(BETA_ID)" BUILD_DATE="$(BUILD_DATE)" tools/export-beta.sh $(EXPORT)
+	  BETA_ID="$(BETA_ID)" tools/export-beta.sh $(EXPORT)
 else
 	@test "$(VERSION)" = public || { echo 'VERSION must be public or beta, not "$(VERSION)".'; exit 1; }
 	@rm -f $(EXPORT)

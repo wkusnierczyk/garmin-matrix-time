@@ -1068,8 +1068,8 @@ ignored.
 defaults to today, in UTC. Every Premium build writes it into the build, with the manifest's version
 (see [Editions in the build](#editions-in-the-build)), so two Premium builds made on different days
 differ by it; `BUILD_DATE` fixes it, so that a build can be repeated byte for byte, the beta export's
-too. Anything but `YYYY-MM-DD`, with a month from 01 to 12 and a day from 01 to 31, is refused, and,
-as with `VERSION`, it is read from the command line only. Lite ignores it.
+too. Anything but a real date as `YYYY-MM-DD` is refused, `2026-02-29` included, and, as with
+`VERSION`, it is read from the command line only. Lite ignores it.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
