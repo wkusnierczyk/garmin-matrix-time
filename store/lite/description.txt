@@ -1,0 +1,7 @@
+A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face that displays the current time with the Digital Rain design in the background.
+
+Matrix Time displays the current time as digits with Digital Rain in the background.
+
+Note: Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.
+
+This is the free Lite edition. Matrix Time Premium, the paid edition, adds seven time sizes, a hollow time the rain falls through, left, centre or right alignment, time and rain colours including gradient rain, three trail lengths, a larger always-on time with adjustable brightness, the date, and five preset slots. Every Premium setting can also be changed on the watch.

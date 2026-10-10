@@ -1,0 +1,17 @@
+The first release of Matrix Time Premium. Everything in Matrix Time, plus:
+
+- Seven time sizes, from Matrix Time's own up to four times it
+- A filled or hollow time, drawn with no box, so the rain falls around or through the digits
+- Time alignment: left, centre or right
+- Time colours: green, white, cyan, amber, orange or red
+- Rain colours: green, cyan, blue, amber, orange, red or white, or a white-to-green or green-to-teal gradient
+- Trail length: 25%, 50% or 75% of the screen
+- A larger, bolder always-on time, with a brightness setting
+- The date under the time
+- Five preset slots, three of them ready to load: Green, Red and Blue
+- Every setting can be changed on the watch, from the face's Customize menu, as well as in the Connect IQ app
+
+Also fixed:
+
+- The always-on screen could go dark and stay dark until the face was restarted.
+- In sleep mode, the screen now stays dark once the sleep-mode timeout has passed, as it does with Garmin's own watch faces, instead of showing the always-on time all night.

@@ -1539,6 +1539,15 @@ previous release's by that string alone. The notes end with a *Bundles* list tha
 carry a new version at this tag and which carry their version over. Uploading a bundle to the store is
 the owner's, and outside the repository.
 
+The texts the store shows are kept in [`store/`](store/), one directory per edition, as plain text
+exactly as pasted, since the store renders no Markdown: `description.txt`, the listing's description,
+and `whats-new-<version>.txt`, the *What's New* of each version uploaded. They are not the release
+notes above, which come from `CHANGELOG.md` and are written for this repository's readers. A release
+that gives an edition a new version adds its `whats-new-<version>.txt` in the release PR, so the text
+is written and reviewed before the upload, which publishes at once; *What's New* covers what changed
+since the last version uploaded, and the description carries the whole feature list, so a change that
+adds a feature updates `description.txt` in the same change (#239).
+
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**
 GitHub release carrying that version's `CHANGELOG.md` section as its notes. The bundles keep the names

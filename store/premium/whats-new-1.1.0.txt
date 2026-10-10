@@ -1,0 +1,1 @@
+New: an About page on the watch. Open it from About, the last item of the face's Customize menu. It shows the version of Matrix Time Premium installed on the watch, its build code, and the developer's contact address. The Connect IQ app shows the latest version in the store, which the watch may not have yet; About shows what the watch actually has.

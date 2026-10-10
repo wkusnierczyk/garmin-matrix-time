@@ -1,0 +1,20 @@
+A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face that displays the current time with the Digital Rain design in the background, and lets you make the look your own.
+
+Matrix Time Premium is the paid edition of Matrix Time. It keeps everything in the free Lite edition and adds:
+
+- Time size: seven sizes, from Lite's own up to four times it, which spans about 80% of the screen
+- Time style: filled or hollow; the time is drawn with no box, so the rain falls right up to the digits, or through them when hollow
+- A bolder time, in the same typeface as Lite at a heavier weight
+- Time alignment: left, centre or right, with a margin that follows a round screen's edge
+- Time colour: green, white, cyan, amber, orange or red
+- Rain colour: green, cyan, blue, amber, orange, red or white, or a gradient as it fades, white to green or green to teal
+- Trail length: the rain fades over 25%, 50% or 75% of the screen; a shorter trail also saves battery
+- Always-on: a larger, bolder time than Lite's, with three brightness levels, and well inside the burn-in limits on every supported watch
+- Date: today's date under the time, in the time colour
+- Presets: five slots that save a look and load it back in one step; three come ready to load, Green, Red and Blue
+- Every setting can be changed on the watch, from the face's Customize menu, as well as in the Connect IQ app
+- About: the last item of the Customize menu shows the version installed on the watch, its build code and the developer's contact address, so you can tell whether the watch has caught up with the store
+
+Premium is a separate app and installs alongside Lite rather than over it.
+
+Note: Due to power constraints on watch faces, the digital rain does not appear to fall smoothly, as watch faces are refreshed once per second.

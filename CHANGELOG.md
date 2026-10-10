@@ -13,6 +13,16 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
+## Unreleased
+
+### Internal
+
+No user-visible effect on either watch face:
+
+* The Connect IQ store's texts, each edition's listing description and each version's *What's New*,
+  are kept in `store/`, one directory per edition, as plain text exactly as pasted. Until now they
+  were kept outside the repository. (#239)
+
 ## 1.1.0 -- 2026-10-10
 
 Premium gets 1.1.0, for its new About entry. Lite does not change and stays at 1.0.1; this release
