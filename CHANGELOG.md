@@ -32,7 +32,7 @@ carries its 1.0.1 bundle over.
   bundle can be made again from its tag. A tree that is not a git checkout no longer builds Premium.
   (#181)
 
-## 1.0.3 -- 2026-10-10
+## 1.0.3 -- 2026-10-09
 
 Tooling only: neither watch face changes, and both editions stay at 1.0.1. This release carries both
 editions' 1.0.1 bundles.
