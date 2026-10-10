@@ -118,7 +118,9 @@ endif
 # which for a tagged release is release.yml's run. BUILD_DATE=YYYY-MM-DD fixes it, so that a
 # Premium build can be repeated byte for byte on another day. Taken from the command line only,
 # as VERSION is: a BUILD_DATE in the shell's environment is ignored. Anything but a real date
-# is refused, checked with awk rather than date, whose options differ between macOS and Linux.
+# is refused: its shape by case, which matches the whole value, so that a second line cannot
+# ride in behind a valid first one as it could past grep, and the date itself by awk rather
+# than date, whose options differ between macOS and Linux.
 #
 # Recipes read it from their environment, as "$$BUILD_DATE", rather than spliced into the shell
 # source as $(BUILD_DATE): a value with a quote in it would then be run rather than refused.
@@ -137,7 +139,7 @@ STAMP := $(STAMP_DIR)/strings/stamp.xml
 ifeq ($(EDITION),premium)
 define stamp
 @test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
-@printf '%s\n' "$$BUILD_DATE" | grep -qxE '[0-9]{4}-[0-9]{2}-[0-9]{2}' && \
+@case "$$BUILD_DATE" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) false ;; esac && \
   printf '%s\n' "$$BUILD_DATE" | awk -F- '{ split("31 28 31 30 31 30 31 31 30 31 30 31", days, " "); \
     if ($$1 % 4 == 0 && $$1 % 100 != 0 || $$1 % 400 == 0) days[2] = 29; \
     exit !($$2 >= 1 && $$2 <= 12 && $$3 >= 1 && $$3 <= days[$$2 + 0]) }' || { \
