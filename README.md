@@ -250,7 +250,7 @@ not in the Connect IQ app's settings, so a save made on the watch is never overw
 #### About
 
 **About** is the last item of the Customize menu on the watch, with **Build information** under it.
-Selecting it opens a page that shows **Version**, the version installed on the watch, as `1.0.1`;
+Selecting it opens a page that shows **Version**, the version installed on the watch, as `1.1.0`;
 **Build**, the commit of this repository the build was made from, as `11f8ef3`; and **Contact**, the
 developer's address, `wacus@pm.me`. The page is text, not a menu, so nothing on it looks selectable:
 select does nothing there, and back returns to the menu (#181).
@@ -1525,12 +1525,13 @@ in a release (#186):
 * a release that gives both a new version sets both manifests;
 * a release that gives neither a new version, one that changes only the tooling say, sets neither;
 * so the two versions can differ, from each other and from the tag, but neither is ever ahead of it.
-  `v1.0.2` is one: tooling only, with both editions left at 1.0.1.
+  `v1.0.2` is one: tooling only, with both editions left at 1.0.1. `v1.1.0` is another: Premium went
+  to 1.1.0 for its About entry, and Lite stayed at 1.0.1.
 
 Every release carries a bundle for both editions, each at its own manifest's version, so that one
-release holds everything (#223). A `v1.1.0` that gave Premium a new version and left Lite at 1.0.1
-would carry `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code
-at the version in Lite's manifest. Where neither Lite's code and resources nor the build environment
+release holds everything (#223). `v1.1.0`, which gave Premium a new version and left Lite at 1.0.1,
+carries `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code at
+the version in Lite's manifest. Where neither Lite's code and resources nor the build environment
 (the SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to the 1.0.1
 release's. Premium's carry the commit they were built from, for its [About](#about) entry (#181), so a
 carried-over Premium bundle differs from the previous release's by that string alone. The notes end
@@ -1540,8 +1541,8 @@ version over. Uploading a bundle to the store is the owner's, and outside the re
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**
 GitHub release carrying that version's `CHANGELOG.md` section as its notes. The bundles keep the names
-`make export` gives them, by edition and version, `MatrixTime-1.1.0.iq` and
-`MatrixTimePremium-1.1.0.iq`; the export step checks each name against the version in that edition's
+`make export` gives them, by edition and version, such as `MatrixTime-1.0.1.iq` and
+`MatrixTimePremium-1.1.0.iq` in `v1.1.0`; the export step checks each name against the version in that edition's
 manifest. The 1.0.0 and 1.0.1 releases carry the tag in the asset name instead,
 `MatrixTime-v1.0.1.iq`. Publishing the draft stays manual. A beta of the same code goes to the
 edition's store beta instead: `make export EDITION=premium VERSION=beta`, run locally from the tagged
@@ -1549,8 +1550,8 @@ commit, which the workflow does not build (see [From the command line](#from-the
 
 ```bash
 # the new version of each edition that gets one, and a dated CHANGELOG.md section, come first
-git tag v1.1.0
-git push origin v1.1.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 | Job | What it proves |

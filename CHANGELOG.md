@@ -13,11 +13,14 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
-## Unreleased
+## 1.1.0 -- 2026-10-10
+
+Premium gets 1.1.0, for its new About entry. Lite does not change and stays at 1.0.1; this release
+carries its 1.0.1 bundle over.
 
 ### Added
 
-* **About, on the watch.** The last item of the Customize menu, Build information, opens a page with
+* **About, on the watch.** The last item of the Customize menu, About, opens a page with
   the version of Matrix Time Premium installed on the watch, the build, which is the commit it was
   made from, and the developer's address. The Connect IQ app shows the store's latest version, which
   is not necessarily the one on the watch. Premium. (#181)
