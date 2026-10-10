@@ -131,7 +131,7 @@ the next value. The two preset items at the top of that menu work differently; s
 [Presets](#presets). The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
 there the watch is the only way to change them. The last item of the menu, About, is not a setting:
-it shows the version installed on the watch; see [About](#about).
+it opens a page with the version installed on the watch; see [About](#about).
 
 * **Time size** -- Extra extra small, Extra small, Small, Medium, Large, Extra large or Extra extra
   large: the size of the time on the woken screen. Medium is the default; Extra extra small is the
@@ -249,16 +249,17 @@ not in the Connect IQ app's settings, so a save made on the watch is never overw
 
 #### About
 
-**About** is the last item of the Customize menu on the watch, with the version installed on the
-watch under it, as `Version 1.0.1`. Selecting it opens a page that shows the version, **Commit**, the
-commit of this repository the build was made from, as `11f8ef3`, and **Contact**, the developer's
-address, `wacus@pm.me`. The page only shows them: selecting an item there does nothing, and back
-returns to the menu (#181).
+**About** is the last item of the Customize menu on the watch, with **Build information** under it.
+Selecting it opens a page that shows **Version**, the version installed on the watch, as `1.0.1`;
+**Build**, the commit of this repository the build was made from, as `11f8ef3`; and **Contact**, the
+developer's address, `wacus@pm.me`. The page is text, not a menu, so nothing on it looks selectable:
+select does nothing there, and back returns to the menu (#181).
 
 The Connect IQ app shows the latest version in the store and the date it was updated, which is not
 necessarily what the watch has, so About is the way to tell whether the watch has caught up; the
-Connect IQ Store app on the watch shows the version as unknown. For a face installed from the store,
-Commit is the release's commit; a face installed with `make sideload` shows the commit it was built
+Connect IQ Store app on the watch shows the version as unknown, or as developer for a face installed
+with `make sideload`. For a face installed from the store,
+Build is the release's commit; a face installed with `make sideload` shows the commit it was built
 from, with `-dirty` after it, as `11f8ef3-dirty`, when it was built from uncommitted changes. A
 Connect IQ app cannot read its own version (see
 [the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)), so
@@ -1348,9 +1349,10 @@ to the next offered one.
 `AboutTest`, also in `premium/source/tests/`, covers the About entry: that the build under test
 carries a stamped version and commit, `MAJOR.MINOR.PATCH` and seven hex digits, rather than the
 `Unknown` fallbacks, so it fails if the stamp stops reaching the build; that About is the settings
-menu's last item, with the version under it; that selecting it opens its page, the preset items
-theirs and a setting none; and that the page shows the version, the commit and the contact address,
-and nothing else.
+menu's last item, with Build information under it; that selecting it opens its page, the preset items
+theirs and a setting none; that the page draws the version, the build and the contact address, each
+under its label, centred and in order, and nothing else; that every line of it stays on the glass, a
+`-dirty` build included; and that select on the page does nothing.
 
 `PresetsTest`, also in `premium/source/tests/`, covers the presets: that a load brings back every
 setting of the saved look and leaves always-on brightness and the date alone, that an empty slot loads
@@ -1363,9 +1365,10 @@ Run No Evil strips every `(:test)` function from ordinary builds, so none of thi
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds thirteen, `TimeSizeTest`, `LowPowerFontTest`,
+since none of them is ever instantiated. Premium adds fourteen, `TimeSizeTest`, `LowPowerFontTest`,
 `TrailLengthTest`, `TimeColorTest`, `RainColorTest`, `TimeStyleTest`, `TimeAlignTest`, `RecordingDc`,
-`AlwaysOnBrightnessTest`, `DateFieldTest`, `SettingsMenuTest`, `AboutTest` and `PresetsTest`.
+`AlwaysOnBrightnessTest`, `DateFieldTest`, `SettingsMenuTest`, `AboutTest`, `PageRecorder` and
+`PresetsTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is

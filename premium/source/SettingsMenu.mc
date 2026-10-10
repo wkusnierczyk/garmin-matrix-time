@@ -181,7 +181,7 @@ module SettingsMenu {
             return [new PresetsMenuView(saving), new PresetsMenuDelegate(saving)];
         }
         if (id.equals(About.ID)) {
-            return [new AboutMenuView(), new AboutMenuDelegate()];
+            return [new AboutView(), new AboutDelegate()];
         }
         return null;
     }
@@ -219,9 +219,10 @@ class SettingsMenuView extends WatchUi.Menu2 {
                 null
             ));
         }
-        // About last (#181): the installed version at a glance, and the rest one step in.
-        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutTitle) as String, About.summary(),
-            About.ID, null));
+        // About last (#181), its sub-label saying that it leads to a page rather than holding a
+        // value, as every item above it does.
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutTitle) as String,
+            Application.loadResource(Rez.Strings.AboutSubLabel) as String, About.ID, null));
     }
 
     // Shows the stored values again. App.onSettingsChanged calls this for a change from
@@ -304,40 +305,6 @@ class PresetsMenuDelegate extends WatchUi.Menu2InputDelegate {
         }
         (Application.getApp() as App).onSettingsChanged();
         WatchUi.popView(WatchUi.SLIDE_RIGHT);
-    }
-
-    function onBack() as Void {
-        WatchUi.popView(WatchUi.SLIDE_RIGHT);
-    }
-
-}
-
-
-// The About entry's page (#181): the version on the watch, the commit it was built from and
-// the developer's address, each a label with its value under it. It only shows them: selecting
-// an item does nothing, and back returns to the settings menu.
-class AboutMenuView extends WatchUi.Menu2 {
-
-    function initialize() {
-        Menu2.initialize({:title => Application.loadResource(Rez.Strings.AboutTitle) as String});
-        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutVersion) as String, About.version(),
-            :version, null));
-        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutCommit) as String, About.commit(),
-            :commit, null));
-        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutContact) as String, About.contact(),
-            :contact, null));
-    }
-
-}
-
-
-class AboutMenuDelegate extends WatchUi.Menu2InputDelegate {
-
-    function initialize() {
-        Menu2InputDelegate.initialize();
-    }
-
-    function onSelect(item as WatchUi.MenuItem) as Void {
     }
 
     function onBack() as Void {

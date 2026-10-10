@@ -17,10 +17,10 @@ each change is recorded in full.
 
 ### Added
 
-* **About, on the watch.** The last item of the Customize menu shows the version of Matrix Time
-  Premium installed on the watch, and opens a page with that version, the commit it was built from and
-  the developer's address. The Connect IQ app shows the store's latest version, which is not
-  necessarily the one on the watch. Premium. (#181)
+* **About, on the watch.** The last item of the Customize menu, Build information, opens a page with
+  the version of Matrix Time Premium installed on the watch, the build, which is the commit it was
+  made from, and the developer's address. The Connect IQ app shows the store's latest version, which
+  is not necessarily the one on the watch. Premium. (#181)
 
 ### Internal
 
