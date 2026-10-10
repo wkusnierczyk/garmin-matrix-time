@@ -22,6 +22,8 @@ No user-visible effect on either watch face:
 * The Connect IQ store's texts, each edition's listing description and each version's *What's New*
   from 1.0.0 on, are kept in `store/`, one directory per edition, as plain text. Until now they were
   kept outside the repository. (#239)
+* Premium's store description says the hollow time applies from the Small size up, and that the
+  preset names are typed in the Connect IQ app, not on the watch. (#244)
 
 ## 1.1.0 -- 2026-10-10
 
