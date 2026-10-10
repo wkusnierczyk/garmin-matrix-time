@@ -1545,10 +1545,10 @@ since the store renders no Markdown: `description.txt`, the listing's descriptio
 `whats-new-<version>.txt`, each version's *What's New* from 1.0.0 on. They are not the GitHub
 release's notes, which come from `CHANGELOG.md` and are written for this repository's readers. The PR
 that gives an edition a new version adds its `whats-new-<version>.txt`, so the text is written and
-reviewed before the upload, which publishes at once. *What's New* covers only what changed since the
-last upload, while the description carries the whole feature list, so a PR that adds a feature
-updates `description.txt` too, and the new description is pasted at that edition's next upload
-(#239).
+reviewed before the upload, which publishes at once; the version check refuses the tag without it
+(#240). *What's New* covers only what changed since the last upload, while the description carries
+the whole feature list, so a PR that adds a feature updates `description.txt` too, and the new
+description is pasted at that edition's next upload (#239).
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**
@@ -1568,7 +1568,7 @@ git push origin vX.Y.Z
 
 | Job | What it proves |
 | :-- | :------------- |
-| `version check` | no edition's manifest is ahead of the tag's version, and `CHANGELOG.md` has a dated section for it. Pure Python, no SDK, seconds. |
+| `version check` | no edition's manifest is ahead of the tag's version, `CHANGELOG.md` has a dated section for it, and `store/` has a *What's New* for each edition with a new version and a description for every edition. Pure Python, no SDK, seconds. |
 | `signed bundle (<edition> <version>)` | `make export EDITION=<edition>` produces the `.iq`, signed with the real key, under the version its manifest gives it. One job per edition, on every tag. |
 | `draft release` | the bundles and the notes are attached to a draft release for that tag. |
 
@@ -1580,7 +1580,11 @@ is a bump made for a later release, or a typo -- and unless `CHANGELOG.md` alrea
 for it headed with a real `YYYY-MM-DD` date -- which puts the release notes ahead of the irreversible
 step rather than behind it, the other half of what went wrong with 0.2.0. The date is matched as a
 date rather than as "some token" on purpose: `## 0.3.0 -- TBD` is precisely the heading this gate
-exists to refuse.
+exists to refuse. The store's *What's New* is held to the same rule, since it is the text the upload
+publishes: each edition the tag gives a new version needs a non-empty
+`store/<edition>/whats-new-<version>.txt`, and every edition a non-empty
+`store/<edition>/description.txt` (#240). An edition that carries its version over needs no
+*What's New*, since its bundle is not uploaded, so a tooling-only release needs none.
 
 The tagged commit is not re-tested here. `build.yml` runs on every push to `main` and every pull
 request, so a tag placed on a commit that reached `main` the normal way has already been built,
@@ -1774,7 +1778,8 @@ from the bundle -- which for an app would mean the store starting to read the ma
 Publishing stays the owner's, so what this repository does is make the right version easy to read and
 the notes ready in time. `make export` names each bundle after the version its manifest records,
 `MatrixTime-1.0.1.iq` or `MatrixTimePremium-1.1.0.iq` (#216), and `tools/release-notes.py` refuses a
-tag until `CHANGELOG.md` has a dated section for it, so the release notes exist before anything is
-uploaded; see [Releases](#releases).
+tag until `CHANGELOG.md` has a dated section for it and `store/` has the *What's New* of each edition
+it gives a new version (#240), so the release notes and the text the upload publishes exist before
+anything is uploaded; see [Releases](#releases).
 
 Tested on this face's store beta, 2026-10-08.

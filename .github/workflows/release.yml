@@ -73,20 +73,24 @@ jobs:
       bundles: ${{ steps.check.outputs.bundles }}
     steps:
       # No lfs: true here, unlike every job in build.yml. This job reads the two
-      # manifests and CHANGELOG.md and compiles nothing, so the LFS objects would be fetched only to be
-      # ignored. The jobs that do compile ask for them.
+      # manifests, CHANGELOG.md and the plain-text store/ files and compiles
+      # nothing, so the LFS objects would be fetched only to be ignored. The jobs
+      # that do compile ask for them.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       # Before the container is even pulled. A tag is a name someone typed, and
       # nothing about `git tag` consults the manifests or CHANGELOG.md, while a
       # version number, once used in the store, cannot be used again.
       # tools/release-notes.py refuses unless no edition's manifest is ahead of
-      # the tag and a dated CHANGELOG.md section exists for it. It prints that
+      # the tag, a dated CHANGELOG.md section exists for it, and store/ has the
+      # What's New of each edition with a new version and every edition's
+      # description, since a store upload publishes at once (#240). It prints that
       # section as the notes, with the list of bundles at the end, and gives the
       # bundle job's matrix: every edition, with its manifest's version and
       # whether that is new at the tag. Pure Python, no SDK, seconds; see its
-      # docstring for why the CHANGELOG section has to exist first.
-      - name: Check the tag against the manifests and CHANGELOG.md
+      # docstring for why the CHANGELOG section and the store texts have to
+      # exist first.
+      - name: Check the tag against the manifests, CHANGELOG.md and the store texts
         id: check
         run: |
           tools/release-notes.py "$GITHUB_REF_NAME" -o notes.md -b bundles.json
