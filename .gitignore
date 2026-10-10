@@ -44,5 +44,5 @@ __pycache__/
 # and never committed (#188)
 /.dev/scratchpad/hero/
 
-# The version and build date make writes before every Premium build, for its About entry (#181)
+# The version and commit make writes before every Premium build, for its About entry (#181)
 /premium/resources-stamp/

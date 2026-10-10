@@ -218,7 +218,7 @@ jobs:
       # so the default -- skip once an earlier step has failed -- is the behaviour
       # that reports the fault once.
       #
-      # Premium's build stamp, the version and date its About entry shows (#181), is
+      # Premium's build stamp, the version and commit its About entry shows (#181), is
       # removed first and looked for after. The build step above leaves one behind, so
       # without this an export that had stopped writing its own would pass here on that
       # one -- and release.yml, which exports on a fresh checkout, would ship Unknown.

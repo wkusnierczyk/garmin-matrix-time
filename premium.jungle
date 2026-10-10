@@ -25,7 +25,7 @@ base.excludeAnnotations = $(base.excludeAnnotations);lite
 # fonts.xml does, so it stays off every resource path.
 base.resourcePath = $(base.resourcePath);premium/resources-base
 
-# The build stamp for the About entry (#181): the version and build date make writes before
+# The build stamp for the About entry (#181): the version and commit make writes before
 # every Premium build, after premium/resources-base so that they replace the fallbacks there.
 # Gitignored, and absent until make first builds Premium; monkeyc skips a resource path that
 # does not exist, so a build that does not go through make shows the fallbacks instead, or
