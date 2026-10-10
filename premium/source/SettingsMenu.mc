@@ -172,6 +172,20 @@ module SettingsMenu {
         return values[0];
     }
 
+    // The page an item opens, for the items that are not a setting: the preset slots (#172) and
+    // About (#181). Null for a setting, which select steps instead. Apart from onSelect so that a
+    // test can check the routing: a watch face's tests may not push a view.
+    function pageFor(id as String) as [WatchUi.Views, WatchUi.InputDelegates] or Null {
+        if (id.equals(Presets.LOAD_PROPERTY) || id.equals(Presets.SAVE_PROPERTY)) {
+            var saving = id.equals(Presets.SAVE_PROPERTY);
+            return [new PresetsMenuView(saving), new PresetsMenuDelegate(saving)];
+        }
+        if (id.equals(About.ID)) {
+            return [new AboutView(), new AboutDelegate()];
+        }
+        return null;
+    }
+
     function labelOf(property as String, value as Number) as String {
         var values = valuesOf(property);
         for (var i = 0; i < values.size(); ++i) {
@@ -205,6 +219,10 @@ class SettingsMenuView extends WatchUi.Menu2 {
                 null
             ));
         }
+        // About last (#181), its sub-label saying that it leads to a page rather than holding a
+        // value, as every item above it does.
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutTitle) as String,
+            Application.loadResource(Rez.Strings.AboutSubLabel) as String, About.ID, null));
     }
 
     // Shows the stored values again. App.onSettingsChanged calls this for a change from
@@ -232,9 +250,9 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item as WatchUi.MenuItem) as Void {
         var property = item.getId() as String;
-        if (property.equals(Presets.LOAD_PROPERTY) || property.equals(Presets.SAVE_PROPERTY)) {
-            var saving = property.equals(Presets.SAVE_PROPERTY);
-            WatchUi.pushView(new PresetsMenuView(saving), new PresetsMenuDelegate(saving), WatchUi.SLIDE_LEFT);
+        var page = SettingsMenu.pageFor(property);
+        if (page != null) {
+            WatchUi.pushView(page[0], page[1], WatchUi.SLIDE_LEFT);
             return;
         }
         var value = SettingsMenu.next(SettingsMenu.valuesOf(property), SettingsMenu.selected(property));

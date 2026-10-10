@@ -25,6 +25,13 @@ base.excludeAnnotations = $(base.excludeAnnotations);lite
 # fonts.xml does, so it stays off every resource path.
 base.resourcePath = $(base.resourcePath);premium/resources-base
 
+# The build stamp for the About entry (#181): the version and commit make writes before
+# every Premium build, after premium/resources-base so that they replace the fallbacks there.
+# Gitignored, and absent until make first builds Premium; monkeyc skips a resource path that
+# does not exist, so a build that does not go through make shows the fallbacks instead, or
+# the stamp the last make build left. See STAMP in the Makefile.
+base.resourcePath = $(base.resourcePath);premium/resources-stamp
+
 # Premium's per-resolution resources: the fonts garmin-font-scaler generates with
 # --project-dir premium, one directory per family resources/fonts/resolutions.json
 # lists. There is deliberately no unqualified copy, so a product outside these

@@ -84,8 +84,9 @@ Matrix Time comes in two editions, built from this one source tree:
   separate app, with an application id of its own, so it installs alongside Lite rather than over it.
   It is not published yet. Its features so far are its settings -- time size, trail length, time
   style, time alignment, time and rain colours, always-on brightness and the date, and presets of
-  them, see [Premium settings](#premium-settings) -- and the time drawn in SUSEMono ExtraBold rather than Regular, see
-  [Fonts](#fonts). Its launcher icon carries a gold star, see
+  them, see [Premium settings](#premium-settings) -- the time drawn in SUSEMono ExtraBold rather than
+  Regular, see [Fonts](#fonts), and an About entry on the watch that shows the version installed there,
+  see [About](#about). Its launcher icon carries a gold star, see
   [Premium launcher icon](#premium-launcher-icon).
 
 Everything Lite and Premium share is in `source/`, `resources/` and `monkey.jungle`. What only Premium
@@ -129,7 +130,8 @@ face's Customize menu, where each one is a menu item showing its current value; 
 the next value. The two preset items at the top of that menu work differently; see
 [Presets](#presets). The two are the same settings, so a change made in one shows in the other. A face
 installed with `make sideload` rather than from the store has no settings in the Connect IQ app, so
-there the watch is the only way to change them.
+there the watch is the only way to change them. The last item of the menu, About, is not a setting:
+it opens a page with the version installed on the watch; see [About](#about).
 
 * **Time size** -- Extra extra small, Extra small, Small, Medium, Large, Extra large or Extra extra
   large: the size of the time on the woken screen. Medium is the default; Extra extra small is the
@@ -244,6 +246,26 @@ Loading a preset and then changing a setting changes the current look only. A pr
 when it is saved over. A setting added in a later version is not in a preset saved before it, and
 loading that preset leaves the new setting as it is. The presets themselves are stored on the watch,
 not in the Connect IQ app's settings, so a save made on the watch is never overwritten from the phone.
+
+#### About
+
+**About** is the last item of the Customize menu on the watch, with **Build information** under it.
+Selecting it opens a page that shows **Version**, the version installed on the watch, as `1.0.1`;
+**Build**, the commit of this repository the build was made from, as `11f8ef3`; and **Contact**, the
+developer's address, `wacus@pm.me`. The page is text, not a menu, so nothing on it looks selectable:
+select does nothing there, and back returns to the menu (#181).
+
+The Connect IQ app shows the latest version in the store and the date it was updated, which is not
+necessarily what the watch has, so About is the way to tell whether the watch has caught up; the
+Connect IQ Store app on the watch shows the version as unknown, or as developer for a face installed
+with `make sideload`. For a face installed from the store,
+Build is the release's commit; a face installed with `make sideload` shows the commit it was built
+from, with `-dirty` after it, as `11f8ef3-dirty`, when it was built from uncommitted changes. A
+Connect IQ app cannot read its own version (see
+[the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)), so
+`make` writes the version in `manifest-premium.xml` and the commit into every Premium build; see
+[Editions in the build](#editions-in-the-build). About has no entry in the Connect IQ app's settings,
+which show the store's version and date already. Lite has no settings menu, and so no About.
 
 ## Fonts
 <sub>[↑↑ TOC](#table-of-contents) · [← Features](#features) · [Launcher icon →](#launcher-icon)</sub>
@@ -952,6 +974,7 @@ make export
 # ... Premium's, under the id of its store beta, as export/MatrixTimePremium-<version>-beta.iq
 make export EDITION=premium VERSION=beta
 
+
 # build for the connected watch and install the binary on it
 make sideload
 
@@ -1187,6 +1210,27 @@ marker Lite depends on is still there. Code that reads a setting is Premium-only
 needs to react to a setting is annotated `(:premium)`, with a `(:lite)` twin where Lite must keep its
 own version, as `App.getInitialView` does.
 
+The [About](#about) entry's version and commit are written by `make` into every Premium build
+(#181), since an app cannot read its own version. Before `build`, `test` and `export` compile Premium,
+they write `premium/resources-stamp/strings/stamp.xml`, whose `AppVersion` is the version in
+`manifest-premium.xml`, read as `make export` reads it for the bundle's name, and whose `AppCommit` is
+the first seven hex digits of the commit checked out, with `-dirty` after them when the tree differs
+from it: a tracked file changed, or a new file git does not ignore. Seven exactly, rather than git's
+`--short`, whose length grows with the repository, so a commit always reads the same. A manifest with
+no `MAJOR.MINOR.PATCH` version, or a tree that is not a git checkout, fails the build. The commit
+rather than the day of the build, so that a Premium build depends on its commit alone: two builds of
+one tree are byte-identical, and a release bundle can be made again from its tag.
+`tools/export-beta.sh` builds in a copy with no `.git`, so it passes the commit in as `APP_COMMIT`,
+which is checked for its shape before use. `premium.jungle` puts
+`premium/resources-stamp` after `premium/resources-base`, so the two strings replace the `Unknown`
+fallbacks committed there. The directory is gitignored, and `make clean` removes it. A build that does
+not go through `make`, such as the capture tools' container builds, shows the stamp the last `make`
+build left, or `Unknown` on a clean tree: `monkeyc` skips a resource path that does not exist.
+`AboutTest` fails on a build that was not stamped, and CI's export step deletes the stamp first and
+fails unless the export wrote it again: a stamp left by an earlier build would otherwise pass for the
+export's own; it also requires the commit without `-dirty`, since nothing before the export may change
+a tracked file. Lite reads none of it, so `make check-lite` holds.
+
 Three checks keep the editions honest:
 
 * `make check-manifests` fails if `manifest-premium.xml` differs from `manifest.xml` in anything but
@@ -1302,6 +1346,14 @@ open menu shows a value changed from the phone, that selecting steps to the next
 Extra extra large back to Extra extra small, and that a trail length the list does not offer steps
 to the next offered one.
 
+`AboutTest`, also in `premium/source/tests/`, covers the About entry: that the build under test
+carries a stamped version and commit, `MAJOR.MINOR.PATCH` and seven hex digits, rather than the
+`Unknown` fallbacks, so it fails if the stamp stops reaching the build; that About is the settings
+menu's last item, with Build information under it; that selecting it opens its page, the preset items
+theirs and a setting none; that the page draws the version, the build and the contact address, each
+under its label, centred and in order, and nothing else; that every line of it stays on the glass, a
+`-dirty` build included; and that select on the page does nothing.
+
 `PresetsTest`, also in `premium/source/tests/`, covers the presets: that a load brings back every
 setting of the saved look and leaves always-on brightness and the date alone, that an empty slot loads
 nothing and a setting missing from a saved preset is left as it is, that a load or save picked on the
@@ -1313,9 +1365,10 @@ Run No Evil strips every `(:test)` function from ordinary builds, so none of thi
 edition tests are module-level functions rather than classes and leave nothing behind in a release
 build; `make check-lite` depends on that. The test classes carry the annotation themselves, which drops their bodies too. Lite has three, which
 leave 240 bytes of class shell in its `.prg` -- 0.22% of it, and nothing at all in the memory budget,
-since none of them is ever instantiated. Premium adds twelve, `TimeSizeTest`, `LowPowerFontTest`,
+since none of them is ever instantiated. Premium adds fourteen, `TimeSizeTest`, `LowPowerFontTest`,
 `TrailLengthTest`, `TimeColorTest`, `RainColorTest`, `TimeStyleTest`, `TimeAlignTest`, `RecordingDc`,
-`AlwaysOnBrightnessTest`, `DateFieldTest`, `SettingsMenuTest` and `PresetsTest`.
+`AlwaysOnBrightnessTest`, `DateFieldTest`, `SettingsMenuTest`, `AboutTest`, `PageRecorder` and
+`PresetsTest`.
 
 Note that `monkeydo` exits non-zero whether the suite passes or fails, so `make test` reads the summary
 line rather than the exit status. A run that cannot reach the simulator prints no summary and is
@@ -1462,9 +1515,10 @@ not Garmin's: for an app, neither the store nor the watch reads the attribute, a
 store shows is the one typed at upload (see
 [the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)). The
 manifest is kept as the record because tooling can use it there: `tools/release-notes.py` checks it
-against the tag, and `make export` names the bundle after it, which is the name the version is copied
-from, character for character, at upload. The owner decides which editions get a new version in a
-release (#186):
+against the tag, `make export` names the bundle after it, which is the name the version is copied
+from, character for character, at upload, and every Premium build carries it for Premium's
+[About](#about) entry to show on the watch (#181). The owner decides which editions get a new version
+in a release (#186):
 
 * a release that gives only Premium a new version sets `manifest-premium.xml` to the tag's version and
   leaves `manifest.xml` where it is;
@@ -1478,9 +1532,10 @@ release holds everything (#223). A `v1.1.0` that gave Premium a new version and 
 would carry `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code
 at the version in Lite's manifest. Where neither Lite's code and resources nor the build environment
 (the SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to the 1.0.1
-release's. The notes end with a *Bundles* list that says which bundles carry a new version at this tag
-and which carry their version over. Uploading a bundle to the store is the owner's, and outside the
-repository.
+release's. Premium's carry the commit they were built from, for its [About](#about) entry (#181), so a
+carried-over Premium bundle differs from the previous release's by that string alone. The notes end
+with a *Bundles* list that says which bundles carry a new version at this tag and which carry their
+version over. Uploading a bundle to the store is the owner's, and outside the repository.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**
@@ -1691,8 +1746,9 @@ into an app's bundle -- `tar -xOf export/MatrixTime-1.0.1.iq manifest.xml` shows
 -- but nothing reads it there. Not the store, as above, and not the watch: Lite's release `.prg` for
 `epix2pro47mm` is byte for byte the same built at `version="1.0.1"` and at `version="7.8.9"`, while
 changing the application id changes it, so the attribute never reaches the watch. SDK 9.2.0's API
-has no call that returns an app's own version either, which is what an entry showing the installed
-version (#181) is up against. So the version in this repository's manifests is a convention of its
+has no call that returns an app's own version either, so Premium's [About](#about) entry, which shows
+the installed version, has `make` write the manifest's version into every Premium build as a string
+resource (#181). So the version in this repository's manifests is a convention of its
 own, described under [Releases](#releases), and the store's version is only ever the one typed at
 upload.
 

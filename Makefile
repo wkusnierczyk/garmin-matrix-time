@@ -93,7 +93,11 @@ endif
 # is given only when there is exactly one and it carries MAJOR.MINOR.PATCH. Two would
 # otherwise give "1.0.1 1.0.2", a name that splits too. Anything else reads as no version,
 # which export refuses before any command sees the name.
-APP_VERSION = $(shell tr '\n\r\t' '   ' < "$(MANIFEST)" \
+#
+# override, so that nothing on the command line or in the environment (make -e) can replace it:
+# the manifest is the one record of the version, and recipes splice this value into the shell,
+# which is safe only because the sed above lets nothing but digits and dots through (#181).
+override APP_VERSION = $(shell tr '\n\r\t' '   ' < "$(MANIFEST)" \
   | grep -oE '<iq:application[[:space:]][^>]*>' \
   | awk '{ tag = $$0 } END { if (NR == 1) print tag }' \
   | sed -nE 's/.*[[:space:]]version="((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))".*/\1/p')
@@ -103,6 +107,59 @@ ifeq ($(VERSION),beta)
   EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION)-beta.iq
 else
   EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION).iq
+endif
+
+# Premium's About entry shows the version installed on the watch and the commit it was built
+# from (#181), and an app cannot read either for itself: SDK 9.2.0 has no call that returns an
+# app's own version, and the manifest's version attribute never reaches the .prg. So every
+# Premium build first writes both into a string resource, STAMP, which premium.jungle puts
+# after premium/resources-base, so that its AppVersion and AppCommit replace the fallbacks
+# committed there. The version is APP_VERSION, the manifest's, read as export reads it, so the
+# manifest stays the one record of it; a manifest with none fails the build. STAMP is
+# gitignored, and Lite's build never reads it, so make check-lite holds.
+#
+# The commit rather than the day of the build, so that a build is a function of its commit: a
+# release bundle can be made again from its tag byte for byte, and two Premium builds of one
+# tree are identical. It is the first seven hex digits of HEAD, cut rather than taken from
+# git's --short, whose length grows with the repository, so that one commit always reads the
+# same; with -dirty after it when the tree differs from that commit -- a tracked file changed,
+# or a new one git does not ignore -- so that a build of uncommitted work cannot pass for the
+# commit. safe.directory because CI's container jobs run as another user than the one owning
+# the checkout. Without git, or outside a repository, it is empty, and a Premium build fails.
+#
+# APP_COMMIT can be given on the command line, which tools/export-beta.sh needs: it builds in
+# a copy of the tree with no .git, and passes the outer run's. So recipes read it from their
+# environment, as "$$APP_COMMIT", rather than spliced into the shell source, and check its
+# shape with case, which matches the whole value, so a quote or a second line is refused
+# rather than run. APP_VERSION can be spliced in: it is override, and only ever digits and
+# dots, or empty.
+#
+# The stamp is written to a temporary file and renamed into place, so that two recipes run in
+# parallel, make -j build export say, never let monkeyc read a half-written one.
+STAMP_DIR := premium/resources-stamp
+STAMP := $(STAMP_DIR)/strings/stamp.xml
+ifeq ($(EDITION),premium)
+GIT := git -c safe.directory="$(CURDIR)"
+APP_COMMIT := $(shell commit=$$($(GIT) rev-parse HEAD 2>/dev/null | cut -c1-7); \
+  test -z "$$commit" || { test -z "$$($(GIT) status --porcelain 2>/dev/null)" && echo "$$commit" || \
+  echo "$$commit-dirty"; })
+export APP_COMMIT
+# Seven lower-case hex digits, spelt out: a range such as [a-f] matches capitals too in some
+# locales, macOS's among them.
+HEXDIGIT := [0123456789abcdef]
+HEX := $(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)
+define stamp
+@test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
+@test -n "$$APP_COMMIT" || { echo "No git commit to stamp into Premium's About entry: build from a git checkout."; exit 1; }
+@case "$$APP_COMMIT" in $(HEX) | $(HEX)-dirty) ;; *) \
+  echo "APP_COMMIT must be seven hex digits, with -dirty or not, not \"$$APP_COMMIT\"."; exit 1 ;; esac
+@mkdir -p $(dir $(STAMP)) && printf '%s\n' \
+  '<!-- Written by make on every Premium build (#181); see STAMP in the Makefile. -->' \
+  '<resources>' \
+  '    <string id="AppVersion">$(APP_VERSION)</string>' \
+  "    <string id=\"AppCommit\">$$APP_COMMIT</string>" \
+  '</resources>' > $(STAMP).$$$$ && mv -f $(STAMP).$$$$ $(STAMP)
+endef
 endif
 
 # monkeyc names the .prg files inside a bundle after the bundle itself, and the bundle's
@@ -197,6 +254,7 @@ all: build
 ## Build the .prg for DEVICE and EDITION [DEVICE EDITION RELEASE]
 build:
 	$(require_sdk)
+	$(stamp)
 	@echo "Building $(EDITION) for $(DEVICE)..."
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
 	@echo "Build complete: $(OUTPUT)"
@@ -261,6 +319,7 @@ run: build sim
 ## Run the unit tests in the simulator [DEVICE EDITION SIM_PORT]
 test: sim
 	$(require_sdk)
+	$(stamp)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
 	@echo "Loading tests into simulator..."
@@ -380,6 +439,7 @@ else
 	  test -z "$$beta" -o "$$id" != "$$beta" || { \
 	  echo "$(MANIFEST) carries the beta id $(BETA_ID): a public export of it would be the beta's."; \
 	  echo "Put the public id back, and use VERSION=beta for a beta."; exit 1; }
+	$(stamp)
 	@echo "Exporting $(EXPORT) for every product in $(MANIFEST)..."
 	@rm -rf "$(EXPORT_STAGE)" && mkdir -p "$(EXPORT_STAGE)"
 	@{ $(MONKEYC) $(EXPORT_FLAGS) -o "$(EXPORT_STAGE)/$(APP).iq"; echo "$(EXPORT_STATUS)$$?"; } | awk -v s='$(EXPORT_STATUS)' '\
@@ -687,7 +747,7 @@ preview:
 
 ## Remove every build output
 clean:
-	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ 
+	@rm -Rf MatrixTime.prg MatrixTimePremium.prg MatrixTime*-settings.json test_build* *.debug.xml bin/ deploy/ gen/ internal-mir/ external-mir/ export/ $(STAMP_DIR)/
 	@echo "Clean complete."
 
 # The help is the "## " line above each target and each ?= variable, so a description
