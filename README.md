@@ -1238,11 +1238,12 @@ Three checks keep the editions honest:
   added to one alone would ship one edition to a watch the other does not support. It is a check rather
   than a generator: the copy is small, and a check in CI cannot be forgotten before a commit. Pure
   Python, no SDK.
-* `make check-lite` builds Lite twice per product, once from the tree and once from a copy with every
-  Premium-only file deleted (`premium/`, `premium.jungle`, `manifest-premium.xml`), and fails unless the
-  two PRGs are byte for byte identical. They are **release** builds: a debug build embeds the absolute
-  build path and line numbers, so it would differ whatever the copy contained. It builds `DEVICE`, or
-  the list in `DEVICES`; CI passes one product per device family.
+* `make check-lite` builds Lite twice per product, once from the tree and once from a copy with
+  every Premium-only file the build reads deleted (`premium/`, `premium.jungle`,
+  `manifest-premium.xml`; not `store/premium/`, which no build reads), and fails unless the two PRGs
+  are byte for byte identical. They are **release** builds: a debug build embeds the absolute build
+  path and line numbers, so it would differ whatever the copy contained. It builds `DEVICE`, or the
+  list in `DEVICES`; CI passes one product per device family.
 * `source/tests/EditionTest.mc` holds one `(:lite)` test and one `(:premium)` test, each asserting its
   own edition's name. Compiled into the other edition -- because an exclusion was dropped -- either one
   fails there. `premium/source/tests/EditionTest.mc` does the same for `premium/source/`, and is the
@@ -1539,14 +1540,15 @@ previous release's by that string alone. The notes end with a *Bundles* list tha
 carry a new version at this tag and which carry their version over. Uploading a bundle to the store is
 the owner's, and outside the repository.
 
-The texts the store shows are kept in [`store/`](store/), one directory per edition, as plain text
-exactly as pasted, since the store renders no Markdown: `description.txt`, the listing's description,
-and `whats-new-<version>.txt`, the *What's New* of each version uploaded. They are not the release
-notes above, which come from `CHANGELOG.md` and are written for this repository's readers. A release
-that gives an edition a new version adds its `whats-new-<version>.txt` in the release PR, so the text
-is written and reviewed before the upload, which publishes at once; *What's New* covers what changed
-since the last version uploaded, and the description carries the whole feature list, so a change that
-adds a feature updates `description.txt` in the same change (#239).
+The texts the store shows are kept in [`store/`](store/), one directory per edition, as plain text,
+since the store renders no Markdown: `description.txt`, the listing's description, and
+`whats-new-<version>.txt`, each version's *What's New* from 1.0.0 on. They are not the GitHub
+release's notes, which come from `CHANGELOG.md` and are written for this repository's readers. The PR
+that gives an edition a new version adds its `whats-new-<version>.txt`, so the text is written and
+reviewed before the upload, which publishes at once. *What's New* covers only what changed since the
+last upload, while the description carries the whole feature list, so a PR that adds a feature
+updates `description.txt` too, and the new description is pasted at that edition's next upload
+(#239).
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**

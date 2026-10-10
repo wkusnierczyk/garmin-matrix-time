@@ -19,9 +19,9 @@ each change is recorded in full.
 
 No user-visible effect on either watch face:
 
-* The Connect IQ store's texts, each edition's listing description and each version's *What's New*,
-  are kept in `store/`, one directory per edition, as plain text exactly as pasted. Until now they
-  were kept outside the repository. (#239)
+* The Connect IQ store's texts, each edition's listing description and each version's *What's New*
+  from 1.0.0 on, are kept in `store/`, one directory per edition, as plain text. Until now they were
+  kept outside the repository. (#239)
 
 ## 1.1.0 -- 2026-10-10
 
