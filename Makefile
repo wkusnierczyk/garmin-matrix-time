@@ -93,7 +93,11 @@ endif
 # is given only when there is exactly one and it carries MAJOR.MINOR.PATCH. Two would
 # otherwise give "1.0.1 1.0.2", a name that splits too. Anything else reads as no version,
 # which export refuses before any command sees the name.
-APP_VERSION = $(shell tr '\n\r\t' '   ' < "$(MANIFEST)" \
+#
+# override, so that nothing on the command line or in the environment (make -e) can replace it:
+# the manifest is the one record of the version, and recipes splice this value into the shell,
+# which is safe only because the sed above lets nothing but digits and dots through (#181).
+override APP_VERSION = $(shell tr '\n\r\t' '   ' < "$(MANIFEST)" \
   | grep -oE '<iq:application[[:space:]][^>]*>' \
   | awk '{ tag = $$0 } END { if (NR == 1) print tag }' \
   | sed -nE 's/.*[[:space:]]version="((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))".*/\1/p')
@@ -124,7 +128,7 @@ endif
 #
 # Recipes read it from their environment, as "$$BUILD_DATE", rather than spliced into the shell
 # source as $(BUILD_DATE): a value with a quote in it would then be run rather than refused.
-# APP_VERSION can be spliced in, since it is only ever digits and dots, or empty.
+# APP_VERSION can be spliced in: it is override, and only ever digits and dots, or empty.
 #
 # The stamp is written to a temporary file and renamed into place, so that two recipes run in
 # parallel, make -j build export say, never let monkeyc read a half-written one. The date is
