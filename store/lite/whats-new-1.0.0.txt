@@ -1,0 +1,1 @@
+Fixed: on some watches the always-on time went dark after a while, and stayed dark across later sleeps until the face was restarted, for example by opening the activity list and backing out. The face now draws its always-on screen whenever the watch says it is in low-power mode.

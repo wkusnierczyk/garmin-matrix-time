@@ -1,0 +1,1 @@
+Fixed: in sleep mode, the screen now stays dark once the sleep-mode timeout has passed, as it does with Garmin's own watch faces. Until now the always-on time stayed on all night. Waking the watch brings the face back, and outside the sleep schedule the always-on screen is unchanged.

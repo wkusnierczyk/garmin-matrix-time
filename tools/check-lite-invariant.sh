@@ -24,8 +24,9 @@
 # source/tests/EditionTest.mc is what fails if it is dropped.
 set -eu
 
-# Every file that exists for Premium alone. Delete any of these and Lite must build
-# exactly as before. A new Premium-only file outside premium/ belongs on this list.
+# Every file the build reads that exists for Premium alone. Delete any of these and Lite
+# must build exactly as before. A new one outside premium/ belongs on this list; a file no
+# build reads, such as the store texts in store/premium/, does not.
 PREMIUM_ONLY=(premium premium.jungle manifest-premium.xml)
 
 cd "$(dirname "$0")/.."
