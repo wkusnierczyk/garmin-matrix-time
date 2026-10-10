@@ -250,18 +250,19 @@ not in the Connect IQ app's settings, so a save made on the watch is never overw
 #### About
 
 **About** is the last item of the Customize menu on the watch, with the version installed on the
-watch under it, as `Version 1.0.1`. Selecting it opens a page that shows the version, **Built**, the
-day that build was made, as `2026-10-09`, in UTC, and **Contact**, the developer's address,
-`wacus@pm.me`. The page only shows them: selecting an item there does nothing, and back returns to the
-menu (#181).
+watch under it, as `Version 1.0.1`. Selecting it opens a page that shows the version, **Commit**, the
+commit of this repository the build was made from, as `11f8ef3`, and **Contact**, the developer's
+address, `wacus@pm.me`. The page only shows them: selecting an item there does nothing, and back
+returns to the menu (#181).
 
 The Connect IQ app shows the latest version in the store and the date it was updated, which is not
-necessarily what the watch has, so About is the way to tell whether the watch has caught up. For a
-face installed from the store, Built is the day the release's bundle was built, shortly before it was
-uploaded, not the day of the upload, which the watch cannot know; a face installed with `make
-sideload` shows the day it was built. A Connect IQ app cannot read its own version (see
+necessarily what the watch has, so About is the way to tell whether the watch has caught up; the
+Connect IQ Store app on the watch shows the version as unknown. For a face installed from the store,
+Commit is the release's commit; a face installed with `make sideload` shows the commit it was built
+from, with `-dirty` after it, as `11f8ef3-dirty`, when it was built from uncommitted changes. A
+Connect IQ app cannot read its own version (see
 [the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)), so
-`make` writes the version in `manifest-premium.xml` and the build's date into every Premium build; see
+`make` writes the version in `manifest-premium.xml` and the commit into every Premium build; see
 [Editions in the build](#editions-in-the-build). About has no entry in the Connect IQ app's settings,
 which show the store's version and date already. Lite has no settings menu, and so no About.
 
@@ -972,8 +973,6 @@ make export
 # ... Premium's, under the id of its store beta, as export/MatrixTimePremium-<version>-beta.iq
 make export EDITION=premium VERSION=beta
 
-# ... with the build date Premium's About entry shows fixed, to repeat a build byte for byte
-make export EDITION=premium BUILD_DATE=2026-10-09
 
 # build for the connected watch and install the binary on it
 make sideload
@@ -1063,13 +1062,6 @@ and the beta app, like the listing, takes a version once, so a second beta of on
 version. Lite has no store beta, so `make export VERSION=beta` refuses Lite until its `BETA_ID` is
 set. Only `export` reads `VERSION`, and only from the command line: one exported in the shell is
 ignored.
-
-`BUILD_DATE` is the day Premium's [About](#about) entry gives as its build's, `YYYY-MM-DD`; it
-defaults to today, in UTC. Every Premium build writes it into the build, with the manifest's version
-(see [Editions in the build](#editions-in-the-build)), so two Premium builds made on different days
-differ by it; `BUILD_DATE` fixes it, so that a build can be repeated byte for byte, the beta export's
-too. Anything but a real date as `YYYY-MM-DD` is refused, `2026-02-29` included, and, as with
-`VERSION`, it is read from the command line only. Lite ignores it.
 
 `make graphics` regenerates the images an edition's store listing uses that it owns -- the gallery
 and the draft hero -- from whatever the face currently draws: eight in `resources/graphics/` for Lite,
@@ -1217,20 +1209,26 @@ marker Lite depends on is still there. Code that reads a setting is Premium-only
 needs to react to a setting is annotated `(:premium)`, with a `(:lite)` twin where Lite must keep its
 own version, as `App.getInitialView` does.
 
-The [About](#about) entry's version and build date are written by `make` into every Premium build
+The [About](#about) entry's version and commit are written by `make` into every Premium build
 (#181), since an app cannot read its own version. Before `build`, `test` and `export` compile Premium,
 they write `premium/resources-stamp/strings/stamp.xml`, whose `AppVersion` is the version in
-`manifest-premium.xml`, read as `make export` reads it for the bundle's name, and whose `BuildDate` is
-`BUILD_DATE`. A manifest with no `MAJOR.MINOR.PATCH` version fails the build. `premium.jungle` puts
+`manifest-premium.xml`, read as `make export` reads it for the bundle's name, and whose `AppCommit` is
+the first seven hex digits of the commit checked out, with `-dirty` after them when the tree differs
+from it: a tracked file changed, or a new file git does not ignore. Seven exactly, rather than git's
+`--short`, whose length grows with the repository, so a commit always reads the same. A manifest with
+no `MAJOR.MINOR.PATCH` version, or a tree that is not a git checkout, fails the build. The commit
+rather than the day of the build, so that a Premium build depends on its commit alone: two builds of
+one tree are byte-identical, and a release bundle can be made again from its tag.
+`tools/export-beta.sh` builds in a copy with no `.git`, so it passes the commit in as `APP_COMMIT`,
+which is checked for its shape before use. `premium.jungle` puts
 `premium/resources-stamp` after `premium/resources-base`, so the two strings replace the `Unknown`
 fallbacks committed there. The directory is gitignored, and `make clean` removes it. A build that does
 not go through `make`, such as the capture tools' container builds, shows the stamp the last `make`
 build left, or `Unknown` on a clean tree: `monkeyc` skips a resource path that does not exist.
 `AboutTest` fails on a build that was not stamped, and CI's export step deletes the stamp first and
 fails unless the export wrote it again: a stamp left by an earlier build would otherwise pass for the
-export's own. Two `make` runs at once in one tree share the stamp, so after compiling, each checks
-that it still holds its own version and date, and if another run has changed it, deletes what it
-built and fails: run one Premium build at a time. Lite reads none of it, so `make check-lite` holds.
+export's own; it also requires the commit without `-dirty`, since nothing before the export may change
+a tracked file. Lite reads none of it, so `make check-lite` holds.
 
 Three checks keep the editions honest:
 
@@ -1348,11 +1346,11 @@ Extra extra large back to Extra extra small, and that a trail length the list do
 to the next offered one.
 
 `AboutTest`, also in `premium/source/tests/`, covers the About entry: that the build under test
-carries a stamped version and date, `MAJOR.MINOR.PATCH` and `YYYY-MM-DD`, rather than the `Unknown`
-fallbacks, so it fails if the stamp stops reaching the build; that About is the settings menu's last
-item, with the version under it; that selecting it opens its page, the preset items theirs and a
-setting none; and that the page shows the version, the build date and the contact address, and
-nothing else.
+carries a stamped version and commit, `MAJOR.MINOR.PATCH` and seven hex digits, rather than the
+`Unknown` fallbacks, so it fails if the stamp stops reaching the build; that About is the settings
+menu's last item, with the version under it; that selecting it opens its page, the preset items
+theirs and a setting none; and that the page shows the version, the commit and the contact address,
+and nothing else.
 
 `PresetsTest`, also in `premium/source/tests/`, covers the presets: that a load brings back every
 setting of the saved look and leaves always-on brightness and the date alone, that an empty slot loads
@@ -1531,10 +1529,10 @@ release holds everything (#223). A `v1.1.0` that gave Premium a new version and 
 would carry `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code
 at the version in Lite's manifest. Where neither Lite's code and resources nor the build environment
 (the SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to the 1.0.1
-release's. Premium's never are, since every Premium build carries the day it was built for its
-[About](#about) entry (#181). The notes end with a *Bundles* list that says which bundles carry a new
-version at this tag and which carry their version over. Uploading a bundle to the store is the
-owner's, and outside the repository.
+release's. Premium's carry the commit they were built from, for its [About](#about) entry (#181), so a
+carried-over Premium bundle differs from the previous release's by that string alone. The notes end
+with a *Bundles* list that says which bundles carry a new version at this tag and which carry their
+version over. Uploading a bundle to the store is the owner's, and outside the repository.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**

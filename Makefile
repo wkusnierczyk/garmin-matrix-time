@@ -109,64 +109,56 @@ else
   EXPORT = $(EXPORT_DIR)/$(APP)-$(APP_VERSION).iq
 endif
 
-# Premium's About entry shows the version installed on the watch and the day it was built
-# (#181), and an app cannot read either for itself: SDK 9.2.0 has no call that returns an
+# Premium's About entry shows the version installed on the watch and the commit it was built
+# from (#181), and an app cannot read either for itself: SDK 9.2.0 has no call that returns an
 # app's own version, and the manifest's version attribute never reaches the .prg. So every
 # Premium build first writes both into a string resource, STAMP, which premium.jungle puts
-# after premium/resources-base, so that its AppVersion and BuildDate replace the fallbacks
+# after premium/resources-base, so that its AppVersion and AppCommit replace the fallbacks
 # committed there. The version is APP_VERSION, the manifest's, read as export reads it, so the
 # manifest stays the one record of it; a manifest with none fails the build. STAMP is
 # gitignored, and Lite's build never reads it, so make check-lite holds.
 #
-# The date is the build's, in UTC: for a store install, the day make export built the bundle,
-# which for a tagged release is release.yml's run. BUILD_DATE=YYYY-MM-DD fixes it, so that a
-# Premium build can be repeated byte for byte on another day. Taken from the command line only,
-# as VERSION is: a BUILD_DATE in the shell's environment is ignored. Anything but a real date
-# is refused: its shape by case, which matches the whole value, so that a second line cannot
-# ride in behind a valid first one as it could past grep, and the date itself by awk rather
-# than date, whose options differ between macOS and Linux.
+# The commit rather than the day of the build, so that a build is a function of its commit: a
+# release bundle can be made again from its tag byte for byte, and two Premium builds of one
+# tree are identical. It is the first seven hex digits of HEAD, cut rather than taken from
+# git's --short, whose length grows with the repository, so that one commit always reads the
+# same; with -dirty after it when the tree differs from that commit -- a tracked file changed,
+# or a new one git does not ignore -- so that a build of uncommitted work cannot pass for the
+# commit. safe.directory because CI's container jobs run as another user than the one owning
+# the checkout. Without git, or outside a repository, it is empty, and a Premium build fails.
 #
-# Recipes read it from their environment, as "$$BUILD_DATE", rather than spliced into the shell
-# source as $(BUILD_DATE): a value with a quote in it would then be run rather than refused.
-# APP_VERSION can be spliced in: it is override, and only ever digits and dots, or empty.
+# APP_COMMIT can be given on the command line, which tools/export-beta.sh needs: it builds in
+# a copy of the tree with no .git, and passes the outer run's. So recipes read it from their
+# environment, as "$$APP_COMMIT", rather than spliced into the shell source, and check its
+# shape with case, which matches the whole value, so a quote or a second line is refused
+# rather than run. APP_VERSION can be spliced in: it is override, and only ever digits and
+# dots, or empty.
 #
 # The stamp is written to a temporary file and renamed into place, so that two recipes run in
-# parallel, make -j build export say, never let monkeyc read a half-written one. The date is
-# fixed once per make run, so those two stamp the same. Two separate make runs in one tree share
-# the one stamp, though, and one could compile the other's date: so after compiling, each checks
-# that the stamp still holds its own version and date, and if not, deletes what it built and
-# fails, rather than leave a build carrying another run's date.
-## The date Premium's About entry gives its build, YYYY-MM-DD; today, in UTC, by default
-BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
-ifneq ($(findstring environment,$(origin BUILD_DATE)),)
-  override BUILD_DATE := $(shell date -u +%Y-%m-%d)
-endif
-BUILD_DATE := $(BUILD_DATE)
-export BUILD_DATE
+# parallel, make -j build export say, never let monkeyc read a half-written one.
 STAMP_DIR := premium/resources-stamp
 STAMP := $(STAMP_DIR)/strings/stamp.xml
 ifeq ($(EDITION),premium)
+GIT := git -c safe.directory="$(CURDIR)"
+APP_COMMIT := $(shell commit=$$($(GIT) rev-parse HEAD 2>/dev/null | cut -c1-7); \
+  test -z "$$commit" || { test -z "$$($(GIT) status --porcelain 2>/dev/null)" && echo "$$commit" || \
+  echo "$$commit-dirty"; })
+export APP_COMMIT
+# Seven lower-case hex digits, spelt out: a range such as [a-f] matches capitals too in some
+# locales, macOS's among them.
+HEXDIGIT := [0123456789abcdef]
+HEX := $(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)$(HEXDIGIT)
 define stamp
 @test -n "$(APP_VERSION)" || { echo "No MAJOR.MINOR.PATCH application version found in $(MANIFEST)."; exit 1; }
-@case "$$BUILD_DATE" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) false ;; esac && \
-  printf '%s\n' "$$BUILD_DATE" | awk -F- '{ split("31 28 31 30 31 30 31 31 30 31 30 31", days, " "); \
-    if ($$1 % 4 == 0 && $$1 % 100 != 0 || $$1 % 400 == 0) days[2] = 29; \
-    exit !($$2 >= 1 && $$2 <= 12 && $$3 >= 1 && $$3 <= days[$$2 + 0]) }' || { \
-  echo "BUILD_DATE must be a date, YYYY-MM-DD, not \"$$BUILD_DATE\"."; exit 1; }
+@test -n "$$APP_COMMIT" || { echo "No git commit to stamp into Premium's About entry: build from a git checkout."; exit 1; }
+@case "$$APP_COMMIT" in $(HEX) | $(HEX)-dirty) ;; *) \
+  echo "APP_COMMIT must be seven hex digits, with -dirty or not, not \"$$APP_COMMIT\"."; exit 1 ;; esac
 @mkdir -p $(dir $(STAMP)) && printf '%s\n' \
   '<!-- Written by make on every Premium build (#181); see STAMP in the Makefile. -->' \
   '<resources>' \
   '    <string id="AppVersion">$(APP_VERSION)</string>' \
-  "    <string id=\"BuildDate\">$$BUILD_DATE</string>" \
+  "    <string id=\"AppCommit\">$$APP_COMMIT</string>" \
   '</resources>' > $(STAMP).$$$$ && mv -f $(STAMP).$$$$ $(STAMP)
-endef
-# $(call stamp_held,<what the compile wrote>), straight after the compile.
-define stamp_held
-@grep -qxF '    <string id="AppVersion">$(APP_VERSION)</string>' $(STAMP) && \
-  grep -qxF "    <string id=\"BuildDate\">$$BUILD_DATE</string>" $(STAMP) || { rm -f $(1); \
-  echo "Another make run rewrote $(STAMP) while this one compiled, so $(1) could carry"; \
-  echo "its version or date instead of this run's, and is deleted. Run one Premium build at a time."; \
-  exit 1; }
 endef
 endif
 
@@ -265,7 +257,6 @@ build:
 	$(stamp)
 	@echo "Building $(EDITION) for $(DEVICE)..."
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
-	$(call stamp_held,$(OUTPUT))
 	@echo "Build complete: $(OUTPUT)"
 
 # monkeydo only pushes a .prg into a simulator that is already running, so both
@@ -331,7 +322,6 @@ test: sim
 	$(stamp)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
-	$(call stamp_held,test_build.prg)
 	@echo "Loading tests into simulator..."
 	@output=$$($(MONKEYDO) test_build.prg $(DEVICE) -t 2>&1); \
 	  echo "$$output"; \
@@ -458,7 +448,6 @@ else
 	    printf "%*d OUT OF %s DEVICES BUILT\n", length($$4), $$1, $$4; fflush(); next } \
 	  { print; fflush() } \
 	  END { exit status + 0 }'
-	$(call stamp_held,$(EXPORT_STAGE)/$(APP).iq)
 	@mkdir -p $(dir $(EXPORT)) && mv "$(EXPORT_STAGE)/$(APP).iq" $(EXPORT)
 	@echo "Export complete: $(EXPORT)"
 endif

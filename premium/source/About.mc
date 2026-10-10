@@ -4,13 +4,13 @@ import Toybox.Lang;
 
 
 // What the About entry at the end of the Customize menu shows (#181): the version installed
-// on the watch, the day that build was made, and the developer's address. The Connect IQ app
-// shows the store's latest version and its date, which is not the copy on the watch.
+// on the watch, the commit that build was made from, and the developer's address. The Connect
+// IQ app shows the store's latest version and its date, which is not the copy on the watch.
 //
 // An app cannot read its own version: SDK 9.2.0 has no call for it, and the manifest's version
-// attribute never reaches the .prg. So make writes the manifest's version and the build's date
-// into a string resource before every Premium build, premium/resources-stamp/, which replaces
-// the fallbacks in premium/resources-base; see STAMP in the Makefile. A build that does not go
+// attribute never reaches the .prg. So make writes the manifest's version and the commit into a
+// string resource before every Premium build, premium/resources-stamp/, which replaces the
+// fallbacks in premium/resources-base; see STAMP in the Makefile. A build that does not go
 // through make shows the stamp the last make build left, or Unknown on a clean tree.
 module About {
 
@@ -21,9 +21,10 @@ module About {
         return Application.loadResource(Rez.Strings.AppVersion) as String;
     }
 
-    // YYYY-MM-DD, in UTC.
-    function buildDate() as String {
-        return Application.loadResource(Rez.Strings.BuildDate) as String;
+    // The first seven hex digits of the commit, with -dirty after them for a build of
+    // uncommitted work.
+    function commit() as String {
+        return Application.loadResource(Rez.Strings.AppCommit) as String;
     }
 
     function contact() as String {

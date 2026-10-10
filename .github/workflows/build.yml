@@ -222,7 +222,8 @@ jobs:
       # removed first and looked for after. The build step above leaves one behind, so
       # without this an export that had stopped writing its own would pass here on that
       # one -- and release.yml, which exports on a fresh checkout, would ship Unknown.
-      # AboutTest proves the stamp reaches a build; this proves export writes it.
+      # AboutTest proves the stamp reaches a build; this proves export writes it. The
+      # commit must carry no -dirty: nothing before the export may change a tracked file.
       - name: Export the store bundle
         shell: bash
         env:
@@ -233,7 +234,7 @@ jobs:
           ls -l export/*.iq
           if [ "${{ matrix.edition }}" = premium ]; then
             grep -qE '<string id="AppVersion">[0-9]+\.[0-9]+\.[0-9]+</string>' premium/resources-stamp/strings/stamp.xml &&
-              grep -qE '<string id="BuildDate">[0-9]{4}-[0-9]{2}-[0-9]{2}</string>' premium/resources-stamp/strings/stamp.xml || {
+              grep -qE '<string id="AppCommit">[0-9a-f]{7}</string>' premium/resources-stamp/strings/stamp.xml || {
               echo "::error::make export did not write the Premium build stamp (#181)"; exit 1; }
           fi
 

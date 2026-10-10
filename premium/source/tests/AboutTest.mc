@@ -9,14 +9,14 @@ import Toybox.Lang;
 class AboutTest {
 
     // make writes the stamp before every Premium build, this suite's included, so the build
-    // under test carries a real version and date, not the Unknown fallbacks. A failure here
+    // under test carries a real version and commit, not the Unknown fallbacks. A failure here
     // means the stamp no longer reaches the build: premium.jungle lost premium/resources-stamp,
     // or, on a tree with no stamp left from an earlier build, make test stopped writing it.
     // That export writes it is build.yml's to check.
     (:test)
-    static function theBuildIsStampedWithItsVersionAndDate(logger as Test.Logger) as Boolean {
+    static function theBuildIsStampedWithItsVersionAndCommit(logger as Test.Logger) as Boolean {
         Test.assertMessage(isVersion(About.version()), "\"" + About.version() + "\" is MAJOR.MINOR.PATCH");
-        Test.assertMessage(isDate(About.buildDate()), "\"" + About.buildDate() + "\" is YYYY-MM-DD");
+        Test.assertMessage(isCommit(About.commit()), "\"" + About.commit() + "\" is seven hex digits, -dirty or not");
         return true;
     }
 
@@ -64,10 +64,10 @@ class AboutTest {
 
 
     (:test)
-    static function aboutShowsTheVersionTheBuildDateAndTheContact(logger as Test.Logger) as Boolean {
+    static function aboutShowsTheVersionTheCommitAndTheContact(logger as Test.Logger) as Boolean {
         var about = new AboutMenuView();
         assertItem(about, :version, "Version", About.version());
-        assertItem(about, :built, "Built", About.buildDate());
+        assertItem(about, :commit, "Commit", About.commit());
         assertItem(about, :contact, "Contact", "wacus@pm.me");
         Test.assertMessage(about.getItem(3) == null, "About has three items");
         return true;
@@ -104,14 +104,14 @@ class AboutTest {
     }
 
 
-    static function isDate(text as String) as Boolean {
+    // Seven lower-case hex digits, as the Makefile cuts them, then nothing or -dirty.
+    static function isCommit(text as String) as Boolean {
         var chars = text.toCharArray();
-        if (chars.size() != 10) {
+        if (chars.size() != 7 && !(chars.size() == 13 && "-dirty".equals(text.substring(7, 13)))) {
             return false;
         }
-        for (var i = 0; i < chars.size(); ++i) {
-            var dash = i == 4 || i == 7;
-            if (dash != (chars[i] == '-') || !dash && !isDigit(chars[i])) {
+        for (var i = 0; i < 7; ++i) {
+            if (!isDigit(chars[i]) && "abcdef".find(chars[i].toString()) == null) {
                 return false;
             }
         }

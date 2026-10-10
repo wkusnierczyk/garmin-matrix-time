@@ -13,7 +13,7 @@
 #
 # Usage, through the Makefile:
 #   SDK_BIN=... DEV_KEY=... EDITION=premium MANIFEST=manifest-premium.xml APP=MatrixTimePremium \
-#   BETA_ID=<uuid> BUILD_DATE=<YYYY-MM-DD> tools/export-beta.sh export/MatrixTimePremium-1.0.1-beta.iq
+#   BETA_ID=<uuid> APP_COMMIT=<commit> tools/export-beta.sh export/MatrixTimePremium-1.0.1-beta.iq
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -31,7 +31,7 @@ rm -f "$output"
 : "${MANIFEST:?MANIFEST is not set}"
 : "${APP:?APP is not set}"
 : "${BETA_ID:?BETA_ID is not set}"
-: "${BUILD_DATE:?BUILD_DATE is not set}"
+: "${APP_COMMIT:?APP_COMMIT is not set}"
 
 key="$(cd "$(dirname "$DEV_KEY")" && pwd)/$(basename "$DEV_KEY")"
 test -f "$key" || { echo "Developer key not found: $DEV_KEY" >&2; exit 1; }
@@ -84,12 +84,13 @@ diff "$MANIFEST" "$copy/$MANIFEST" | grep -c '^[<>]' | grep -qx 2 ||
 # command line but what is passed here reaches it: an EXPORT_DIR given there would otherwise
 # send the inner bundle out of the copy under the public name. EXPORT names the beta, so that
 # what the inner make prints does too. BETA_ID is emptied because the copy's manifest carries
-# the beta id on purpose, which the public export otherwise refuses. BUILD_DATE is the outer
-# make's, so a date fixed there holds in the copy too (#181).
+# the beta id on purpose, which the public export otherwise refuses. APP_COMMIT is the outer
+# make's: the copy has no .git to read the commit from, and its manifest differs from the
+# commit's on purpose (#181).
 inner="export/$(basename "$output")"
 echo "Exporting $APP as its beta, $BETA_ID, from a copy of the tree..."
 MAKEFLAGS= MFLAGS= make -C "$copy" --no-print-directory export EDITION="$EDITION" VERSION=public \
-     BETA_ID= EXPORT="$inner" SDK_BIN="$sdk" DEV_KEY="$key" BUILD_DATE="$BUILD_DATE"
+     BETA_ID= EXPORT="$inner" SDK_BIN="$sdk" DEV_KEY="$key" APP_COMMIT="$APP_COMMIT"
 
 # The bundle, not the copy's manifest, is what gets uploaded: check it, and only then give it
 # its name under export/. First the whole archive, every entry read and its checksum tested, so

@@ -313,8 +313,8 @@ class PresetsMenuDelegate extends WatchUi.Menu2InputDelegate {
 }
 
 
-// The About entry's page (#181): the version on the watch, the day it was built and the
-// developer's address, each a label with its value under it. It only shows them: selecting
+// The About entry's page (#181): the version on the watch, the commit it was built from and
+// the developer's address, each a label with its value under it. It only shows them: selecting
 // an item does nothing, and back returns to the settings menu.
 class AboutMenuView extends WatchUi.Menu2 {
 
@@ -322,8 +322,8 @@ class AboutMenuView extends WatchUi.Menu2 {
         Menu2.initialize({:title => Application.loadResource(Rez.Strings.AboutTitle) as String});
         addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutVersion) as String, About.version(),
             :version, null));
-        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutBuilt) as String, About.buildDate(),
-            :built, null));
+        addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutCommit) as String, About.commit(),
+            :commit, null));
         addItem(new WatchUi.MenuItem(Application.loadResource(Rez.Strings.AboutContact) as String, About.contact(),
             :contact, null));
     }

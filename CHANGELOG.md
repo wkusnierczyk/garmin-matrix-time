@@ -18,15 +18,16 @@ each change is recorded in full.
 ### Added
 
 * **About, on the watch.** The last item of the Customize menu shows the version of Matrix Time
-  Premium installed on the watch, and opens a page with that version, the day the build was made and
+  Premium installed on the watch, and opens a page with that version, the commit it was built from and
   the developer's address. The Connect IQ app shows the store's latest version, which is not
   necessarily the one on the watch. Premium. (#181)
 
 ### Internal
 
-* Every Premium build writes the version in `manifest-premium.xml` and the build's date into the
-  build, for the About entry; `make ... BUILD_DATE=YYYY-MM-DD` fixes the date, so that a Premium build
-  can be repeated byte for byte. (#181)
+* Every Premium build writes the version in `manifest-premium.xml` and the commit it is built from
+  into the build, for the About entry, so a Premium build depends on its commit alone and a release
+  bundle can be made again from its tag. A tree that is not a git checkout no longer builds Premium.
+  (#181)
 
 ## 1.0.3 -- 2026-10-10
 
