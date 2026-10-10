@@ -20,9 +20,9 @@ carries its 1.0.1 bundle over.
 
 ### Added
 
-* **About, on the watch.** The last item of the Customize menu, About, opens a page with
-  the version of Matrix Time Premium installed on the watch, the build, which is the commit it was
-  made from, and the developer's address. The Connect IQ app shows the store's latest version, which
+* **About, on the watch.** The last item of the Customize menu, About, opens a page with the
+  version of Matrix Time Premium installed on the watch, the build, which is the commit it was made
+  from, and the developer's address. The Connect IQ app shows the store's latest version, which
   is not necessarily the one on the watch. Premium. (#181)
 
 ### Internal

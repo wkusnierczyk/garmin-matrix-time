@@ -1531,19 +1531,20 @@ in a release (#186):
 Every release carries a bundle for both editions, each at its own manifest's version, so that one
 release holds everything (#223). `v1.1.0`, which gave Premium a new version and left Lite at 1.0.1,
 carries `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code at
-the version in Lite's manifest. Where neither Lite's code and resources nor the build environment
-(the SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to the 1.0.1
-release's. Premium's carry the commit they were built from, for its [About](#about) entry (#181), so a
-carried-over Premium bundle differs from the previous release's by that string alone. The notes end
-with a *Bundles* list that says which bundles carry a new version at this tag and which carry their
-version over. Uploading a bundle to the store is the owner's, and outside the repository.
+the version in Lite's manifest. Where neither Lite's code and resources nor the build environment (the
+SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to those in the
+previous release's bundle, here `v1.0.3`'s `MatrixTime-1.0.1.iq`. Premium's carry the commit they were
+built from, for its [About](#about) entry (#181), so a carried-over Premium bundle differs from the
+previous release's by that string alone. The notes end with a *Bundles* list that says which bundles
+carry a new version at this tag and which carry their version over. Uploading a bundle to the store is
+the owner's, and outside the repository.
 
 Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
 both editions' store bundles, signs them with the real developer key, and attaches them to a **draft**
 GitHub release carrying that version's `CHANGELOG.md` section as its notes. The bundles keep the names
 `make export` gives them, by edition and version, such as `MatrixTime-1.0.1.iq` and
-`MatrixTimePremium-1.1.0.iq` in `v1.1.0`; the export step checks each name against the version in that edition's
-manifest. The 1.0.0 and 1.0.1 releases carry the tag in the asset name instead,
+`MatrixTimePremium-1.1.0.iq` in `v1.1.0`; the export step checks each name against the version in
+that edition's manifest. The 1.0.0 and 1.0.1 releases carry the tag in the asset name instead,
 `MatrixTime-v1.0.1.iq`. Publishing the draft stays manual. A beta of the same code goes to the
 edition's store beta instead: `make export EDITION=premium VERSION=beta`, run locally from the tagged
 commit, which the workflow does not build (see [From the command line](#from-the-command-line)).
@@ -1761,7 +1762,7 @@ from the bundle -- which for an app would mean the store starting to read the ma
 
 Publishing stays the owner's, so what this repository does is make the right version easy to read and
 the notes ready in time. `make export` names each bundle after the version its manifest records,
-`MatrixTime-1.0.1.iq` or `MatrixTimePremium-1.0.1.iq` (#216), and `tools/release-notes.py` refuses a
+`MatrixTime-1.0.1.iq` or `MatrixTimePremium-1.1.0.iq` (#216), and `tools/release-notes.py` refuses a
 tag until `CHANGELOG.md` has a dated section for it, so the release notes exist before anything is
 uploaded; see [Releases](#releases).
 
