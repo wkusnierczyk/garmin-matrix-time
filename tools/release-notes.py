@@ -195,20 +195,21 @@ def store_texts(version, editions):
     required += [(f'{STORE}/{edition}/whats-new-{version}.txt',
                   f"{NAMES[edition]} {version}'s What's New")
                  for edition in editions]
-    missing = []
+    problems = []
     for path, what in required:
         try:
             with open(path, encoding='utf-8') as handle:
                 text = handle.read()
         except FileNotFoundError:
-            missing.append(f'{path} ({what}) does not exist')
+            problems.append(f'{path} ({what}) does not exist')
             continue
         except OSError as error:
-            fail(f'cannot read {path}: {error}')
+            problems.append(f'cannot read {path}: {error}')
+            continue
         if not text.strip():
-            missing.append(f'{path} ({what}) is empty')
-    if missing:
-        fail('; '.join(missing) + '; write the store texts before tagging, since a '
+            problems.append(f'{path} ({what}) is empty')
+    if problems:
+        fail('; '.join(problems) + '; write the store texts before tagging, since a '
              'store upload publishes at once')
 
 

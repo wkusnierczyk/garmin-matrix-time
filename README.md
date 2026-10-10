@@ -1561,7 +1561,8 @@ edition's store beta instead: `make export EDITION=premium VERSION=beta`, run lo
 commit, which the workflow does not build (see [From the command line](#from-the-command-line)).
 
 ```bash
-# the new version of each edition that gets one, and a dated CHANGELOG.md section, come first
+# the new version of each edition that gets one, its store/<edition>/whats-new-<version>.txt, and a
+# dated CHANGELOG.md section come first
 git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
@@ -1779,7 +1780,7 @@ Publishing stays the owner's, so what this repository does is make the right ver
 the notes ready in time. `make export` names each bundle after the version its manifest records,
 `MatrixTime-1.0.1.iq` or `MatrixTimePremium-1.1.0.iq` (#216), and `tools/release-notes.py` refuses a
 tag until `CHANGELOG.md` has a dated section for it and `store/` has the *What's New* of each edition
-it gives a new version (#240), so the release notes and the text the upload publishes exist before
-anything is uploaded; see [Releases](#releases).
+it gives a new version and every edition's description (#240), so the release notes and the texts
+the upload publishes exist before anything is uploaded; see [Releases](#releases).
 
 Tested on this face's store beta, 2026-10-08.
