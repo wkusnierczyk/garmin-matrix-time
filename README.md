@@ -1228,7 +1228,9 @@ not go through `make`, such as the capture tools' container builds, shows the st
 build left, or `Unknown` on a clean tree: `monkeyc` skips a resource path that does not exist.
 `AboutTest` fails on a build that was not stamped, and CI's export step deletes the stamp first and
 fails unless the export wrote it again: a stamp left by an earlier build would otherwise pass for the
-export's own. Lite reads none of it, so `make check-lite` holds.
+export's own. Two `make` runs at once in one tree share the stamp, so after compiling, each checks
+that it still holds its own version and date, and if another run has changed it, deletes what it
+built and fails: run one Premium build at a time. Lite reads none of it, so `make check-lite` holds.
 
 Three checks keep the editions honest:
 

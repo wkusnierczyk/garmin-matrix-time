@@ -127,12 +127,17 @@ endif
 # APP_VERSION can be spliced in, since it is only ever digits and dots, or empty.
 #
 # The stamp is written to a temporary file and renamed into place, so that two recipes run in
-# parallel, make -j build export say, never let monkeyc read a half-written one.
+# parallel, make -j build export say, never let monkeyc read a half-written one. The date is
+# fixed once per make run, so those two stamp the same. Two separate make runs in one tree share
+# the one stamp, though, and one could compile the other's date: so after compiling, each checks
+# that the stamp still holds its own version and date, and if not, deletes what it built and
+# fails, rather than leave a build carrying another run's date.
 ## The date Premium's About entry gives its build, YYYY-MM-DD; today, in UTC, by default
 BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
 ifneq ($(findstring environment,$(origin BUILD_DATE)),)
   override BUILD_DATE := $(shell date -u +%Y-%m-%d)
 endif
+BUILD_DATE := $(BUILD_DATE)
 export BUILD_DATE
 STAMP_DIR := premium/resources-stamp
 STAMP := $(STAMP_DIR)/strings/stamp.xml
@@ -150,6 +155,14 @@ define stamp
   '    <string id="AppVersion">$(APP_VERSION)</string>' \
   "    <string id=\"BuildDate\">$$BUILD_DATE</string>" \
   '</resources>' > $(STAMP).$$$$ && mv -f $(STAMP).$$$$ $(STAMP)
+endef
+# $(call stamp_held,<what the compile wrote>), straight after the compile.
+define stamp_held
+@grep -qxF '    <string id="AppVersion">$(APP_VERSION)</string>' $(STAMP) && \
+  grep -qxF "    <string id=\"BuildDate\">$$BUILD_DATE</string>" $(STAMP) || { rm -f $(1); \
+  echo "Another make run rewrote $(STAMP) while this one compiled, so $(1) could carry"; \
+  echo "its version or date instead of this run's, and is deleted. Run one Premium build at a time."; \
+  exit 1; }
 endef
 endif
 
@@ -248,6 +261,7 @@ build:
 	$(stamp)
 	@echo "Building $(EDITION) for $(DEVICE)..."
 	@$(MONKEYC) $(BUILD_FLAGS) -o $(OUTPUT)
+	$(call stamp_held,$(OUTPUT))
 	@echo "Build complete: $(OUTPUT)"
 
 # monkeydo only pushes a .prg into a simulator that is already running, so both
@@ -313,6 +327,7 @@ test: sim
 	$(stamp)
 	@echo "Running Unit Tests..."
 	@$(MONKEYC) $(TEST_FLAGS) -o test_build.prg
+	$(call stamp_held,test_build.prg)
 	@echo "Loading tests into simulator..."
 	@output=$$($(MONKEYDO) test_build.prg $(DEVICE) -t 2>&1); \
 	  echo "$$output"; \
@@ -439,6 +454,7 @@ else
 	    printf "%*d OUT OF %s DEVICES BUILT\n", length($$4), $$1, $$4; fflush(); next } \
 	  { print; fflush() } \
 	  END { exit status + 0 }'
+	$(call stamp_held,$(EXPORT_STAGE)/$(APP).iq)
 	@mkdir -p $(dir $(EXPORT)) && mv "$(EXPORT_STAGE)/$(APP).iq" $(EXPORT)
 	@echo "Export complete: $(EXPORT)"
 endif
