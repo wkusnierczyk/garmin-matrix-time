@@ -8,12 +8,15 @@ stale tag would otherwise make a release that no manifest and no release notes
 back -- and a version number, once used in the Connect IQ store, cannot be used
 again. It is worth failing a minute into a release rather than after it.
 
-Three things have to agree before anything is built:
+Four things have to agree before anything is built:
 
   - the tag, which must be "v" followed by the version and nothing else;
   - the editions' manifests -- manifest.xml for Lite, manifest-premium.xml for
     Premium -- each carrying that edition's version;
-  - CHANGELOG.md, which must already carry a section for that version.
+  - CHANGELOG.md, which must already carry a section for that version;
+  - the store's texts in store/<edition>/ (#239): a What's New,
+    whats-new-<version>.txt, for each edition with a new version at the tag, and
+    the listing's description, description.txt, for every edition (#240).
 
 A tag is a code release of the repository, one for both editions; a manifest
 carries its edition's version, and the owner decides which editions get a new
@@ -38,6 +41,15 @@ afterwards is how 0.2.1 came to exist: the store took 0.2.0 from the first of
 two upload steps and left the 0.1.0 notes standing, and the number could not be
 used again. Requiring the section to exist before the tag is pushed puts the
 notes ahead of the irreversible step rather than behind it.
+
+The store's What's New is held to the same rule, for the same reason: it is the
+text that step actually publishes, since an upload publishes at once (#121). So
+each edition with a new version at the tag needs a non-empty
+store/<edition>/whats-new-<version>.txt. An edition that carries its version
+over needs none, since its bundle is not uploaded, and a release that gives
+neither edition a new version needs none at all. The description is pasted at
+an edition's next upload, whichever release that is, so every edition needs a
+non-empty store/<edition>/description.txt at every tag.
 
 On success the section's body -- the heading itself stripped, since the release
 page supplies its own title -- followed by the Bundles list goes to stdout, which
@@ -67,6 +79,8 @@ MANIFESTS = {'lite': 'manifest.xml', 'premium': 'manifest-premium.xml'}
 APPS = {'lite': 'MatrixTime', 'premium': 'MatrixTimePremium'}
 NAMES = {'lite': 'Lite', 'premium': 'Premium'}
 CHANGELOG = 'CHANGELOG.md'
+# The store's texts, one directory per edition (#239).
+STORE = 'store'
 
 # A version is three dot-separated numbers, compared as numbers: 0.10.0 is ahead
 # of 0.9.0. No leading zeros, as semver requires, so that two spellings of one
@@ -172,10 +186,37 @@ def changelog_section(version):
     return lines[start:]
 
 
+def store_texts(version, editions):
+    """Refuse unless every edition has its store description, and each edition in
+    `editions`, those with a new version at `version`, its What's New (#240)."""
+    required = [(f'{STORE}/{edition}/description.txt',
+                 f"{NAMES[edition]}'s store description")
+                for edition in MANIFESTS]
+    required += [(f'{STORE}/{edition}/whats-new-{version}.txt',
+                  f"{NAMES[edition]} {version}'s What's New")
+                 for edition in editions]
+    problems = []
+    for path, what in required:
+        try:
+            with open(path, encoding='utf-8') as handle:
+                text = handle.read()
+        except FileNotFoundError:
+            problems.append(f'{path} ({what}) does not exist')
+            continue
+        except OSError as error:
+            problems.append(f'cannot read {path}: {error}')
+            continue
+        if not text.strip():
+            problems.append(f'{path} ({what}) is empty')
+    if problems:
+        fail('; '.join(problems) + '; write the store texts before tagging, since a '
+             'store upload publishes at once')
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description='Check a release tag against the manifests and CHANGELOG.md, '
-                    'and print that release\'s notes.')
+        description='Check a release tag against the manifests, CHANGELOG.md and '
+                    'the store texts, and print that release\'s notes.')
     parser.add_argument('tag', help='the tag being released, e.g. v0.3.0')
     parser.add_argument('-o', '--output', metavar='FILE',
                         help='write the notes to FILE rather than to stdout')
@@ -189,8 +230,10 @@ def main():
     version = tag[1:]
 
     editions = released_editions(version)
+    section = changelog_section(version)
+    store_texts(version, editions)
 
-    notes = ('\n'.join(changelog_section(version)).strip() + '\n\n'
+    notes = ('\n'.join(section).strip() + '\n\n'
              + '\n'.join(bundle_notes(version)) + '\n')
     if arguments.bundles:
         with open(arguments.bundles, 'w', encoding='utf-8') as handle:

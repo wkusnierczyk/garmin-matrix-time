@@ -24,6 +24,8 @@ No user-visible effect on either watch face:
   kept outside the repository. (#239)
 * Premium's store description says the hollow style applies from the Small size up, and that the
   preset names are typed in the Connect IQ app, not on the watch. (#244)
+* A release tag is refused unless each edition it gives a new version has its store *What's New* in
+  `store/`, and every edition its store description. (#240)
 
 ## 1.1.0 -- 2026-10-10
 
