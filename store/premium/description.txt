@@ -3,7 +3,7 @@ A minimalist, elegant, nerdy, typography-focused Garmin Connect IQ watch face th
 Matrix Time Premium is the paid edition of Matrix Time. It keeps everything in the free Lite edition and adds:
 
 - Time size: seven sizes, from Lite's own up to four times it, which spans about 80% of the screen
-- Time style: filled or hollow; the time is drawn with no box, so the rain falls right up to the digits, or, from the Small size up, through them when hollow
+- Time style: filled or hollow; the time is drawn with no box, so the rain falls right up to the digits, or, from the Small size up (all but the two smallest), through them when hollow
 - A bolder time, in the same typeface as Lite at a heavier weight
 - Time alignment: left, centre or right, with a margin that follows a round screen's edge
 - Time colour: green, white, cyan, amber, orange or red
@@ -12,7 +12,7 @@ Matrix Time Premium is the paid edition of Matrix Time. It keeps everything in t
 - Always-on: a larger, bolder time than Lite's, with three brightness levels, and well inside the burn-in limits on every supported watch
 - Date: today's date under the time, in the time colour
 - Presets: five slots that save a look and load it back in one step; three come ready to load, Green, Red and Blue
-- Every setting can be changed on the watch, from the face's Customize menu, as well as in the Connect IQ app, except the preset names, which are typed in the app
+- Every setting can be changed on the watch, from the face's Customize menu, as well as in the Connect IQ app; only the preset names have to be typed in the app
 - About: the last item of the Customize menu shows the version installed on the watch, its build code and the developer's contact address, so you can tell whether the watch has caught up with the store
 
 Premium is a separate app and installs alongside Lite rather than over it.
