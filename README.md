@@ -1223,19 +1223,22 @@ from it: a tracked file changed, or a new file git does not ignore. Seven exactl
 `--short`, whose length grows with the repository, so a commit always reads the same. A manifest with
 no `MAJOR.MINOR.PATCH` version, or a tree that is not a git checkout, fails the build. The commit
 rather than the day of the build, so that a Premium build depends on its commit, not on when it is
-made: with the same SDK and key, two builds of one tree give byte-identical `.prg` files, and a
-release's `.prg` files can be made again from its tag byte for byte. Its bundle as a whole cannot,
-since each `debug.xml` in an `.iq` holds the temporary path `monkeyc` exported through, which differs
-on every export; [Releases](#releases) gives the check (#251). `tools/export-beta.sh` builds in a copy
-with no `.git`, so it passes the commit in as `APP_COMMIT`, which is checked for its shape before use.
-`premium.jungle` puts `premium/resources-stamp` after `premium/resources-base`, so the two strings
-replace the `Unknown` fallbacks committed there. The directory is gitignored, and `make clean` removes
-it. A build that does not go through `make`, such as the capture tools' container builds, shows the
-stamp the last `make` build left, or `Unknown` on a clean tree: `monkeyc` skips a resource path that
-does not exist. `AboutTest` fails on a build that was not stamped, and CI's export step deletes the
-stamp first and fails unless the export wrote it again: a stamp left by an earlier build would
-otherwise pass for the export's own; it also requires the commit without `-dirty`, since nothing before
-the export may change a tracked file. Lite reads none of it, so `make check-lite` holds.
+made: with the same SDK, device definitions and key, two release builds of one tree (`make export`, or
+`make build RELEASE=1`) give byte-identical `.prg` files, and a release's `.prg` files can be made
+again from its tag byte for byte. A debug build cannot be compared so, since it embeds the absolute
+build path. The release's bundle as a whole cannot be made again either: each `debug.xml` in an `.iq`
+holds the temporary path `monkeyc` exported through, which differs on every export, and the archive
+records each file's time of export (#251). [Releases](#releases) says how to rebuild a release's `.prg`
+files and compare them. `tools/export-beta.sh` builds in a copy with no `.git`, so it passes the commit
+in as `APP_COMMIT`, which is checked for its shape before use. `premium.jungle` puts
+`premium/resources-stamp` after `premium/resources-base`, so the two strings replace the `Unknown`
+fallbacks committed there. The directory is gitignored, and `make clean` removes it. A build that does
+not go through `make`, such as the capture tools' container builds, shows the stamp the last `make`
+build left, or `Unknown` on a clean tree: `monkeyc` skips a resource path that does not exist.
+`AboutTest` fails on a build that was not stamped, and CI's export step deletes the stamp first and
+fails unless the export wrote it again: a stamp left by an earlier build would otherwise pass for the
+export's own; it also requires the commit without `-dirty`, since nothing before the export may change
+a tracked file. Lite reads none of it, so `make check-lite` holds.
 
 Three checks keep the editions honest:
 
