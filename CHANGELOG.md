@@ -23,6 +23,9 @@ No user-visible effect on either watch face:
   as well as in the commit stamped into it, and how to check one: rebuild the previous release's
   bundle from the new tag, stamped with the previous release's commit. For a face installed from the
   store, About's Build is the commit of the release whose bundle was uploaded. (#248)
+* The README and a `Makefile` comment say that a release's `.prg` files, not its whole bundle, can be
+  made again from its tag byte for byte, given the same SDK and key: each `debug.xml` in a bundle holds
+  the temporary path of its export. (#251)
 
 ## 1.1.1 -- 2026-10-10
 
