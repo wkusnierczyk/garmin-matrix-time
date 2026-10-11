@@ -13,7 +13,12 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
-## Unreleased
+## 1.1.2 -- 2026-10-11
+
+README only: neither watch face changes, and Lite stays at 1.0.1 and Premium at 1.1.0. This
+release carries Lite's 1.0.1 bundle and Premium's 1.1.0 bundle over. Premium's is rebuilt from this
+release's commit, so its About entry shows that commit; it is not uploaded, so the store's 1.1.0
+still shows `v1.1.0`'s.
 
 ### Internal
 
