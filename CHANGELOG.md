@@ -15,19 +15,20 @@ each change is recorded in full.
 
 ## 1.1.2 -- 2026-10-11
 
-README only: neither watch face changes, and Lite stays at 1.0.1 and Premium at 1.1.0. This
-release carries Lite's 1.0.1 bundle and Premium's 1.1.0 bundle over. Premium's is rebuilt from this
-release's commit, so its About entry shows that commit; it is not uploaded, so the store's 1.1.0
-still shows `v1.1.0`'s.
+Documentation only, the README and a `Makefile` comment: neither watch face changes, and Lite stays
+at 1.0.1 and Premium at 1.1.0. This release carries Lite's 1.0.1 bundle and Premium's 1.1.0 bundle
+over. Premium's is rebuilt from this release's commit, and a watch with it would show that commit
+in About; it is not uploaded, so a face installed from the store still shows 1.1.0's, `9150087`.
 
 ### Internal
 
 No user-visible effect on either watch face:
 
-* The README says a carried-over Premium bundle differs from the previous release's in its signature
-  as well as in the commit stamped into it, and how to check one: rebuild the previous release's
-  bundle from the new tag, stamped with the previous release's commit. For a face installed from the
-  store, About's Build is the commit of the release whose bundle was uploaded. (#248)
+* The README says a carried-over Premium bundle's `.prg` files differ from the previous release's in
+  the commit stamped into them and in the two signatures that close each, and how to check them:
+  rebuild them from a clean checkout of the new tag, stamped with the previous release's commit,
+  with the container image's SDK and device definitions, and compare. For a face installed from
+  the store, About's Build is the commit of the release whose bundle was uploaded. (#248)
 * The README and a `Makefile` comment say that a release's `.prg` files, not its whole bundle, can be
   made again from its tag byte for byte, given the same SDK, device definitions and key: each
   `debug.xml` in a bundle holds the temporary path of its export, and the archive the time of it.
