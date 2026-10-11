@@ -258,10 +258,14 @@ select does nothing there, and back returns to the menu (#181).
 The Connect IQ app shows the latest version in the store and the date it was updated, which is not
 necessarily what the watch has, so About is the way to tell whether the watch has caught up; the
 Connect IQ Store app on the watch shows the version as unknown, or as developer for a face installed
-with `make sideload`. For a face installed from the store,
-Build is the release's commit; a face installed with `make sideload` shows the commit it was built
-from, with `-dirty` after it, as `11f8ef3-dirty`, when it was built from uncommitted changes. A
-Connect IQ app cannot read its own version (see
+with `make sideload`. For a face installed from the store, Build is the commit of the release whose
+bundle was uploaded, which is the release that gave Premium the version installed: `9150087`,
+`v1.1.0`'s, for 1.1.0. A later release that carries Premium's version over, such as `v1.1.1`, rebuilds
+the bundle from its own commit, and a watch with that bundle would show the later commit; but a
+carried-over bundle is not uploaded to the edition's listing, so no install from it shows that commit
+(#248). A face installed with `make sideload` shows the commit it was built from, with `-dirty` after
+it, as `11f8ef3-dirty`, when it was built from uncommitted changes. A Connect IQ app cannot read its
+own version (see
 [the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)), so
 `make` writes the version in `manifest-premium.xml` and the commit into every Premium build; see
 [Editions in the build](#editions-in-the-build). About has no entry in the Connect IQ app's settings,
@@ -1534,11 +1538,20 @@ release holds everything (#223). `v1.1.0`, which gave Premium a new version and 
 carries `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built from 1.1.0's code at
 the version in Lite's manifest. Where neither Lite's code and resources nor the build environment (the
 SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to those in the
-previous release's bundle, here `v1.0.3`'s `MatrixTime-1.0.1.iq`. Premium's carry the commit they were
-built from, for its [About](#about) entry (#181), so a carried-over Premium bundle differs from the
-previous release's by that string alone. The notes end with a *Bundles* list that says which bundles
-carry a new version at this tag and which carry their version over. Uploading a bundle to the store is
-the owner's, and outside the repository.
+previous release's bundle, here `v1.0.3`'s `MatrixTime-1.0.1.iq`. Premium's `.prg` files carry the
+commit they were built from, for its [About](#about) entry (#181), and each closes with two 512-byte
+signatures by the developer key over all the bytes before them. So a carried-over Premium bundle's
+`.prg` files differ from the previous release's in the commit and in the signatures over it, by 1,024
+to 1,030 bytes each between `v1.1.0` and `v1.1.1`, and the two never compare equal. A build is byte
+for byte the same when its code and resources, the commit stamped in, the build environment and the
+key all are. So the check is to rebuild the previous release's bundle from a clean checkout of the new
+tag, with the SDK and device definitions of the container image and the key the release secret holds:
+`make export EDITION=premium APP_COMMIT=<the previous release's commit> EXPORT_DIR=<a scratch directory>`
+must give `.prg` files byte-identical to those in the previous release's Premium bundle (#248).
+`EXPORT_DIR` keeps the rebuilt bundle out of `export/`, whose bundles are the ones uploaded. `v1.1.1`
+passed the check against `v1.1.0`, 65 `.prg` of 65. The release notes end with a *Bundles* list that
+says which bundles carry a new version at this tag and which carry their version over. Uploading a
+bundle to the store is the owner's, and outside the repository.
 
 The texts the store shows are kept in [`store/`](store/), one directory per edition, as plain text,
 since the store renders no Markdown: `description.txt`, the listing's description, and
