@@ -21,8 +21,8 @@ No user-visible effect on either watch face:
 
 * The README says a carried-over Premium bundle differs from the previous release's in its signature
   as well as in the commit stamped into it, and how to check one: rebuild the previous release's
-  bundle from the new tag with its commit. For a face installed from the store, About's Build is the
-  commit of the release whose bundle was uploaded. (#248)
+  bundle from the new tag, stamped with the previous release's commit. For a face installed from the
+  store, About's Build is the commit of the release whose bundle was uploaded. (#248)
 
 ## 1.1.1 -- 2026-10-10
 
