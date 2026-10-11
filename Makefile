@@ -118,9 +118,12 @@ endif
 # manifest stays the one record of it; a manifest with none fails the build. STAMP is
 # gitignored, and Lite's build never reads it, so make check-lite holds.
 #
-# The commit rather than the day of the build, so that a build is a function of its commit: a
-# release bundle can be made again from its tag byte for byte, and two Premium builds of one
-# tree are identical. It is the first seven hex digits of HEAD, cut rather than taken from
+# The commit rather than the day of the build, so that a build is a function of its commit, given
+# the same SDK, device definitions and key: two Premium release builds of one tree give identical
+# .prg files, and a release's .prg files can be made again from its tag byte for byte. Not its
+# whole bundle: each debug.xml in an .iq holds the temporary path monkeyc exported through, new on
+# every export, and the archive records each file's time of export (#251; see "Releases" in
+# README.md). It is the first seven hex digits of HEAD, cut rather than taken from
 # git's --short, whose length grows with the repository, so that one commit always reads the
 # same; with -dirty after it when the tree differs from that commit -- a tracked file changed,
 # or a new one git does not ignore -- so that a build of uncommitted work cannot pass for the
