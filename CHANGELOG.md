@@ -13,6 +13,17 @@ Issue numbers in parentheses point at
 [the tracker](https://github.com/wkusnierczyk/garmin-matrix-time/issues), where the reasoning behind
 each change is recorded in full.
 
+## Unreleased
+
+### Internal
+
+No user-visible effect on either watch face:
+
+* The README says a carried-over Premium bundle differs from the previous release's in its signature
+  as well as in the commit stamped into it, and how to check one: rebuild the previous release's
+  bundle from the new tag with its commit. For a face installed from the store, About's Build is the
+  commit of the release whose bundle was uploaded. (#248)
+
 ## 1.1.1 -- 2026-10-10
 
 Store texts and tooling only: neither watch face changes, and Lite stays at 1.0.1 and Premium at

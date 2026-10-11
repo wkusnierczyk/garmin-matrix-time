@@ -258,8 +258,11 @@ select does nothing there, and back returns to the menu (#181).
 The Connect IQ app shows the latest version in the store and the date it was updated, which is not
 necessarily what the watch has, so About is the way to tell whether the watch has caught up; the
 Connect IQ Store app on the watch shows the version as unknown, or as developer for a face installed
-with `make sideload`. For a face installed from the store,
-Build is the release's commit; a face installed with `make sideload` shows the commit it was built
+with `make sideload`. For a face installed from the store, Build is the commit of the release whose
+bundle was uploaded, which is the release that gave Premium that version, `v1.1.0` for 1.1.0. A later
+release that carries Premium's version over, such as `v1.1.1`, rebuilds the bundle from its own
+commit, so that bundle's About shows the later commit; but a carried-over bundle is not uploaded, so
+no store install shows it (#248). A face installed with `make sideload` shows the commit it was built
 from, with `-dirty` after it, as `11f8ef3-dirty`, when it was built from uncommitted changes. A
 Connect IQ app cannot read its own version (see
 [the store report](#connect-iq-store-the-app-version-is-free-text-unchecked-against-the-bundle)), so
@@ -1535,10 +1538,16 @@ carries `MatrixTimePremium-1.1.0.iq` and `MatrixTime-1.0.1.iq`, the second built
 the version in Lite's manifest. Where neither Lite's code and resources nor the build environment (the
 SDK, pinned by the container image) has changed, its `.prg` files are byte-identical to those in the
 previous release's bundle, here `v1.0.3`'s `MatrixTime-1.0.1.iq`. Premium's carry the commit they were
-built from, for its [About](#about) entry (#181), so a carried-over Premium bundle differs from the
-previous release's by that string alone. The notes end with a *Bundles* list that says which bundles
-carry a new version at this tag and which carry their version over. Uploading a bundle to the store is
-the owner's, and outside the repository.
+built from, for its [About](#about) entry (#181), and every `.prg` ends with a developer signature
+over all the bytes before it. So a carried-over Premium bundle differs from the previous release's in
+the commit and in the signature over it, 1,024 to 1,030 bytes in each `.prg` between `v1.1.0` and
+`v1.1.1`, and comparing the two says nothing. Unchanged code stamped with the same commit and signed
+with the same key builds byte for byte the same, so the check is to rebuild the previous release's
+bundle from the new tag: `make export EDITION=premium APP_COMMIT=<the previous release's commit>`,
+signed with the key the release secret holds, must give `.prg` files byte-identical to those in the
+previous release's Premium bundle (#248). `v1.1.1` passed it against `v1.1.0`, 65 `.prg` of 65. The
+notes end with a *Bundles* list that says which bundles carry a new version at this tag and which
+carry their version over. Uploading a bundle to the store is the owner's, and outside the repository.
 
 The texts the store shows are kept in [`store/`](store/), one directory per edition, as plain text,
 since the store renders no Markdown: `description.txt`, the listing's description, and
